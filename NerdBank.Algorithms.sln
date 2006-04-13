@@ -1,19 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NerdBank.Tools", "NerdBank.Tools\NerdBank.Tools.csproj", "{AB206D7B-B19F-401A-80E3-622DF6B31863}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NerdBank.Algorithms", "NerdBank.Algorithms\NerdBank.Algorithms.csproj", "{AB206D7B-B19F-401A-80E3-622DF6B31863}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NerdBank.ToolsTest", "NerdBank.ToolsTest\NerdBank.ToolsTest.csproj", "{B0C1143D-A7D5-4654-B251-F52F46C5D311}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NerdBank.AlgorithmsTest", "NerdBank.AlgorithmsTest\NerdBank.AlgorithmsTest.csproj", "{B0C1143D-A7D5-4654-B251-F52F46C5D311}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CD3782D-A645-40A5-BB93-135F3D7B1062}"
 	ProjectSection(SolutionItems) = preProject
 		localtestrun.testrunconfig = localtestrun.testrunconfig
-		NerdBank.Tools.vsmdi = NerdBank.Tools.vsmdi
+		NerdBank.Algorithms.vsmdi = NerdBank.Algorithms.vsmdi
 	EndProjectSection
 EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = NerdBank.Tools.vsmdi
+		CategoryFile = NerdBank.Algorithms.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

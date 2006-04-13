@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("WebTools")]
+[assembly: AssemblyTitle("NerdBank Algorithms")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("BYU MSDNAA")]
-[assembly: AssemblyProduct("WebTools")]
-[assembly: AssemblyCopyright("Copyright © BYU MSDNAA 2006")]
+[assembly: AssemblyCompany("NerdBank")]
+[assembly: AssemblyProduct("Algorithms")]
+[assembly: AssemblyCopyright("Copyright © Andrew Arnott 2006")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

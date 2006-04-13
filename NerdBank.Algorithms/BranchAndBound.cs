@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NerdBank.Tools.Algorithms
+namespace NerdBank.Algorithms
 {
 	public class BranchAndBound<T>
 		where T : BranchAndBound<T>.IBranchAndBoundNode

@@ -5,17 +5,17 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NerdBank.ToolsTest")]
+[assembly: AssemblyTitle("NerdBank Algorithms Test")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("BYU MSDNAA")]
-[assembly: AssemblyProduct("NerdBank.ToolsTest")]
-[assembly: AssemblyCopyright("Copyright © BYU MSDNAA 2006")]
+[assembly: AssemblyCompany("NerdBank")]
+[assembly: AssemblyProduct("NerdBank.AlgorithmsTest")]
+[assembly: AssemblyCopyright("Copyright © Andrew Arnott 2006")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
-// to COM componenets.  If you need to access a type in this assembly from 
+// to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 

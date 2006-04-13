@@ -7,8 +7,8 @@
     <ProjectGuid>{AB206D7B-B19F-401A-80E3-622DF6B31863}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NerdBank.Tools</RootNamespace>
-    <AssemblyName>NerdBank.Tools</AssemblyName>
+    <RootNamespace>NerdBank.Algorithms</RootNamespace>
+    <AssemblyName>NerdBank.Algorithms</AssemblyName>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>NerdBank-public.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
@@ -42,27 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Algorithms\BranchAndBound.cs" />
-    <Compile Include="CultureAssist.cs" />
-    <Compile Include="EmbeddedResources.cs" />
-    <Compile Include="Exslt\ExsltCommon.cs" />
-    <Compile Include="Exslt\ExsltDatesAndTimes.cs" />
-    <Compile Include="Exslt\ExsltMath.cs" />
-    <Compile Include="Exslt\ExsltNodeList.cs" />
-    <Compile Include="Exslt\ExsltRegularExpressions.cs" />
-    <Compile Include="Exslt\ExsltSets.cs" />
-    <Compile Include="Exslt\ExsltStrings.cs" />
-    <Compile Include="Exslt\ExsltTransform.cs" />
-    <Compile Include="InProjectResolver.cs" />
-    <Compile Include="ProjectXmlResolver.cs" />
+    <Compile Include="BranchAndBound.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StreamUtilities.cs" />
-    <Compile Include="StringUtils.cs" />
-    <Compile Include="WebControls\GoogleAnalytics.cs" />
-    <Compile Include="WebDirect.cs" />
-    <Compile Include="WebDirectAttribute.cs" />
-    <Compile Include="WebUtilities.cs" />
-    <Compile Include="XmlUtilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="NerdBank-public.snk" />
