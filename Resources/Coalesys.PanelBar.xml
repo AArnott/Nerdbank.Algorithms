@@ -1,0 +1,1253 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Coalesys.PanelBar</name>
+    </assembly>
+    <members>
+        <member name="T:Coalesys.PanelBar.Converter">
+            <summary>
+                Converter class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Converter.#ctor">
+            <summary>
+                Converter constructor.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Converter.ConvertTo(System.ComponentModel.ITypeDescriptorContext,System.Globalization.CultureInfo,System.Object,System.Type)">
+            <summary>
+                Converts the given value object to the specified type, using the specified context and culture information.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.Designer">
+            <summary>
+                Designer class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Designer.Dispose(System.Boolean)">
+            <summary>
+                Releases the unmanaged resources used by the System.Web.UI.Design.HtmlControlDesigner and optionally releases the managed resources.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Designer.#ctor">
+            <summary>
+                Designer constructor.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Designer.GetPersistInnerHtml">
+            <summary>
+                Gets the persistable inner HTML of the control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Designer.Verbs">
+            <summary>
+                Gets the design-time verbs supported by the component that is associated with the designer.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.Font">
+            <summary>
+                Font class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Font.#ctor(System.Int32)">
+            <summary>
+                Font constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.UserData">
+            <summary>
+                Returns/sets the user data of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.PaddingLeft">
+            <summary>
+                Returns/sets the left padding of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.PaddingRight">
+            <summary>
+                Returns/sets the right padding of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.Alignment">
+            <summary>
+                Returns/sets the alignment of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.Color">
+            <summary>
+                Returns/sets the color of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.Size">
+            <summary>
+                Returns/sets the size of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.Family">
+            <summary>
+                Returns/sets the family of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.Weight">
+            <summary>
+                Returns/sets the weight of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.Style">
+            <summary>
+                Returns/sets the style of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Font.TextDecoration">
+            <summary>
+                Returns/sets the text decoration of the font object.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ButtonFont">
+            <summary>
+                ButtonFont class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.ButtonFont.#ctor">
+            <summary>
+                ButtonFont constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonFont.Color">
+            <summary>
+                Returns/sets the color of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonFont.Size">
+            <summary>
+                Returns/sets the size of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonFont.TextDecoration">
+            <summary>
+                Returns/sets the text decoration of the font object.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ItemFont">
+            <summary>
+                ItemFont class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.ItemFont.#ctor">
+            <summary>
+                ItemFont constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemFont.Color">
+            <summary>
+                Returns/sets the color of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemFont.Size">
+            <summary>
+                Returns/sets the size of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemFont.TextDecoration">
+            <summary>
+                Returns/sets the text decoration of the font object.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ItemHoverFont">
+            <summary>
+                ItemHoverFont class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.ItemHoverFont.#ctor">
+            <summary>
+                ItemHoverFont constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemHoverFont.PaddingLeft">
+            <summary>
+                Returns/sets the left padding of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemHoverFont.PaddingRight">
+            <summary>
+                Returns/sets the right padding of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemHoverFont.Alignment">
+            <summary>
+                Returns/sets the alignment of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemHoverFont.Color">
+            <summary>
+                Returns/sets the color of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemHoverFont.Size">
+            <summary>
+                Returns/sets the size of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ItemHoverFont.TextDecoration">
+            <summary>
+                Returns/sets the text decoration of the font object.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ButtonHoverFont">
+            <summary>
+                ButtonHoverFont class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.ButtonHoverFont.#ctor">
+            <summary>
+                ButtonHoverFont constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonHoverFont.PaddingLeft">
+            <summary>
+                Returns/sets the left padding of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonHoverFont.PaddingRight">
+            <summary>
+                Returns/sets the right padding of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonHoverFont.Alignment">
+            <summary>
+                Returns/sets the alignment of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonHoverFont.Color">
+            <summary>
+                Returns/sets the color of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonHoverFont.Size">
+            <summary>
+                Returns/sets the size of the font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ButtonHoverFont.TextDecoration">
+            <summary>
+                Returns/sets the text decoration of the font object.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ServerGroupClickEventArgs">
+            <summary>
+                ServerGroupClickEventArgs class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.ServerGroupClickEventArgs.#ctor(Coalesys.PanelBar.Group)">
+            <summary>
+                ServerGroupClickEventArgs constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ServerGroupClickEventArgs.Group">
+            <summary>
+                Returns the group object that was clicked.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.Group">
+            <summary>
+                Group class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Group.#ctor">
+            <summary>
+                Group constructor.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Group.AddParsedSubObject(System.Object)">
+            <summary>
+                Inserts an object into the items collection.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.UserData">
+            <summary>
+                Returns/sets the user data of the group object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.UserDataString">
+            <summary>
+                Sets the user data string of the group object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.Items">
+            <summary>
+                Returns the items collection object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.Caption">
+            <summary>
+                Returns/sets the caption text of the group object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.ButtonImage">
+            <summary>
+                Returns/sets the button image for the group object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.OnClick">
+            <summary>
+                Returns/sets the on-click action for the group object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.Expanded">
+            <summary>
+                Returns/sets the expanded state of the group object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.ID">
+            <summary>
+                Returns/sets the identifier for the group object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.CaptionCssClass">
+            <summary>
+                Returns/sets the css class of the group caption.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.HtmlAboveItems">
+            <summary>
+                Returns/sets the html inserted above the item objects.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.HtmlBelowItems">
+            <summary>
+                Returns/sets the html inserted below the item objects.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Group.Name">
+            <summary>
+                Placeholder.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.Groups">
+            <summary>
+                Groups class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Groups.#ctor">
+            <summary>
+                Groups constructor.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Groups.GetEnumerator">
+            <summary>
+                Returns the enumerator object for the groups collection.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Groups.Add(System.Int32)">
+            <summary>
+                Adds a group object at the specified index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Groups.Add">
+            <summary>
+                Adds a group object at the last index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Groups.Remove(System.Int32)">
+            <summary>
+                Removes a group object at the specified index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Groups.Remove(System.String)">
+            <summary>
+                Removes a group object at the specified index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Groups.Clear">
+            <summary>
+                Removes all group objects from the collection.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Groups.UserData">
+            <summary>
+                Returns/sets the user data of the groups collection.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Groups.Item(System.Int32)">
+            <summary>
+                Returns the group object at the specified index.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Groups.Item(System.String)">
+            <summary>
+                Returns the group object at the specified index.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Groups.Count">
+            <summary>
+                Returns the number of group objects in the collection.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ServerItemClickEventArgs">
+            <summary>
+                ServerItemClickEventArgs class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.ServerItemClickEventArgs.#ctor(Coalesys.PanelBar.Group,Coalesys.PanelBar.Item)">
+            <summary>
+                ServerItemClickEventArgs constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ServerItemClickEventArgs.Group">
+            <summary>
+                Returns the group object that was clicked.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.ServerItemClickEventArgs.Item">
+            <summary>
+                Returns the item object that was clicked.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.Item">
+            <summary>
+                Item class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Item.#ctor">
+            <summary>
+                Item constructor.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.UserData">
+            <summary>
+                Returns/sets the user data of the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.UserDataString">
+            <summary>
+                Sets the user data string of the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.Caption">
+            <summary>
+                Returns/sets the caption text of the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.URL">
+            <summary>
+                Returns/sets the url of the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.Target">
+            <summary>
+                Returns/sets the target of the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.IconImage">
+            <summary>
+                Returns/sets the image name for the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.IconALT">
+            <summary>
+                Returns/sets the alternate text for the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.OnClick">
+            <summary>
+                Returns/sets the on-click action for the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.ID">
+            <summary>
+                Returns/sets the identifier for the item object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.CaptionCssClass">
+            <summary>
+                Returns/sets the css class of the item caption.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Item.Name">
+            <summary>
+                Placeholder.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.Items">
+            <summary>
+                Items class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Items.#ctor">
+            <summary>
+                Items constructor.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Items.GetEnumerator">
+            <summary>
+                Returns the enumerator object for the items collection.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Items.Add(System.Int32)">
+            <summary>
+                Adds an item object at the specified index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Items.Add">
+            <summary>
+                Adds an item object at the last index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Items.Remove(System.Int32)">
+            <summary>
+                Removes an item object at the specified index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Items.Remove(System.String)">
+            <summary>
+                Removes an item object at the specified index.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.Items.Clear">
+            <summary>
+                Removes all item objects from the collection.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Items.UserData">
+            <summary>
+                Returns/sets the user data of the items collection.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Items.Item(System.Int32)">
+            <summary>
+                Returns the item object at the specified index.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Items.Item(System.String)">
+            <summary>
+                Returns the item object at the specified index.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.Items.Count">
+            <summary>
+                Returns the number of item objects in the collection.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.GenerateConstants">
+            <summary>
+                GenerateConstants enumeration.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.GenerateConstants.BasicHTML">
+            <summary>
+                BasicHTML value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.GenerateConstants.IE4DHTML">
+            <summary>
+                IE4DHTML value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.GenerateConstants.IE5DHTML">
+            <summary>
+                IE5DHTML value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.GenerateConstants.NN4DHTML">
+            <summary>
+                NN4DHTML value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.GenerateConstants.NN6DHTML">
+            <summary>
+                NN6DHTML value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.GenerateConstants.IE6DHTML">
+            <summary>
+                IE6DHTML value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.GenerateConstants.Moz1DHTML">
+            <summary>
+                Moz1DHTML value.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.BehaviorConstants">
+            <summary>
+                BehaviorConstants enumeration.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.BehaviorConstants.None">
+            <summary>
+                None value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.BehaviorConstants.MixedScript">
+            <summary>
+                MixedScript value.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ExpandModeConstants">
+            <summary>
+                ExpandModeConstants enumeration.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.ExpandModeConstants.SingleGroupCalculatedHeight">
+            <summary>
+                SingleGroupCalculatedHeight value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.ExpandModeConstants.SingleGroupContentHeight">
+            <summary>
+                SingleGroupContentHeight value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.ExpandModeConstants.MultiGroupContentHeight">
+            <summary>
+                MultiGroupContentHeight value.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.EffectConstants">
+            <summary>
+                EffectConstants enumeration.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.EffectConstants.None">
+            <summary>
+                None value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.EffectConstants.Slide">
+            <summary>
+                Slide value.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.IconPositionConstants">
+            <summary>
+                IconPositionConstants enumeration.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.IconPositionConstants.Above">
+            <summary>
+                Above value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.IconPositionConstants.Below">
+            <summary>
+                Below value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.IconPositionConstants.Left">
+            <summary>
+                Left value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.IconPositionConstants.Right">
+            <summary>
+                Right value.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.ServerEventsConstants">
+            <summary>
+                ServerEventsConstants enumeration.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.ServerEventsConstants.Automatic">
+            <summary>
+                Automatic value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.ServerEventsConstants.Enabled">
+            <summary>
+                Enabled value.
+            </summary>
+        </member>
+        <member name="F:Coalesys.PanelBar.ServerEventsConstants.Disabled">
+            <summary>
+                Disabled value.
+            </summary>
+        </member>
+        <member name="T:Coalesys.PanelBar.PanelBar">
+            <summary>
+                PanelBar class.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.AddParsedSubObject(System.Object)">
+            <summary>
+                Inserts an object into the groups collection.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.OnPreRender(System.EventArgs)">
+            <summary>
+                Raises the System.Web.UI.Control.PreRender event.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.Render(System.Web.UI.HtmlTextWriter)">
+            <summary>
+                Sends server control content to a provided System.Web.UI.HtmlTextWriter object, which writes the content to be rendered on the client.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.OnServerGroupClick(Coalesys.PanelBar.ServerGroupClickEventArgs)">
+            <summary>
+                Raises the ServerGroupClick event.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.OnServerItemClick(Coalesys.PanelBar.ServerItemClickEventArgs)">
+            <summary>
+                Raises the ServerItemClick event.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.#ctor">
+            <summary>
+                PanelBar constructor.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.RaisePostBackEvent(System.String)">
+            <summary>
+                Notifies the server control that caused the postback that it should handle an incoming post back event.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.ApplyStyle(System.Web.UI.WebControls.Style)">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.CopyBaseAttributes(System.Web.UI.WebControls.WebControl)">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.MergeStyle(System.Web.UI.WebControls.Style)">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.RenderBeginTag(System.Web.UI.HtmlTextWriter)">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.RenderEndTag(System.Web.UI.HtmlTextWriter)">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.GeneratePanelBar(Coalesys.PanelBar.GenerateConstants)">
+            <summary>
+                Generates panelbar source code.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.GenerateStyleSheet">
+            <summary>
+                Generates style sheet source code.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.GenerateJavaScript(Coalesys.PanelBar.GenerateConstants)">
+            <summary>
+                Generates java script source code.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.GenerateOnLoadEvent">
+            <summary>
+                Generates on-load event source code.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.GenerateOnResizeEvent">
+            <summary>
+                Generates on-resize event source code.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.LoadState(System.String)">
+            <summary>
+                Loads the panelbar state from the specified file.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.LoadState(System.IO.Stream)">
+            <summary>
+                Loads the panelbar state from the specified stream.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.SaveState(System.String)">
+            <summary>
+                Saves the panelbar state to the specified file.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.SaveState(System.IO.Stream)">
+            <summary>
+                Saves the panelbar state to the specified stream.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.Reset">
+            <summary>
+                Resets the panelbar control to the default state.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.LoadXml(System.String)">
+            <summary>
+                Loads the panelbar xml from the specified file.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.LoadXml(System.Xml.XmlTextReader)">
+            <summary>
+                Loads the panelbar xml from the specified reader.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.SaveXml(System.String)">
+            <summary>
+                Saves the panelbar xml to the specified file.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.SaveXml(System.Xml.XmlTextWriter)">
+            <summary>
+                Saves the panelbar xml to the specified writer.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.GenerateIncludeScript(Coalesys.PanelBar.GenerateConstants)">
+            <summary>
+                Generates include script source code.
+            </summary>
+        </member>
+        <member name="M:Coalesys.PanelBar.PanelBar.FindItem(System.String)">
+            <summary>
+                Finds the item object with the specified identifier.
+            </summary>
+        </member>
+        <member name="E:Coalesys.PanelBar.PanelBar.ServerGroupClick">
+            <summary>
+                Fires when a group object is clicked.
+            </summary>
+        </member>
+        <member name="E:Coalesys.PanelBar.PanelBar.ServerItemClick">
+            <summary>
+                Fires when an item object is clicked.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.AccessKey">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BackColor">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BorderColor">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BorderStyle">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BorderWidth">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ControlStyle">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ControlStyleCreated">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.CssClass">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Enabled">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.EnableViewState">
+            <summary>
+                Whether the control automatically saves its state for use in round-trips.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Font">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ForeColor">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Height">
+            <summary>
+                Gets or sets the height of the Web server control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Style">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.TabIndex">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ToolTip">
+            <summary>
+                Inherited.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Visible">
+            <summary>
+                Indicates whether the control is visible and rendered.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Width">
+            <summary>
+                Gets or sets the width of the Web server control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.About">
+            <summary>
+                Returns about information for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.UserData">
+            <summary>
+                Returns/sets the user data of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Groups">
+            <summary>
+                Returns the groups collection object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonFont">
+            <summary>
+                Returns the button font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ItemFont">
+            <summary>
+                Returns the item font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ItemHoverFont">
+            <summary>
+                Returns the item hover font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Left">
+            <summary>
+                Returns/sets the left position of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Top">
+            <summary>
+                Returns/sets the top position of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ZIndex">
+            <summary>
+                Returns/sets the z-index position of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.SectionHeight">
+            <summary>
+                Returns/sets the section height of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ItemSpacing">
+            <summary>
+                Returns/sets the item spacing for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.IconWidth">
+            <summary>
+                Returns/sets the icon width for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.IconHeight">
+            <summary>
+                Returns/sets the icon height for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Position">
+            <summary>
+                Returns/sets the position type of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.GroupSelected">
+            <summary>
+                Returns/sets the group selected in the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.OuterHighlightColor">
+            <summary>
+                Returns/sets the outer highlight color of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.OuterShadowColor">
+            <summary>
+                Returns/sets the outer shadow color of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.InnerHighlightColor">
+            <summary>
+                Returns/sets the inner highlight color of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.InnerShadowColor">
+            <summary>
+                Returns/sets the inner shadow color of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BackgroundColor">
+            <summary>
+                Returns/sets the background color of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BackgroundImage">
+            <summary>
+                Returns/sets the background image of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonBackgroundImage">
+            <summary>
+                Returns/sets the background image of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonOuterHighlightColor">
+            <summary>
+                Returns/sets the outer highlight color of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonOuterShadowColor">
+            <summary>
+                Returns/sets the outer shadow color of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonInnerHighlightColor">
+            <summary>
+                Returns/sets the inner highlight color of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonInnerShadowColor">
+            <summary>
+                Returns/sets the inner shadow color of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonColor">
+            <summary>
+                Returns/sets the color of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ClearPixelImage">
+            <summary>
+                Returns/sets the clear pixel image for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.LoadingText">
+            <summary>
+                Returns/sets the loading text for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.UserAgent">
+            <summary>
+                Returns/sets the user agent for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BorderSize">
+            <summary>
+                Returns/sets the border size of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonBorderSize">
+            <summary>
+                Returns/sets the border size of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.AutoSizeToFrame">
+            <summary>
+                Returns/sets whether the panelbar automatically resizes to fit frame.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonHeight">
+            <summary>
+                Returns/sets the height of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ScrollUpEnabledImage">
+            <summary>
+                Returns/sets the scroll up enabled image for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ScrollUpDisabledImage">
+            <summary>
+                Returns/sets the scroll up disabled image for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ScrollUpActiveImage">
+            <summary>
+                Returns/sets the scroll up active image for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ScrollDownEnabledImage">
+            <summary>
+                Returns/sets the scroll down enabled image for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ScrollDownDisabledImage">
+            <summary>
+                Returns/sets the scroll down disabled image for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ScrollDownActiveImage">
+            <summary>
+                Returns/sets the scroll down active image for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.DetectedBrowser">
+            <summary>
+                Returns the detected web browser.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.BehaviorFlags">
+            <summary>
+                Returns/sets the behavior flags for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.GeneratedPrefix">
+            <summary>
+                Returns/sets the generated prefix for the panelbar source code.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ExpandMode">
+            <summary>
+                Returns/sets the expand mode of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Effect">
+            <summary>
+                Returns/sets the display effect for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.IconPosition">
+            <summary>
+                Returns/sets the icon position for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.FollowYScroll">
+            <summary>
+                Returns/sets whether the panelbar follows the vertical scrollbar.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.GroupSpacing">
+            <summary>
+                Returns/sets the group spacing for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.GroupSpacingColor">
+            <summary>
+                Returns/sets the group spacing color of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.SelectedButtonBackgroundImage">
+            <summary>
+                Returns/sets the selected background image of the group buttons.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ButtonHoverFont">
+            <summary>
+                Returns the button hover font object.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.IncludeScript">
+            <summary>
+                Returns/sets whether the panelbar renders include script source code.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.InsertHandlers">
+            <summary>
+                Returns/sets whether the panelbar inserts body tag event handlers.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ServerEvents">
+            <summary>
+                Returns/sets the server events mode of the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.LocalImagePath">
+            <summary>
+                Returns/sets the local image path for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ServerImagePath">
+            <summary>
+                Returns/sets the server image path for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.LocalURLPath">
+            <summary>
+                Returns/sets the local url path for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.LocalCompilePath">
+            <summary>
+                Returns/sets the local compile path for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.ServerIncludePath">
+            <summary>
+                Returns/sets the server include path for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.LoaderFile">
+            <summary>
+                Returns/sets the loader file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.SnippetsFile">
+            <summary>
+                Returns/sets the snippets file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.IE4DHTMLFile">
+            <summary>
+                Returns/sets the ie4 dhtml file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.IE5DHTMLFile">
+            <summary>
+                Returns/sets the ie5 dhtml file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.IE6DHTMLFile">
+            <summary>
+                Returns/sets the ie6 dhtml file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.NN4DHTMLFile">
+            <summary>
+                Returns/sets the nn4 dhtml file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.NN6DHTMLFile">
+            <summary>
+                Returns/sets the nn6 dhtml file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.Moz1DHTMLFile">
+            <summary>
+                Returns/sets the moz1 dhtml file for the panelbar control.
+            </summary>
+        </member>
+        <member name="P:Coalesys.PanelBar.PanelBar.FallbackFile">
+            <summary>
+                Returns/sets the fallback file for the panelbar control.
+            </summary>
+        </member>
+    </members>
+</doc>

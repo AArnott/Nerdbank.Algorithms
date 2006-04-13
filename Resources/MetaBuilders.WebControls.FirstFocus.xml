@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>MetaBuilders.WebControls.FirstFocus</name>
+    </assembly>
+    <members>
+        <member name="T:MetaBuilders.WebControls.FirstFocus">
+            <summary>
+            A control which gives another control focus on the webform as soon as it loads.
+            </summary>
+            <example>
+            The following is an example page using the FirstFocus control
+            <![CDATA[
+            <%@ Register TagPrefix="mbff" Namespace="MetaBuilders.WebControls" Assembly="MetaBuilders.WebControls.FirstFocus" %>
+            <html><body><form runat="server">
+            <asp:TextBox runat="server" Id="TextBox1" />
+            <asp:TextBox runat="server" Id="TextBox2" />
+            <mbff:FirstFocus runat="server" ControlToFocus="TextBox2" />
+            </form></body></html>
+            ]]>
+            </example>
+        </member>
+        <member name="M:MetaBuilders.WebControls.FirstFocus.OnPreRender(System.EventArgs)">
+            <summary>
+            Overrides <see cref="M:System.Web.UI.Control.OnPreRender(System.EventArgs)"/> to register client script.
+            </summary>
+        </member>
+        <member name="P:MetaBuilders.WebControls.FirstFocus.ControlToFocus">
+            <summary>
+            Gets or sets the ID of the control which will receive focus.
+            </summary>
+            <remarks>The control to focus must exist in the same <see cref="T:System.Web.UI.INamingContainer"/> as the <see cref="T:MetaBuilders.WebControls.FirstFocus"/> control.</remarks>
+        </member>
+        <member name="P:MetaBuilders.WebControls.FirstFocus.EnableForPostBack">
+            <summary>
+            Gets or sets whether focus will be applied on postbacks.
+            </summary>
+        </member>
+        <member name="P:MetaBuilders.WebControls.FirstFocus.Enabled">
+            <summary>
+            Gets or sets whether the focusing behavior is enabled.
+            </summary>
+        </member>
+        <member name="T:MetaBuilders.WebControls.FirstFocusControlIdConverter">
+            <summary>
+            The TypeConverter for the <see cref="P:MetaBuilders.WebControls.FirstFocus.ControlToFocus"/> property.
+            </summary>
+        </member>
+        <member name="M:MetaBuilders.WebControls.FirstFocusControlIdConverter.GetControls(System.ComponentModel.IContainer)">
+            <summary>
+            Gets the list of controls in the container.
+            </summary>
+            <param name="container">The <see cref="T:System.ComponentModel.IContainer"/> to search in for controls.</param>
+            <returns>An array of <see cref="T:System.Web.UI.Control"/> ID <see cref="T:System.String"/>.</returns>
+        </member>
+        <member name="M:MetaBuilders.WebControls.FirstFocusControlIdConverter.GetStandardValues(System.ComponentModel.ITypeDescriptorContext)">
+            <summary>
+            Overrides <see cref="M:System.ComponentModel.TypeConverter.GetStandardValues"/>.
+            </summary>
+            <returns>Returns an array of <see cref="T:System.Web.UI.Control"/> ID <see cref="T:System.String"/>.</returns>
+        </member>
+        <member name="M:MetaBuilders.WebControls.FirstFocusControlIdConverter.GetStandardValuesSupported(System.ComponentModel.ITypeDescriptorContext)">
+            <summary>
+            Overrides <see cref="M:System.ComponentModel.TypeConverter.GetStandardValuesSupported"/>.
+            </summary>
+            <returns>Returns true.</returns>
+        </member>
+        <member name="M:MetaBuilders.WebControls.FirstFocusControlIdConverter.GetStandardValuesExclusive(System.ComponentModel.ITypeDescriptorContext)">
+            <summary>
+            Overrides <see cref="M:System.ComponentModel.TypeConverter.GetStandardValuesExclusive"/>.
+            </summary>
+            <returns>Returns false.</returns>
+        </member>
+        <member name="T:MetaBuilders.WebControls.FirstFocusDesigner">
+            <summary>
+            The Designer for the <see cref="T:MetaBuilders.WebControls.FirstFocus"/> control.
+            </summary>
+        </member>
+        <member name="M:MetaBuilders.WebControls.FirstFocusDesigner.GetDesignTimeHtml">
+            <summary>
+            Overridden to create a placeholder.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="P:MetaBuilders.WebControls.FirstFocusDesigner.AllowResize">
+            <summary>
+            Overridden to disable resizing.
+            </summary>
+        </member>
+    </members>
+</doc>
