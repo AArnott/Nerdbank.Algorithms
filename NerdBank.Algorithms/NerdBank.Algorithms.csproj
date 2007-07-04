@@ -1,8 +1,8 @@
-﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.50727</ProductVersion>
+    <ProductVersion>9.0.20627</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{AB206D7B-B19F-401A-80E3-622DF6B31863}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -12,6 +12,12 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>NerdBank-public.snk</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -36,6 +42,9 @@
       <HintPath>..\Resources\C5.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
@@ -43,10 +52,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BranchAndBound.cs" />
+    <Compile Include="NodeConstraintSelection\BrokenConstraintException.cs" />
+    <Compile Include="NodeConstraintSelection\CompositeConstraint.cs" />
+    <Compile Include="NodeConstraintSelection\ConstraintBase.cs" />
+    <Compile Include="NodeConstraintSelection\ConstraintGenerator.cs" />
+    <Compile Include="NodeConstraintSelection\IConstraint.cs" />
+    <Compile Include="NodeConstraintSelection\INode.cs" />
+    <Compile Include="NodeConstraintSelection\NodeBase.cs" />
+    <Compile Include="NodeConstraintSelection\NodeSimulation.cs" />
+    <Compile Include="NodeConstraintSelection\SelectionCountConstraint.cs" />
+    <Compile Include="NodeConstraintSelection\Strings.Designer.cs">
+      <DependentUpon>Strings.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="NerdBank-public.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="NodeConstraintSelection\Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
