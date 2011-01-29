@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 
 namespace NerdBank.Algorithms.NodeConstraintSelection {
+#if !SILVERLIGHT
 	[Serializable]
+#endif
 	public abstract class ConstraintBase : IConstraint {
 		protected ConstraintBase(IEnumerable<INode> nodes) {
 			if (nodes == null) throw new ArgumentNullException("nodes");
