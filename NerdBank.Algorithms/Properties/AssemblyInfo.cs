@@ -20,9 +20,6 @@ using System.Resources;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("757caa1d-7dc8-448c-afa1-af0dadf7d92a")]
-
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version

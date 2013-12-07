@@ -5,3 +5,4 @@ _UpgradeReport_Files
 *.suo
 *.user
 _ReSharper.*
+/packages
