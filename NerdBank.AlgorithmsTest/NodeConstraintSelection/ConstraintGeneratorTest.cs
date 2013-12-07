@@ -8,8 +8,7 @@ using NerdBank.Algorithms.NodeConstraintSelection;
 namespace NerdBank.AlgorithmsTest.NodeConstraintSelection {
 	[TestClass]
 	public class ConstraintGeneratorTest {
-		[TestMethod]
-		[Ignore]
+		//[TestMethod]
 		public void TwoExactlyOneConstraintsOverlappingByOneTest() {
 			// Nodes: 1 2 3 4 5
 			// Constraint A: exactly one of these nodes is selected: 1 2 3
