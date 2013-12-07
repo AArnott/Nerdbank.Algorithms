@@ -7,11 +7,11 @@ using System.Resources;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("NerdBank Algorithms")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Algorithms such as branch and bound.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NerdBank")]
 [assembly: AssemblyProduct("Algorithms")]
-[assembly: AssemblyCopyright("Copyright © Andrew Arnott 2006")]
+[assembly: AssemblyCopyright("Copyright © Andrew Arnott 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
