@@ -1,10 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 14
+VisualStudioVersion = 14.0.24711.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4CD3782D-A645-40A5-BB93-135F3D7B1062}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		localtestrun.testrunconfig = localtestrun.testrunconfig
 		NerdBank.Algorithms.vsmdi = NerdBank.Algorithms.vsmdi
 	EndProjectSection
@@ -16,8 +17,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{624C9F0A-5DD0-44BB-B593-509CDCD3A2FD}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
 Global

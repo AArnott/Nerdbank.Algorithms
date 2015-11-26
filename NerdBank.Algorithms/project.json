@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "C5": "2.2.5073.27396"
+  },
+  "frameworks": {
+    ".NETPortable,Version=v4.5,Profile=Profile78": { }
+  },
+  "supports": { }
+}

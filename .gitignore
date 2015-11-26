@@ -6,3 +6,6 @@ _UpgradeReport_Files
 *.user
 _ReSharper.*
 /packages
+project.lock.json
+*log
+.vs/
