@@ -1,9 +1,11 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26630.3002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NerdBank.Algorithms", "NerdBank.Algorithms\NerdBank.Algorithms.csproj", "{7D0A3E71-C7A5-4465-BCA1-0B9533936D29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NerdBank.AlgorithmsTest", "NerdBank.AlgorithmsTest\NerdBank.AlgorithmsTest.csproj", "{B4474D3C-8D00-46CE-9616-A7663967E65C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{7D0A3E71-C7A5-4465-BCA1-0B9533936D29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D0A3E71-C7A5-4465-BCA1-0B9533936D29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D0A3E71-C7A5-4465-BCA1-0B9533936D29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4474D3C-8D00-46CE-9616-A7663967E65C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4474D3C-8D00-46CE-9616-A7663967E65C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4474D3C-8D00-46CE-9616-A7663967E65C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4474D3C-8D00-46CE-9616-A7663967E65C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
