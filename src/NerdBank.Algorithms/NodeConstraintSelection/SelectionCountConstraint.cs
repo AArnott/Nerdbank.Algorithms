@@ -5,9 +5,7 @@ using System.Linq;
 using System.Text;
 
 namespace NerdBank.Algorithms.NodeConstraintSelection {
-#if !PROFILE328 && !NETSTANDARD1_6
 	[Serializable]
-#endif
 	public class SelectionCountConstraint : ConstraintBase {
 		/// <summary>
 		/// Builds a new constraint that verifies that a given set of nodes

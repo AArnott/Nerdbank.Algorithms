@@ -5,9 +5,7 @@ using System.Linq;
 using System.Text;
 
 namespace NerdBank.Algorithms.NodeConstraintSelection {
-#if !PROFILE328 && !NETSTANDARD1_6
 	[Serializable]
-#endif
 	public abstract class NodeBase : INode {
 		public NodeBase() {
 			isSelected.Push(null); // push the actual selection status onto the stack.

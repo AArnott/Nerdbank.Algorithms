@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>portable-net4+sl50+win8+wpa81+wp8;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.0;portable-net40+sl50+win8+wpa81+wp8;portable-net45+win8+wpa81+wp8;net40;net45</TargetFrameworks>
 
     <Authors>Andrew Arnott</Authors>
     <Company>Andrew Arnott</Company>
@@ -11,8 +11,7 @@
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="C5.Core" Version="1.0.0" Condition=" '$(TargetFramework)' == 'netstandard1.6' " />
-    <PackageReference Include="C5" Version="2.4.5947.17249" Condition=" '$(TargetFramework)' != 'netstandard1.6' " />
+    <PackageReference Include="C5" Version="3.0.2-beta-g50c080daa6" />
     <PackageReference Include="MSBuild.Sdk.Extras" Version="1.0.0" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
