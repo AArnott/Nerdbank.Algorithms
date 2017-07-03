@@ -17,6 +17,8 @@ before_build:
   msbuild src\Nerdbank.Algorithms.sln /nologo /m /v:quiet /t:restore
 build_script:
 - msbuild src\Nerdbank.Algorithms.sln /nologo /m /fl /v:minimal /t:build,pack
+test_script:
+- dotnet test .\src\NerdBank.AlgorithmsTest\NerdBank.AlgorithmsTest.csproj --no-build
 artifacts:
 - path: bin\**\*.nupkg
   name: NuGet Package
