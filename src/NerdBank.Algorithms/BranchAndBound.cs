@@ -6,6 +6,7 @@ namespace NerdBank.Algorithms
 	using System;
 	using System.Collections.Generic;
 	using System.Diagnostics;
+	using System.Threading;
 
 	public static class BranchAndBound<T>
 		where T : BranchAndBound<T>.IBranchAndBoundNode
@@ -17,7 +18,7 @@ namespace NerdBank.Algorithms
 		/// Each node must be able to enumerate any child nodes.
 		/// Each node must be able to compare itself with other nodes
 		/// so that the priority queue may do its job.
-		/// The CompareTo method must consider cost/value to be the
+		/// The <see cref="IComparable{T}.CompareTo(T)"/> method must consider cost/value to be the
 		/// first criteria, and <see cref="IsSolution"/> to be the second,
 		/// giving preference among equal cost nodes to those nodes that
 		/// are solutions.
@@ -27,13 +28,6 @@ namespace NerdBank.Algorithms
 			/// <summary>
 			/// Gets the child nodes of this node.
 			/// </summary>
-			/// <returns>
-			/// An enumerator capable of enumerating over the child nodes.
-			/// </returns>
-			/// <remarks>
-			/// If no child nodes exist, this enumerator should operate on
-			/// an empty list.
-			/// </remarks>
 			IEnumerable<T> ChildNodes { get; }
 
 			/// <summary>
@@ -43,8 +37,7 @@ namespace NerdBank.Algorithms
 		}
 
 		/// <summary>
-		/// Searches for the optimal solution to a problem within
-		/// some given time limit, using the branch and bound algorithm.
+		/// Searches for the optimal solution to a problem using the branch and bound algorithm.
 		/// </summary>
 		/// <param name="start">
 		/// The starting node from which all solutions can be derived.
@@ -56,13 +49,10 @@ namespace NerdBank.Algorithms
 		/// Whether to prune out disqualified nodes along the way to keep
 		/// memory usage down, at the expense of some performance.
 		/// </param>
-		/// <param name="maxDuration">
-		/// The maximum time to spend on the problem before returning the
-		/// best solution found thus far.
-		/// </param>
+		/// <param name="cancellationToken">A token whose cancellation should abort the search and return the best solution found so far.</param>
 		/// <param name="optimalFound">
 		/// Whether the optimal solution was found before returning
-		/// the best found so far.  See <paramref name="maxDuration"/>.
+		/// the best found so far.  See <paramref name="cancellationToken"/>.
 		/// </param>
 		/// <param name="solutionsConsidered">
 		/// How many solutions were found during the search.
@@ -84,7 +74,7 @@ namespace NerdBank.Algorithms
 			T start,
 			T quickSolution,
 			bool pruning,
-			TimeSpan maxDuration,
+			CancellationToken cancellationToken,
 			out bool optimalFound,
 			out int solutionsConsidered,
 			out int nodesExplored,
@@ -101,7 +91,6 @@ namespace NerdBank.Algorithms
 			nodesExplored = 0;
 			solutionsConsidered = 0;
 			optimalFound = true; // assume yes
-			DateTime startTime = DateTime.Now;
 			T bestSoFar = quickSolution;
 			C5.IPriorityQueue<T> queue = new C5.IntervalHeap<T>();
 			////Wintellect.PowerCollections.OrderedBag<T> queue = new Wintellect.PowerCollections.OrderedBag<T>();
@@ -144,7 +133,7 @@ namespace NerdBank.Algorithms
 					prunedNodes++;
 				}
 
-				if ((DateTime.Now - startTime) >= maxDuration)
+				if (cancellationToken.IsCancellationRequested)
 				{
 					optimalFound = false;
 					break;
@@ -185,7 +174,7 @@ namespace NerdBank.Algorithms
 				start,
 				quickSolution,
 				pruning,
-				TimeSpan.MaxValue,
+				CancellationToken.None,
 				out optimalFound,
 				out solutionsConsidered,
 				out nodesExplored,
