@@ -1,18 +1,20 @@
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Text;
+// Copyright (c) Andrew Arnott. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace NerdBank.Algorithms
 {
-	public class BranchAndBound<T>
+	using System;
+	using System.Collections.Generic;
+	using System.Diagnostics;
+
+	public static class BranchAndBound<T>
 		where T : BranchAndBound<T>.IBranchAndBoundNode
 	{
 		/// <summary>
 		/// Represents one solution or partial solution to the problem.
 		/// </summary>
 		/// <remarks>
-		/// Each node must be able to enumerate any child nodes.  
+		/// Each node must be able to enumerate any child nodes.
 		/// Each node must be able to compare itself with other nodes
 		/// so that the priority queue may do its job.
 		/// The CompareTo method must consider cost/value to be the
@@ -23,7 +25,7 @@ namespace NerdBank.Algorithms
 		public interface IBranchAndBoundNode : IComparable<T>
 		{
 			/// <summary>
-			/// Enumerates over the child nodes of this one.
+			/// Gets the child nodes of this node.
 			/// </summary>
 			/// <returns>
 			/// An enumerator capable of enumerating over the child nodes.
@@ -33,8 +35,9 @@ namespace NerdBank.Algorithms
 			/// an empty list.
 			/// </remarks>
 			IEnumerable<T> ChildNodes { get; }
+
 			/// <summary>
-			/// Whether this node represents a solution.
+			/// Gets a value indicating whether this node represents a solution.
 			/// </summary>
 			bool IsSolution { get; }
 		}
@@ -50,38 +53,49 @@ namespace NerdBank.Algorithms
 		/// Optional. A quick-and-dirty solution that is not necessarily optimal.
 		/// </param>
 		/// <param name="pruning">
-		/// Whether to prune out disqualified nodes along the way to keep 
+		/// Whether to prune out disqualified nodes along the way to keep
 		/// memory usage down, at the expense of some performance.
 		/// </param>
 		/// <param name="maxDuration">
 		/// The maximum time to spend on the problem before returning the
 		/// best solution found thus far.
 		/// </param>
-		/// <param name="maxNodes">
-		/// The maximum number of nodes that were in the priority queue.
+		/// <param name="optimalFound">
+		/// Whether the optimal solution was found before returning
+		/// the best found so far.  See <paramref name="maxDuration"/>.
+		/// </param>
+		/// <param name="solutionsConsidered">
+		/// How many solutions were found during the search.
 		/// </param>
 		/// <param name="nodesExplored">
 		/// The total number of nodes explored for possible solutions.
 		/// </param>
-		/// <param name="optimalFound">
-		/// Whether the optimal solution was found before returning
-		/// the best found so far.  See <paramref name="maxDuration"/>.
+		/// <param name="maxNodes">
+		/// The maximum number of nodes that were in the priority queue.
 		/// </param>
 		/// <param name="prunedNodes">
 		/// The number of nodes that were pruned from the priority queue
 		/// having never been explored.
 		/// </param>
-		/// <param name="solutionsConsidered">
-		/// How many solutions were found during the search.
-		/// </param>
 		/// <returns>
 		/// The node that represents the optimal solution.
 		/// </returns>
-		public static T Search(T start, T quickSolution,
-			bool pruning, TimeSpan maxDuration, out bool optimalFound, out int solutionsConsidered,
-			out int nodesExplored, out int maxNodes, out int prunedNodes)
+		public static T Search(
+			T start,
+			T quickSolution,
+			bool pruning,
+			TimeSpan maxDuration,
+			out bool optimalFound,
+			out int solutionsConsidered,
+			out int nodesExplored,
+			out int maxNodes,
+			out int prunedNodes)
 		{
-			if (start == null) throw new ArgumentNullException("start");
+			if (start is null)
+			{
+				throw new ArgumentNullException(nameof(start));
+			}
+
 			maxNodes = 0;
 			prunedNodes = 0;
 			nodesExplored = 0;
@@ -90,36 +104,39 @@ namespace NerdBank.Algorithms
 			DateTime startTime = DateTime.Now;
 			T bestSoFar = quickSolution;
 			C5.IPriorityQueue<T> queue = new C5.IntervalHeap<T>();
-			//Wintellect.PowerCollections.OrderedBag<T> queue = new Wintellect.PowerCollections.OrderedBag<T>();
+			////Wintellect.PowerCollections.OrderedBag<T> queue = new Wintellect.PowerCollections.OrderedBag<T>();
 			if (quickSolution != null)
 			{
 				queue.Add(quickSolution);
-				//Trace.WriteLine("Enqueue: " + quickSolution.ToString());
+				////Trace.WriteLine("Enqueue: " + quickSolution.ToString());
 			}
-			//Trace.WriteLine("Enqueue: " + start.ToString());
+			////Trace.WriteLine("Enqueue: " + start.ToString());
 			queue.Add(start);
 			while (!queue.FindMin().IsSolution)
 			{
 				T node = queue.DeleteMin();
-				//Trace.WriteLine("Dequeued " + node.ToString());
+				////Trace.WriteLine("Dequeued " + node.ToString());
 				nodesExplored++;
-				Debug.Assert(!node.IsSolution);
+				Debug.Assert(!node.IsSolution, "!node.IsSolution");
 				foreach (T child in node.ChildNodes)
 				{
 					if (child.CompareTo(bestSoFar) < 0)
 					{
-						//Trace.WriteLine("Enqueue: " + child.ToString());
+						////Trace.WriteLine("Enqueue: " + child.ToString());
 						queue.Add(child);
 					}
-					//else
-					//    Trace.WriteLine("Not enqueuing: " + child.ToString());
+					////else
+					////    Trace.WriteLine("Not enqueuing: " + child.ToString());
 					if (child.IsSolution)
 					{
 						solutionsConsidered++;
 						if (bestSoFar == null || child.CompareTo(bestSoFar) < 0)
+						{
 							bestSoFar = child;
+						}
 					}
 				}
+
 				maxNodes = Math.Max(maxNodes, queue.Count);
 				while (pruning && bestSoFar != null && queue.FindMax().CompareTo(bestSoFar) > 0)
 				{
@@ -134,12 +151,12 @@ namespace NerdBank.Algorithms
 				}
 			}
 
-			//Trace.WriteLine("Finishing with these solutions in the queue:");
-			//foreach (T runthru in queue)
-			//    Trace.WriteLine(runthru);
+			////Trace.WriteLine("Finishing with these solutions in the queue:");
+			////foreach (T runthru in queue)
+			////    Trace.WriteLine(runthru);
 
-			//Debug.Assert(queue.GetFirst().CompareTo(bestSoFar) == 0);
-			Debug.Assert(bestSoFar.IsSolution);
+			////Debug.Assert(queue.GetFirst().CompareTo(bestSoFar) == 0);
+			Debug.Assert(bestSoFar.IsSolution, "bestSoFar.IsSolution");
 			return bestSoFar;
 		}
 
@@ -154,7 +171,7 @@ namespace NerdBank.Algorithms
 		/// Optional. A quick-and-dirty solution that is not necessarily optimal.
 		/// </param>
 		/// <param name="pruning">
-		/// Whether to prune out disqualified nodes along the way to keep 
+		/// Whether to prune out disqualified nodes along the way to keep
 		/// memory usage down, at the expense of some performance.
 		/// </param>
 		/// <returns>
@@ -164,8 +181,15 @@ namespace NerdBank.Algorithms
 		{
 			bool optimalFound;
 			int solutionsConsidered, nodesExplored, maxNodes, prunedNodes;
-			return Search(start, quickSolution, pruning, TimeSpan.MaxValue,
-				out optimalFound, out solutionsConsidered, out nodesExplored, out maxNodes,
+			return Search(
+				start,
+				quickSolution,
+				pruning,
+				TimeSpan.MaxValue,
+				out optimalFound,
+				out solutionsConsidered,
+				out nodesExplored,
+				out maxNodes,
 				out prunedNodes);
 		}
 	}

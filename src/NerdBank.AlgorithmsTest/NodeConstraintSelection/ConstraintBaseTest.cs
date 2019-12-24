@@ -1,36 +1,35 @@
-﻿using System;
-using System.Diagnostics;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using NerdBank.Algorithms.NodeConstraintSelection;
+using Xunit;
 
-namespace NerdBank.AlgorithmsTest.NodeConstraintSelection {
-	[TestClass()]
-	public class ConstraintBaseTest : TestBase {
-		[TestMethod]
-		public void FactorialTest() {
-			Assert.AreEqual(1, ConstraintBase.Factorial(1));
-			Assert.AreEqual(2 * 1, ConstraintBase.Factorial(2));
-			Assert.AreEqual(3 * 2 * 1, ConstraintBase.Factorial(3));
-			Assert.AreEqual(4 * 3 * 2 * 1, ConstraintBase.Factorial(4));
-		}
+public class ConstraintBaseTest
+{
+	[Fact]
+	public void FactorialTest()
+	{
+		Assert.Equal(1, ConstraintBase.Factorial(1));
+		Assert.Equal(2 * 1, ConstraintBase.Factorial(2));
+		Assert.Equal(3 * 2 * 1, ConstraintBase.Factorial(3));
+		Assert.Equal(4 * 3 * 2 * 1, ConstraintBase.Factorial(4));
+	}
 
-		[TestMethod]
-		public void ChooseNegativeTest() {
-			Assert.AreEqual(0, ConstraintBase.Choose(3, -1));
-		}
+	[Fact]
+	public void ChooseNegativeTest()
+	{
+		Assert.Equal(0, ConstraintBase.Choose(3, -1));
+	}
 
-		[TestMethod]
-		public void ChooseTest() {
-			Assert.AreEqual(3, ConstraintBase.Choose(3, 2));
+	[Fact]
+	public void ChooseTest()
+	{
+		Assert.Equal(3, ConstraintBase.Choose(3, 2));
 
-			Assert.AreEqual(1, ConstraintBase.Choose(4, 0));
-			Assert.AreEqual(4, ConstraintBase.Choose(4, 1));
-			Assert.AreEqual(6, ConstraintBase.Choose(4, 2));
-			Assert.AreEqual(4, ConstraintBase.Choose(4, 3));
-			Assert.AreEqual(1, ConstraintBase.Choose(4, 4));
-		}
-
+		Assert.Equal(1, ConstraintBase.Choose(4, 0));
+		Assert.Equal(4, ConstraintBase.Choose(4, 1));
+		Assert.Equal(6, ConstraintBase.Choose(4, 2));
+		Assert.Equal(4, ConstraintBase.Choose(4, 3));
+		Assert.Equal(1, ConstraintBase.Choose(4, 4));
 	}
 }

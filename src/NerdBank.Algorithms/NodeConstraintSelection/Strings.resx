@@ -129,6 +129,9 @@
   <data name="BrokenConstraint" xml:space="preserve">
     <value>This constraint is broken.</value>
   </data>
+  <data name="CannotResetNodeDuringSimulation" xml:space="preserve">
+    <value>Cannot reset node during simulation.</value>
+  </data>
   <data name="CardsToPlayersDistributionError" xml:space="preserve">
     <value>The cards in the game have not been properly distributed to the players.</value>
   </data>

@@ -1,11 +1,13 @@
-﻿using System;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace NerdBank.Algorithms.NodeConstraintSelection {
-	public interface INode : IComparable, INotifyPropertyChanged {
+namespace NerdBank.Algorithms.NodeConstraintSelection
+{
+	using System;
+	using System.ComponentModel;
+
+	public interface INode : IComparable, INotifyPropertyChanged
+	{
 		/// <summary>
 		/// Gets/sets the selection state of a node.
 		/// </summary>
@@ -14,18 +16,22 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
 		/// it cannot be changed again.  Call <see cref="Reset"/> to revert back to the null state.
 		/// </remarks>
 		bool? IsSelected { get; set; }
+
 		/// <summary>
 		/// Forces the node back into its indeterminate state.
 		/// </summary>
 		void Reset();
+
 		/// <summary>
 		/// Gets whether the node is currently in a simulation mode.
 		/// </summary>
 		bool IsSimulating { get; }
+
 		/// <summary>
 		/// Pushes one level deeper in the simulation.
 		/// </summary>
 		void PushSimulation();
+
 		/// <summary>
 		/// Pops off the deepest simulation level.
 		/// </summary>

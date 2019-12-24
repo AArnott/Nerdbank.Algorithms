@@ -10,7 +10,6 @@
 
 namespace NerdBank.Algorithms.NodeConstraintSelection {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -40,7 +39,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NerdBank.Algorithms.NodeConstraintSelection.Strings", typeof(Strings).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NerdBank.Algorithms.NodeConstraintSelection.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -94,6 +93,15 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         internal static string BrokenConstraint {
             get {
                 return ResourceManager.GetString("BrokenConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot reset node during simulation..
+        /// </summary>
+        internal static string CannotResetNodeDuringSimulation {
+            get {
+                return ResourceManager.GetString("CannotResetNodeDuringSimulation", resourceCulture);
             }
         }
         

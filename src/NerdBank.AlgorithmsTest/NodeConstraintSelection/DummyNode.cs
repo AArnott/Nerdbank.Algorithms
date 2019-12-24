@@ -1,25 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 using NerdBank.Algorithms.NodeConstraintSelection;
 
-namespace NerdBank.AlgorithmsTest.NodeConstraintSelection {
+/// <summary>
+/// A minimal Node class for us with testing constraints.
+/// </summary>
+internal class DummyNode : NodeBase
+{
 	/// <summary>
-	/// A minimal Node class for us with testing constraints.
+	/// Initializes a new instance of the <see cref="DummyNode"/> class.
 	/// </summary>
-	class DummyNode : NodeBase {
-		public DummyNode() { }
-		public DummyNode(object designation) {
-			this.designation = designation;
-		}
-		object designation;
+	public DummyNode()
+	{
+	}
 
-		public override string ToString() {
-			if (designation != null)
-				return designation.ToString();
-			else
-				return base.ToString();
+	/// <summary>
+	/// Initializes a new instance of the <see cref="DummyNode"/> class.
+	/// </summary>
+	/// <param name="designation"></param>
+	public DummyNode(object? designation)
+	{
+		this.designation = designation;
+	}
+
+	private object? designation;
+
+	public override string? ToString()
+	{
+		if (this.designation is object)
+		{
+			return this.designation.ToString();
+		}
+		else
+		{
+			return base.ToString();
 		}
 	}
 }
