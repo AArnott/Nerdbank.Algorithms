@@ -4,41 +4,15 @@
 namespace NerdBank.Algorithms
 {
 	using System;
-	using System.Collections.Generic;
 	using System.Diagnostics;
 	using System.Threading;
 
-	public static class BranchAndBound<T>
-		where T : BranchAndBound<T>.IBranchAndBoundNode
+	public static class BranchAndBound
 	{
-		/// <summary>
-		/// Represents one solution or partial solution to the problem.
-		/// </summary>
-		/// <remarks>
-		/// Each node must be able to enumerate any child nodes.
-		/// Each node must be able to compare itself with other nodes
-		/// so that the priority queue may do its job.
-		/// The <see cref="IComparable{T}.CompareTo(T)"/> method must consider cost/value to be the
-		/// first criteria, and <see cref="IsSolution"/> to be the second,
-		/// giving preference among equal cost nodes to those nodes that
-		/// are solutions.
-		/// </remarks>
-		public interface IBranchAndBoundNode : IComparable<T>
-		{
-			/// <summary>
-			/// Gets the child nodes of this node.
-			/// </summary>
-			IEnumerable<T> ChildNodes { get; }
-
-			/// <summary>
-			/// Gets a value indicating whether this node represents a solution.
-			/// </summary>
-			bool IsSolution { get; }
-		}
-
 		/// <summary>
 		/// Searches for the optimal solution to a problem using the branch and bound algorithm.
 		/// </summary>
+		/// <typeparam name="T">The type of problem or solution to solve.</typeparam>
 		/// <param name="start">
 		/// The starting node from which all solutions can be derived.
 		/// </param>
@@ -70,7 +44,7 @@ namespace NerdBank.Algorithms
 		/// <returns>
 		/// The node that represents the optimal solution.
 		/// </returns>
-		public static T Search(
+		public static T Search<T>(
 			T start,
 			T quickSolution,
 			bool pruning,
@@ -80,6 +54,7 @@ namespace NerdBank.Algorithms
 			out int nodesExplored,
 			out int maxNodes,
 			out int prunedNodes)
+			where T : IBranchAndBoundNode
 		{
 			if (start is null)
 			{
@@ -147,39 +122,6 @@ namespace NerdBank.Algorithms
 			////Debug.Assert(queue.GetFirst().CompareTo(bestSoFar) == 0);
 			Debug.Assert(bestSoFar.IsSolution, "bestSoFar.IsSolution");
 			return bestSoFar;
-		}
-
-		/// <summary>
-		/// Finds the optimal solution to a problem using the
-		/// branch and bound algorithm.
-		/// </summary>
-		/// <param name="start">
-		/// The starting node from which all solutions can be derived.
-		/// </param>
-		/// <param name="quickSolution">
-		/// Optional. A quick-and-dirty solution that is not necessarily optimal.
-		/// </param>
-		/// <param name="pruning">
-		/// Whether to prune out disqualified nodes along the way to keep
-		/// memory usage down, at the expense of some performance.
-		/// </param>
-		/// <returns>
-		/// The node that represents the optimal solution.
-		/// </returns>
-		public static T FindOptimal(T start, T quickSolution, bool pruning)
-		{
-			bool optimalFound;
-			int solutionsConsidered, nodesExplored, maxNodes, prunedNodes;
-			return Search(
-				start,
-				quickSolution,
-				pruning,
-				CancellationToken.None,
-				out optimalFound,
-				out solutionsConsidered,
-				out nodesExplored,
-				out maxNodes,
-				out prunedNodes);
 		}
 	}
 }
