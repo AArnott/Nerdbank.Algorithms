@@ -115,6 +115,15 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No nodes included in the constraint..
+        /// </summary>
+        internal static string ConstraintForEmptySetOfNodes {
+            get {
+                return ResourceManager.GetString("ConstraintForEmptySetOfNodes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resolve returned true but made no changes..
         /// </summary>
         internal static string ConstraintResolveReturnedTrueWithNoChanges {

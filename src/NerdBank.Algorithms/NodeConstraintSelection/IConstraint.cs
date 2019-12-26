@@ -25,43 +25,19 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		bool IsEmpty { get; }
 
 		/// <summary>
-		/// Gets a value indicating whether the group of remaining indeterminate nodes (if any) has exactly one
-		/// determinate state left that would satisfy this constraint.
+		/// Gets the state of the constraint with respect to a given scenario.
 		/// </summary>
 		/// <param name="scenario">The scenario to consider.</param>
-		/// <returns>A boolean value.</returns>
-		bool CanResolve(Scenario scenario);
+		/// <returns>A collection of flags that represent the state.</returns>
+		ConstraintStates GetState(Scenario scenario);
 
 		/// <summary>
-		/// Forces all related Nodes into a determinate state consistent with
-		/// this constraint, if there is only one state left that the indeterminate
-		/// ones can be in while keeping this constraint satisfied.
+		/// Sets any indeterminate nodes to selected or unselected based on this constraint, if possible.
 		/// </summary>
 		/// <param name="scenario">The scenario to modify.</param>
 		/// <returns>
-		/// A value indicating whether the operation was successful, and all related nodes are now resolved.
+		/// A value indicating whether any indeterminate nodes were changed.
 		/// </returns>
 		bool Resolve(Scenario scenario);
-
-		/// <summary>
-		/// Gets a value indicating whether a given scenario already fully satisifies this constraint.
-		/// </summary>
-		/// <param name="scenario">The scenario to consider.</param>
-		/// <returns>A boolean value.</returns>
-		bool IsSatisfied(Scenario scenario);
-
-		/// <summary>
-		/// Gets a value indicating whether this constraint may still be satisfied in the future.
-		/// </summary>
-		/// <param name="scenario">The scenario to consider.</param>
-		/// <returns>A boolean value.</returns>
-		bool IsSatisfiable(Scenario scenario);
-
-		/// <summary>
-		/// Gets a value indicating whether this constraint may still be broken in the future.
-		/// </summary>
-		/// <param name="scenario">The scenario to consider.</param>
-		/// <returns>A boolean value.</returns>
-		bool IsBreakable(Scenario scenario);
 	}
 }

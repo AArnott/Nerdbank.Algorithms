@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using NerdBank.Algorithms.NodeConstraintSelection;
 using Xunit;
@@ -64,6 +65,14 @@ public class SolutionBuilderTests : TestBase
 	public void AddConstraint()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(3), 1));
+	}
+
+	[Fact]
+	public void AddConstraint_ThrowsOnEmptyNodeSet()
+	{
+		var badConstraint = new EmptyNodeSetConstraint();
+		BadConstraintException ex = Assert.Throws<BadConstraintException>(() => this.builder.AddConstraint(badConstraint));
+		Assert.Same(badConstraint, ex.Constraint);
 	}
 
 	[Fact]
@@ -172,26 +181,11 @@ public class SolutionBuilderTests : TestBase
 	/// </summary>
 	private class FalselyNonResolvingConstraint : IConstraint
 	{
-		public IReadOnlyCollection<object> Nodes => throw new NotImplementedException();
+		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
 		public bool IsEmpty => throw new NotImplementedException();
 
-		public bool CanResolve(Scenario scenario)
-		{
-			throw new NotImplementedException();
-		}
-
-		public bool IsBreakable(Scenario scenario)
-		{
-			throw new NotImplementedException();
-		}
-
-		public bool IsSatisfiable(Scenario scenario)
-		{
-			throw new NotImplementedException();
-		}
-
-		public bool IsSatisfied(Scenario scenario)
+		public ConstraintStates GetState(Scenario scenario)
 		{
 			throw new NotImplementedException();
 		}
@@ -204,26 +198,28 @@ public class SolutionBuilderTests : TestBase
 	/// </summary>
 	private class ThrowingConstraint : IConstraint
 	{
-		public IReadOnlyCollection<object> Nodes => throw new NotImplementedException();
+		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
 		public bool IsEmpty => throw new NotImplementedException();
 
-		public bool CanResolve(Scenario scenario)
+		public ConstraintStates GetState(Scenario scenario)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool IsBreakable(Scenario scenario)
+		public bool Resolve(Scenario scenario)
 		{
 			throw new NotImplementedException();
 		}
+	}
 
-		public bool IsSatisfiable(Scenario scenario)
-		{
-			throw new NotImplementedException();
-		}
+	private class EmptyNodeSetConstraint : IConstraint
+	{
+		public IReadOnlyCollection<object> Nodes => Array.Empty<object>();
 
-		public bool IsSatisfied(Scenario scenario)
+		public bool IsEmpty => throw new NotImplementedException();
+
+		public ConstraintStates GetState(Scenario scenario)
 		{
 			throw new NotImplementedException();
 		}

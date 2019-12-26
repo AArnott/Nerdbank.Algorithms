@@ -19,10 +19,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Initializes a new instance of the <see cref="ScenarioPool"/> class.
 		/// </summary>
 		/// <param name="nodes">The nodes in the problem/solution.</param>
-		internal ScenarioPool(IReadOnlyList<object> nodes)
+		/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
+		internal ScenarioPool(IReadOnlyList<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
 		{
 			this.nodes = nodes;
-			this.nodeIndex = Scenario.CreateNodeIndex(nodes);
+			this.nodeIndex = nodeIndex;
 		}
 
 		/// <summary>

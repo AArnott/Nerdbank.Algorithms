@@ -112,7 +112,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		public override string ToString() => $"{this.GetType().Name}({this.Minimum}-{this.Maximum} from {{{string.Join(", ", this.Nodes)}}})";
 
 		/// <inheritdoc/>
-		public bool CanResolve(Scenario scenario)
+		public ConstraintStates GetState(Scenario scenario)
 		{
 			if (scenario is null)
 			{
@@ -120,9 +120,35 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			}
 
 			NodeStats stats = this.GetNodeStates(scenario);
-			return this.IsSatisfiable(stats)
-				&& !this.IsResolved(stats)
-				&& (this.CanResolveBySelecting(stats) || this.CanResolveByUnselecting(stats));
+			ConstraintStates states = ConstraintStates.None;
+
+			if (this.IsSatisfiable(stats))
+			{
+				states |= ConstraintStates.Satisfiable;
+				if (this.IsSatisfied(stats))
+				{
+					states |= ConstraintStates.Satisfied;
+				}
+			}
+
+			if (this.IsResolved(stats))
+			{
+				states |= ConstraintStates.Resolved;
+			}
+			else
+			{
+				if (this.CanResolveBySelecting(stats) || this.CanResolveByUnselecting(stats))
+				{
+					states |= ConstraintStates.Resolvable;
+				}
+
+				if (this.IsBreakable(stats))
+				{
+					states |= ConstraintStates.Breakable;
+				}
+			}
+
+			return states;
 		}
 
 		/// <inheritdoc/>
@@ -151,15 +177,6 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			return false;
 		}
 
-		/// <inheritdoc/>
-		public bool IsSatisfied(Scenario scenario) => this.IsSatisfied(this.GetNodeStates(scenario));
-
-		/// <inheritdoc/>
-		public bool IsSatisfiable(Scenario scenario) => this.IsSatisfiable(this.GetNodeStates(scenario));
-
-		/// <inheritdoc/>
-		public bool IsBreakable(Scenario scenario) => this.IsBreakable(this.GetNodeStates(scenario));
-
 		/// <summary>
 		/// Gets a value indicating whether we have so many UNselected nodes that the remaining nodes equal the minimum allowed selected nodes
 		/// and we can resolve by selecting the rest.
@@ -176,20 +193,29 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns><c>true</c> if we can resolve by unselecting the indeterminate nodes; <c>false</c> otherwise.</returns>
 		private bool CanResolveByUnselecting(in NodeStats stats) => stats.Selected == this.Maximum;
 
-		/// <inheritdoc cref="IsSatisfied(Scenario)"/>
+		/// <summary>
+		/// Gets a value indicating whether a given scenario already fully satisifies this constraint.
+		/// </summary>
 		/// <param name="stats">The node selection stats.</param>
+		/// <returns>A boolean value.</returns>
 		private bool IsSatisfied(in NodeStats stats) => this.Minimum <= stats.Selected && this.Maximum >= stats.Selected;
 
-		/// <inheritdoc cref="IsSatisfiable(Scenario)"/>
+		/// <summary>
+		/// Gets a value indicating whether this constraint may still be satisfied in the future.
+		/// </summary>
 		/// <param name="stats">The node selection stats.</param>
+		/// <returns>A boolean value.</returns>
 		private bool IsSatisfiable(in NodeStats stats) => this.Minimum <= stats.Selected + stats.Indeterminate && this.Maximum >= stats.Selected;
 
 		/// <inheritdoc cref="ConstraintExtensions.IsResolved(IConstraint, Scenario)"/>
 		/// <param name="stats">The node selection stats.</param>
 		private bool IsResolved(in NodeStats stats) => stats.Indeterminate == 0;
 
-		/// <inheritdoc cref="IsBreakable(Scenario)"/>
+		/// <summary>
+		/// Gets a value indicating whether this constraint may still be broken in the future.
+		/// </summary>
 		/// <param name="stats">The node selection stats.</param>
+		/// <returns>A boolean value.</returns>
 		private bool IsBreakable(in NodeStats stats)
 		{
 			return

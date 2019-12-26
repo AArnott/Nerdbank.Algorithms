@@ -3,9 +3,17 @@
 
 namespace NerdBank.Algorithms.NodeConstraintSelection
 {
+	/// <content>
+	/// Contains the <see cref="ConflictedConstraints"/> nested type.
+	/// </content>
 	public partial class SolutionBuilder
 	{
+		/// <summary>
+		/// Describes a state where no solution exists.
+		/// </summary>
+#pragma warning disable CA1034 // Nested types should not be visible
 		public class ConflictedConstraints
+#pragma warning restore CA1034 // Nested types should not be visible
 		{
 		}
 	}

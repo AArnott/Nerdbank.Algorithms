@@ -135,6 +135,9 @@
   <data name="CardsToPlayersDistributionError" xml:space="preserve">
     <value>The cards in the game have not been properly distributed to the players.</value>
   </data>
+  <data name="ConstraintForEmptySetOfNodes" xml:space="preserve">
+    <value>No nodes included in the constraint.</value>
+  </data>
   <data name="ConstraintResolveReturnedTrueWithNoChanges" xml:space="preserve">
     <value>Resolve returned true but made no changes.</value>
   </data>

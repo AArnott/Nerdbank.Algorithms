@@ -116,6 +116,17 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
+		/// Sets the selection state of a given node, even if it is already set.
+		/// </summary>
+		/// <param name="index">The index of the node to change.</param>
+		/// <param name="selected">The new state.</param>
+		internal void ResetNode(int index, bool? selected)
+		{
+			this.selectionState[index] = selected;
+			this.Version++;
+		}
+
+		/// <summary>
 		/// Applies the selection state of another scenario to this one.
 		/// </summary>
 		/// <param name="copyFrom">The template scenario.</param>
@@ -133,6 +144,8 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			{
 				dest[i] = src[i];
 			}
+
+			this.Version++;
 		}
 	}
 }

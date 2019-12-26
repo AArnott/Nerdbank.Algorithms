@@ -29,18 +29,5 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 			return true;
 		}
-
-		/// <summary>
-		/// Throws a <see cref="BrokenConstraintException"/> if this constraint is broken in a given scenario.
-		/// </summary>
-		/// <param name="constraint">The constraint to test.</param>
-		/// <param name="scenario">The scenario to consider.</param>
-		internal static void ThrowIfBroken(this IConstraint constraint, Scenario scenario)
-		{
-			if (!constraint.IsSatisfiable(scenario))
-			{
-				throw new BrokenConstraintException(constraint);
-			}
-		}
 	}
 }
