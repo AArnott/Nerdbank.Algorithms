@@ -257,5 +257,14 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
                 return ResourceManager.GetString("PropertyMustBeSetFirst", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Viable solution statistics are not available..
+        /// </summary>
+        internal static string ViableSolutionStatsNotAvailable {
+            get {
+                return ResourceManager.GetString("ViableSolutionStatsNotAvailable", resourceCulture);
+            }
+        }
     }
 }

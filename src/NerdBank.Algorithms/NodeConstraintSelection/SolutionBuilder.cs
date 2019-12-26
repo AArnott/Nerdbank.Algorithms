@@ -73,7 +73,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <summary>
 		/// Gets the number of nodes in the problem/solution.
 		/// </summary>
-		private int NodeCount => this.nodeIndex.Count;
+		private int NodeCount => this.currentScenario.NodeCount;
 
 		/// <summary>
 		/// Gets the selection state for a node with a given index.
@@ -174,7 +174,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		{
 			var stats = default(SolutionStats);
 			this.EnumerateSolutions(this.currentScenario, 0, ref stats, cancellationToken);
-			return new SolutionsAnalysis(stats.SolutionsFound, CreateConflictedConstraints(stats));
+			return new SolutionsAnalysis(stats.SolutionsFound, stats.NodesSelectedInSolutions, CreateConflictedConstraints(stats));
 		}
 
 		/// <summary>
@@ -292,9 +292,27 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 			internal long SolutionsFound { get; private set; }
 
+			internal long[]? NodesSelectedInSolutions { get; private set; }
+
 			internal void RecordSolutionFound(Scenario scenario)
 			{
 				this.SolutionsFound++;
+
+				if (!this.StopAfterFirstSolutionFound)
+				{
+					if (this.NodesSelectedInSolutions is null)
+					{
+						this.NodesSelectedInSolutions = new long[scenario.NodeCount];
+					}
+
+					for (int i = 0; i < scenario.NodeCount; i++)
+					{
+						if (scenario[i] is bool selected && selected)
+						{
+							this.NodesSelectedInSolutions[i]++;
+						}
+					}
+				}
 			}
 		}
 

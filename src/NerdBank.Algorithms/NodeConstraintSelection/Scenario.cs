@@ -63,6 +63,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
+		/// Gets the number of nodes in the problem/solution.
+		/// </summary>
+		public int NodeCount => this.nodes.Count;
+
+		/// <summary>
 		/// Gets a value that changes each time a node selection is changed.
 		/// </summary>
 		internal int Version { get; private set; }

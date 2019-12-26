@@ -183,4 +183,7 @@
   <data name="PropertyMustBeSetFirst" xml:space="preserve">
     <value>{0} property must be set first.</value>
   </data>
+  <data name="ViableSolutionStatsNotAvailable" xml:space="preserve">
+    <value>Viable solution statistics are not available.</value>
+  </data>
 </root>

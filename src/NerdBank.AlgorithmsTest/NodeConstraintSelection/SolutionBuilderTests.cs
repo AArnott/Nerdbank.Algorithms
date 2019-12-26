@@ -196,6 +196,11 @@ public class SolutionBuilderTests : TestBase
 
 		Assert.Null(analysis.Conflicts);
 		Assert.Equal(16, analysis.ViableSolutionsFound);
+
+		for (int i = 0; i < Nodes.Count; i++)
+		{
+			Assert.Equal(analysis.ViableSolutionsFound / 2, analysis.GetNodeSelectedCount(0));
+		}
 	}
 
 	private void AssertAllNodesIndeterminate()
