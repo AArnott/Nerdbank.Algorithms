@@ -71,6 +71,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		public event EventHandler<SelectionChangedEventArgs>? SelectionChanged;
 
 		/// <summary>
+		/// Gets the current scenario.
+		/// </summary>
+		internal Scenario CurrentScenario => this.currentScenario;
+
+		/// <summary>
 		/// Gets the number of nodes in the problem/solution.
 		/// </summary>
 		private int NodeCount => this.currentScenario.NodeCount;
@@ -174,7 +179,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		{
 			var stats = default(SolutionStats);
 			this.EnumerateSolutions(this.currentScenario, 0, ref stats, cancellationToken);
-			return new SolutionsAnalysis(stats.SolutionsFound, stats.NodesSelectedInSolutions, CreateConflictedConstraints(stats));
+			return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesSelectedInSolutions, CreateConflictedConstraints(stats));
 		}
 
 		/// <summary>

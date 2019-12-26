@@ -200,6 +200,65 @@ public class SolutionBuilderTests : TestBase
 		}
 	}
 
+	[Fact]
+	public void AnalyzeSolution_ConstraintInteractionsLeadToNodeSelections()
+	{
+		// Set up a constraint system in which exactly one specific node must be selected in the remaining viable solutions.
+		this.builder.AddConstraints(new[]
+		{
+			// [1-3]: exactly one
+			SelectionCountConstraint.ExactSelected(Nodes.Take(3), 1),
+
+			// [1-2] and [2-3]: each exactly one
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Skip(1).Take(2), 1),
+		});
+
+		this.builder.ResolvePartially(this.TimeoutToken);
+		this.AssertAllNodesIndeterminate();
+
+		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+
+		// viable solutions are: 0100 and 0101
+		Assert.Equal(2, analysis.ViableSolutionsFound);
+		Assert.Equal(0, analysis.GetNodeSelectedCount(0));
+		Assert.Equal(analysis.ViableSolutionsFound, analysis.GetNodeSelectedCount(1));
+		Assert.Equal(0, analysis.GetNodeSelectedCount(2));
+		Assert.Equal(1, analysis.GetNodeSelectedCount(3));
+
+		// Verify that analysis didn't impact any node selections.
+		this.AssertAllNodesIndeterminate();
+
+		// Verify that applying the analysis results back to the builder
+		// lead to 010x results.
+		analysis.ApplyAnalysisBackToBuilder();
+		for (int i = 0; i < Nodes.Count - 1; i++)
+		{
+			Assert.Equal(i == 1, this.builder[i]);
+		}
+
+		Assert.Null(this.builder[Nodes.Count - 1]);
+
+		SolutionsAnalysis analysis2 = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		Assert.Equal(analysis.ViableSolutionsFound, analysis2.ViableSolutionsFound);
+		Assert.Null(analysis2.Conflicts);
+	}
+
+	[Fact]
+	public void AnalyzeSolution_ConflictsExist()
+	{
+		this.builder.AddConstraints(new[]
+		{
+			SelectionCountConstraint.ExactSelected(Nodes.Take(3), 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Take(3), 2),
+		});
+		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		Assert.Equal(0, analysis.ViableSolutionsFound);
+		Assert.NotNull(analysis.Conflicts);
+		Assert.Throws<InvalidOperationException>(() => analysis.GetNodeSelectedCount(0));
+		Assert.Throws<InvalidOperationException>(() => analysis.ApplyAnalysisBackToBuilder());
+	}
+
 	private void AssertAllNodesIndeterminate()
 	{
 		for (int i = 0; i < Nodes.Count; i++)
