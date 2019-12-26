@@ -5,282 +5,278 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Collections.Immutable;
 	using System.Diagnostics;
 	using System.Globalization;
 	using System.Linq;
+	using System.Runtime.Serialization;
+	using System.Security;
 
-	[Serializable]
-	public class SelectionCountConstraint : ConstraintBase
+	/// <summary>
+	/// A constraint that verifies that the number of selected nodes within some set of nodes falls within a required range.
+	/// </summary>
+	public class SelectionCountConstraint : IConstraint
 	{
 		/// <summary>
-		/// Builds a new constraint that verifies that a given set of nodes
-		/// has no more than some given number with their <see cref="INode.IsSelected"/>
-		/// state set to some value.
+		/// Initializes a new instance of the <see cref="SelectionCountConstraint"/> class.
 		/// </summary>
-		/// <param name="maxNodes">
-		/// The maximum number of nodes that can be <paramref name="selectionState"/>
-		/// while satisfying the constraint.
-		/// </param>
-		/// <param name="minNodes">
-		/// The minimum number of nodes that must be <paramref name="selectionState"/>
-		/// in order to satisfy this constraint.
-		/// </param>
-		/// <param name="selectionState">
-		/// The value of <see cref="INode.IsSelected"/> for nodes to count toward or against this constraint.
-		/// </param>
+		/// <param name="minSelected">The minimum number of nodes that may be selected.</param>
+		/// <param name="maxSelected">The maximum number of nodes that may be selected. If this exceeds the count of <paramref name="nodes"/>, the value will be adjusted to equal the total count.</param>
 		/// <param name="nodes">The nodes involved in the constraint.</param>
-		public SelectionCountConstraint(int minNodes, int maxNodes, bool selectionState, IEnumerable<INode> nodes)
-			: base(nodes)
+		public SelectionCountConstraint(IEnumerable<object> nodes, int minSelected, int maxSelected)
 		{
-			if (minNodes < 0)
+			if (nodes is null)
 			{
-				throw new ArgumentOutOfRangeException(nameof(minNodes), Strings.NonNegativeRequired);
+				throw new ArgumentNullException(nameof(nodes));
 			}
 
-			if (maxNodes < 0)
+			if (minSelected < 0)
 			{
-				throw new ArgumentOutOfRangeException(nameof(maxNodes), Strings.NonNegativeRequired);
+				throw new ArgumentOutOfRangeException(nameof(minSelected), Strings.NonNegativeRequired);
 			}
 
-			if (maxNodes < minNodes)
+			if (maxSelected < 0)
 			{
-				throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.Arg1GreaterThanArg2Required, nameof(maxNodes), nameof(minNodes)));
+				throw new ArgumentOutOfRangeException(nameof(maxSelected), Strings.NonNegativeRequired);
 			}
 
-			if (maxNodes > nodes.Count())
+			if (maxSelected < minSelected)
 			{
-				throw new ArgumentOutOfRangeException(
-					nameof(maxNodes),
-					string.Format(CultureInfo.CurrentCulture, Strings.Arg1NoGreaterThanElementsInArg2Required, nameof(maxNodes), nameof(nodes)));
+				throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.Arg1GreaterThanArg2Required, nameof(maxSelected), nameof(minSelected)));
 			}
 
-			this.selectionState = selectionState;
-			this.min = minNodes;
-			this.max = maxNodes;
-		}
+			IReadOnlyCollection<object> nodesCollection = nodes as IReadOnlyCollection<object> ?? nodes.ToImmutableArray();
 
-		public static SelectionCountConstraint MaxSelected(int max, IEnumerable<INode> nodes)
-		{
-			return new SelectionCountConstraint(0, max, true, nodes);
-		}
-
-		public static SelectionCountConstraint MinSelected(int min, IEnumerable<INode> nodes)
-		{
-			return new SelectionCountConstraint(min, nodes.Count(), true, nodes);
-		}
-
-		public static SelectionCountConstraint RangeSelected(int minSelected, int maxSelected, IEnumerable<INode> nodes)
-		{
-			return new SelectionCountConstraint(minSelected, maxSelected, true, nodes);
-		}
-
-		public static SelectionCountConstraint ExactSelected(int countSelected, IEnumerable<INode> nodes)
-		{
-			return RangeSelected(countSelected, countSelected, nodes);
-		}
-
-		private readonly bool selectionState;
-
-		/// <summary>
-		/// The node state being counted as part of the constraint.
-		/// </summary>
-		public bool SelectionState
-		{
-			get { return this.selectionState; }
-		}
-
-		private readonly int min;
-		private readonly int max;
-
-		/// <summary>
-		/// The minimum number of nodes in the nodes collection
-		/// with <see cref="INode.IsSelected"/> = <see cref="SelectionState"/>
-		/// for this constraint to be satisfied.
-		/// </summary>
-		public int Min
-		{
-			get { return this.min; }
-		}
-
-		/// <summary>
-		/// The maximum number of nodes in the nodes collection
-		/// with <see cref="INode.IsSelected"/> = <see cref="SelectionState"/>
-		/// for this constraint to be satisfied.
-		/// </summary>
-		public int Max
-		{
-			get { return this.max; }
-		}
-
-		/// <summary>
-		/// Gets all the nodes that have selectionState.
-		/// </summary>
-		private int countedNodesCount
-		{
-			get
+			if (nodesCollection.Count == 0)
 			{
-				return (from n in this.Nodes
-						where n.IsSelected.HasValue && n.IsSelected.Value == this.SelectionState
-						select n).Count();
+				throw new ArgumentException(Strings.ListCannotBeEmpty, nameof(nodes));
 			}
+
+			maxSelected = Math.Min(nodesCollection.Count, maxSelected);
+
+			this.Nodes = nodesCollection;
+			this.Minimum = minSelected;
+			this.Maximum = maxSelected;
 		}
 
+		/// <inheritdoc/>
+		public IReadOnlyCollection<object> Nodes { get; }
+
 		/// <summary>
-		/// Gets all the nodes that have !selectionState.
+		/// Gets the minimum number of nodes that must be selected.
 		/// </summary>
-		private int discountedNodesCount
+		public int Minimum { get; }
+
+		/// <summary>
+		/// Gets the maximum number of nodes that must be selected.
+		/// </summary>
+		public int Maximum { get; }
+
+		/// <inheritdoc/>
+		public bool IsEmpty => this.Minimum == 0 && this.Maximum >= this.Nodes.Count;
+
+		/// <summary>
+		/// Creates a new constraint with the specified maximum for nodes that must be selected in the solution.
+		/// </summary>
+		/// <param name="nodes">The nodes that the constraint applies to.</param>
+		/// <param name="maximum">The maximum nodes that must be selected in the solution.</param>
+		/// <returns>The new constraint.</returns>
+		public static SelectionCountConstraint MaxSelected(IEnumerable<object> nodes, int maximum) => new SelectionCountConstraint(nodes, 0, maximum);
+
+		/// <summary>
+		/// Creates a new constraint with the specified minimum for nodes that must be selected in the solution.
+		/// </summary>
+		/// <param name="nodes">The nodes that the constraint applies to.</param>
+		/// <param name="minimum">The minimum nodes that must be selected in the solution.</param>
+		/// <returns>The new constraint.</returns>
+		public static SelectionCountConstraint MinSelected(IEnumerable<object> nodes, int minimum) => new SelectionCountConstraint(nodes, minimum, int.MaxValue);
+
+		/// <summary>
+		/// Creates a new constraint with the specified number of nodes that must be selected in the solution.
+		/// </summary>
+		/// <param name="nodes">The nodes that the constraint applies to.</param>
+		/// <param name="selectedCount">The number of nodes that must be selected in the solution.</param>
+		/// <returns>The new constraint.</returns>
+		public static SelectionCountConstraint ExactSelected(IEnumerable<object> nodes, int selectedCount) => new SelectionCountConstraint(nodes, selectedCount, selectedCount);
+
+		/// <summary>
+		/// Creates a new constraint with the specified minimum and maximum for nodes that must be selected in the solution.
+		/// </summary>
+		/// <param name="nodes">The nodes that the constraint applies to.</param>
+		/// <param name="minimum">The minimum nodes that must be selected in the solution.</param>
+		/// <param name="maximum">The maximum nodes that must be selected in the solution.</param>
+		/// <returns>The new constraint.</returns>
+		public static SelectionCountConstraint RangeSelected(IEnumerable<object> nodes, int minimum, int maximum) => new SelectionCountConstraint(nodes, minimum, maximum);
+
+		/// <inheritdoc/>
+		public override string ToString() => $"{this.GetType().Name}({this.Minimum}-{this.Maximum} from {{{string.Join(", ", this.Nodes)}}})";
+
+		/// <inheritdoc/>
+		public bool CanResolve(Scenario scenario)
 		{
-			get
+			if (scenario is null)
 			{
-				return (from n in this.Nodes
-						where n.IsSelected.HasValue && n.IsSelected.Value == !this.SelectionState
-						select n).Count();
+				throw new ArgumentNullException(nameof(scenario));
 			}
+
+			NodeStats stats = this.GetNodeStates(scenario);
+			return this.IsSatisfiable(stats)
+				&& !this.IsResolved(stats)
+				&& (this.CanResolveBySelecting(stats) || this.CanResolveByUnselecting(stats));
+		}
+
+		/// <inheritdoc/>
+		public bool Resolve(Scenario scenario)
+		{
+			if (scenario is null)
+			{
+				throw new ArgumentNullException(nameof(scenario));
+			}
+
+			NodeStats stats = this.GetNodeStates(scenario);
+
+			// If the maximum nodes have already been selected, unselect the rest.
+			if (this.CanResolveByUnselecting(stats))
+			{
+				return this.MarkIndeterminateNodes(scenario, select: false);
+			}
+
+			// If so many nodes have been UNselected that the remaining nodes equal the minimum allowed selected nodes, select the rest.
+			if (this.CanResolveBySelecting(stats))
+			{
+				return this.MarkIndeterminateNodes(scenario, select: true);
+			}
+
+			// We can't resolve yet.
+			return false;
+		}
+
+		/// <inheritdoc/>
+		public bool IsSatisfied(Scenario scenario) => this.IsSatisfied(this.GetNodeStates(scenario));
+
+		/// <inheritdoc/>
+		public bool IsSatisfiable(Scenario scenario) => this.IsSatisfiable(this.GetNodeStates(scenario));
+
+		/// <inheritdoc/>
+		public bool IsBreakable(Scenario scenario) => this.IsBreakable(this.GetNodeStates(scenario));
+
+		/// <summary>
+		/// Gets a value indicating whether we have so many UNselected nodes that the remaining nodes equal the minimum allowed selected nodes
+		/// and we can resolve by selecting the rest.
+		/// </summary>
+		/// <param name="stats">The node stats.</param>
+		/// <returns><c>true</c> if we can resolve by selecting the indeterminate nodes; <c>false</c> otherwise.</returns>
+		private bool CanResolveBySelecting(in NodeStats stats) => stats.Unselected == this.Nodes.Count - this.Minimum;
+
+		/// <summary>
+		/// Gets a value indicating whether the selected nodes equal the max allowable
+		/// and we can resolve by UNselecting the rest.
+		/// </summary>
+		/// <param name="stats">The node stats.</param>
+		/// <returns><c>true</c> if we can resolve by unselecting the indeterminate nodes; <c>false</c> otherwise.</returns>
+		private bool CanResolveByUnselecting(in NodeStats stats) => stats.Selected == this.Maximum;
+
+		/// <inheritdoc cref="IsSatisfied(Scenario)"/>
+		/// <param name="stats">The node selection stats.</param>
+		private bool IsSatisfied(in NodeStats stats) => this.Minimum <= stats.Selected && this.Maximum >= stats.Selected;
+
+		/// <inheritdoc cref="IsSatisfiable(Scenario)"/>
+		/// <param name="stats">The node selection stats.</param>
+		private bool IsSatisfiable(in NodeStats stats) => this.Minimum <= stats.Selected + stats.Indeterminate && this.Maximum >= stats.Selected;
+
+		/// <inheritdoc cref="ConstraintExtensions.IsResolved(IConstraint, Scenario)"/>
+		/// <param name="stats">The node selection stats.</param>
+		private bool IsResolved(in NodeStats stats) => stats.Indeterminate == 0;
+
+		/// <inheritdoc cref="IsBreakable(Scenario)"/>
+		/// <param name="stats">The node selection stats.</param>
+		private bool IsBreakable(in NodeStats stats)
+		{
+			return
+
+				// it is already broken...
+				!this.IsSatisfiable(stats) ||
+
+				// or there are enough indeterminate nodes to not count toward the minimum...
+				stats.Selected < this.Minimum ||
+
+				// or the number of selected nodes may yet exceed the maximum...
+				stats.Selected + stats.Indeterminate > this.Maximum;
 		}
 
 		/// <summary>
-		/// Gets the nodes whose selection status has not yet been determined.
+		/// Collect aggregate data on the selection state of the nodes involved in this constraint.
 		/// </summary>
-		private IEnumerable<INode> indeterminateNodes
+		/// <param name="scenario">The scenario to consider.</param>
+		/// <returns>The aggregate stats.</returns>
+		private NodeStats GetNodeStates(Scenario scenario)
 		{
-			get { return from n in this.Nodes where !n.IsSelected.HasValue select n; }
-		}
-
-		public override int PossibleSolutionsCount
-		{
-			get
+			if (scenario is null)
 			{
-				var possibilities = 0;
-				var countedNodes = this.countedNodesCount;
-				var unknownNodes = this.indeterminateNodes.Count();
+				throw new ArgumentNullException(nameof(scenario));
+			}
 
-				// Iterate through each allowed number of selected nodes and add up the choose possibilities
-				// for each one.
-				for (var i = this.Min; i <= this.Max; i++)
+			int selectedCount = 0;
+			int unselectedCount = 0;
+			int indeterminateCount = 0;
+			foreach (object node in this.Nodes)
+			{
+				bool? state = scenario[node];
+				if (state is bool isSelected)
 				{
-					// The possibilities for i selected nodes is the n_C_k combination,
-					// where n = the nodes left to choose from, and k = the nodes still to be selected.
-					possibilities += Choose(unknownNodes, i - countedNodes);
-				}
-
-				return possibilities;
-			}
-		}
-
-		public override IEnumerable<IList<INode>> PossibleSolutions
-		{
-			get
-			{
-				// If the constraint is already satisfied, then indicate that no changes is a solution.
-				if (this.IsSatisfiable)
-				{
-					var countedNodes = this.countedNodesCount;
-					INode[] unknownNodes = this.indeterminateNodes.ToArray();
-
-					// Iterate through each allowed number of selected nodes and add up the choose possibilities
-					// for each one.
-					for (var i = this.Min - countedNodes; i <= Math.Min(this.Max - countedNodes, unknownNodes.Length); i++)
+					if (isSelected)
 					{
-						foreach (INode[] result in ChooseResults(unknownNodes, i))
-						{
-							yield return result;
-						}
+						selectedCount++;
+					}
+					else
+					{
+						unselectedCount++;
 					}
 				}
-			}
-		}
-
-		public override string ToString()
-		{
-			return string.Format(
-				CultureInfo.CurrentCulture,
-				"{0}({1}, {2}, {3}, [{4}])",
-				typeof(SelectionCountConstraint).Name,
-				this.Min,
-				this.Max,
-				this.SelectionState,
-				string.Join(", ", this.Nodes.Select(n => n.ToString()).ToArray()));
-		}
-
-		public override bool CanResolve
-		{
-			get
-			{
-				return this.IsSatisfiable && !this.IsResolved && (this.countedNodesCount == this.Max || this.discountedNodesCount == this.Nodes.Count() - this.Min);
-			}
-		}
-
-		public override bool Resolve()
-		{
-			this.ThrowIfBroken();
-			if (this.IsResolved)
-			{
-				return false;
-			}
-
-			if (this.countedNodesCount == this.Max)
-			{
-				foreach (INode n in this.indeterminateNodes)
+				else
 				{
-					n.IsSelected = !this.SelectionState;
+					indeterminateCount++;
 				}
 			}
-			else if (this.discountedNodesCount == this.Nodes.Count() - this.Min)
+
+			return new NodeStats(selectedCount, unselectedCount, indeterminateCount);
+		}
+
+		/// <summary>
+		/// Mark all indeterminate nodes in a scenario as either selected or unselected.
+		/// </summary>
+		/// <param name="scenario">The scenario to alter.</param>
+		/// <param name="select"><c>true</c> to select indeterminate nodes; <c>false</c> to unselect them.</param>
+		/// <returns><c>true</c> if any nodes were actually changed; <c>false</c> if there were no indeterminate nodes.</returns>
+		private bool MarkIndeterminateNodes(Scenario scenario, bool select)
+		{
+			bool changed = false;
+			foreach (object node in this.Nodes)
 			{
-				foreach (INode n in this.indeterminateNodes)
+				if (!scenario[node].HasValue)
 				{
-					n.IsSelected = this.SelectionState;
+					scenario[node] = select;
+					changed = true;
 				}
 			}
-			else
+
+			return changed;
+		}
+
+		private struct NodeStats
+		{
+			internal NodeStats(int selected, int unselected, int indeterminate)
 			{
-				return false;
+				this.Selected = selected;
+				this.Unselected = unselected;
+				this.Indeterminate = indeterminate;
 			}
 
-			Debug.Assert(this.IsResolved, "IsResolved");
-			return true;
-		}
+			internal int Selected { get; }
 
-		public override bool IsSatisfied
-		{
-			get { return this.Min <= this.countedNodesCount && this.countedNodesCount <= this.Max; }
-		}
+			internal int Unselected { get; }
 
-		public override bool IsSatisfiable
-		{
-			get { return this.Min <= this.countedNodesCount + this.indeterminateNodes.Count() && this.countedNodesCount <= this.Max; }
-		}
-
-		public override bool IsBreakable
-		{
-			get
-			{
-				return
-
-					// it is already broken...
-					this.IsBroken ||
-
-					// or there are enough indeterminate nodes to not count toward the minimum...
-					this.countedNodesCount < this.Min ||
-
-					// or the number of selected nodes may yet exceed the maximum...
-					this.countedNodesCount + this.indeterminateNodes.Count() > this.Max;
-			}
-		}
-
-		public override bool IsMinimized
-		{
-			get { return this.Max == this.Nodes.Count() && this.Min == this.Max; }
-		}
-
-		public override bool IsWorthwhile
-		{
-			get { return !this.IsWorthless; }
-		}
-
-		public override bool IsWorthless
-		{
-			get { return this.Min == 0 && this.Max >= this.Nodes.Count(); }
+			internal int Indeterminate { get; }
 		}
 	}
 }

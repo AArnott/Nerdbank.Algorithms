@@ -115,6 +115,24 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Resolve returned true but made no changes..
+        /// </summary>
+        internal static string ConstraintResolveReturnedTrueWithNoChanges {
+            get {
+                return ResourceManager.GetString("ConstraintResolveReturnedTrueWithNoChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A constraint threw an unexpected exception..
+        /// </summary>
+        internal static string ConstraintThrewUnexpectedException {
+            get {
+                return ResourceManager.GetString("ConstraintThrewUnexpectedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The value of the {0} argument must be one of the cards in the {1} argument..
         /// </summary>
         internal static string DisprovingCardNotInSuspicion {
@@ -151,6 +169,33 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This node already has a set state..
+        /// </summary>
+        internal static string NodeAlreadySet {
+            get {
+                return ResourceManager.GetString("NodeAlreadySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Template does not have matching node count..
+        /// </summary>
+        internal static string NodeCountMismatch {
+            get {
+                return ResourceManager.GetString("NodeCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Array must be initialized and non-empty..
+        /// </summary>
+        internal static string NonEmptyArrayRequired {
+            get {
+                return ResourceManager.GetString("NonEmptyArrayRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A non-negative value is required..
         /// </summary>
         internal static string NonNegativeRequired {
@@ -165,6 +210,15 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         internal static string NotSimulating {
             get {
                 return ResourceManager.GetString("NotSimulating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Collection had null member..
+        /// </summary>
+        internal static string NullMemberOfCollection {
+            get {
+                return ResourceManager.GetString("NullMemberOfCollection", resourceCulture);
             }
         }
         

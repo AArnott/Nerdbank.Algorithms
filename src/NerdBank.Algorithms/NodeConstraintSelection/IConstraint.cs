@@ -5,67 +5,63 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 {
 	using System.Collections.Generic;
 
+	/// <summary>
+	/// Describes some known constraint on the final solution
+	/// and tests whether a partial solution satisfies the constraint.
+	/// </summary>
+	/// <remarks>
+	/// Implementations should be immutable.
+	/// </remarks>
 	public interface IConstraint
 	{
 		/// <summary>
-		/// Gets the set of nodes being constrained.
+		/// Gets the set of indexes to nodes that are involved in the constraint.
 		/// </summary>
-		IEnumerable<INode> Nodes { get; }
+		IReadOnlyCollection<object> Nodes { get; }
 
 		/// <summary>
-		/// Whether every node in this constraint has a determined selection state.
+		/// Gets a value indicating whether this constraint can be discarded without any information loss.
 		/// </summary>
-		bool IsResolved { get; }
+		bool IsEmpty { get; }
 
 		/// <summary>
-		/// Whether the group of remaining indeterminate nodes (if any) has exactly one
+		/// Gets a value indicating whether the group of remaining indeterminate nodes (if any) has exactly one
 		/// determinate state left that would satisfy this constraint.
 		/// </summary>
-		bool CanResolve { get; }
+		/// <param name="scenario">The scenario to consider.</param>
+		/// <returns>A boolean value.</returns>
+		bool CanResolve(Scenario scenario);
 
 		/// <summary>
 		/// Forces all related Nodes into a determinate state consistent with
 		/// this constraint, if there is only one state left that the indeterminate
 		/// ones can be in while keeping this constraint satisfied.
 		/// </summary>
+		/// <param name="scenario">The scenario to modify.</param>
 		/// <returns>
-		/// Whether the operation was successful, and all related nodes are now resolved.
+		/// A value indicating whether the operation was successful, and all related nodes are now resolved.
 		/// </returns>
-		bool Resolve();
+		bool Resolve(Scenario scenario);
 
 		/// <summary>
-		/// Whether this constraint is satisfied.
+		/// Gets a value indicating whether a given scenario already fully satisifies this constraint.
 		/// </summary>
-		bool IsSatisfied { get; }
+		/// <param name="scenario">The scenario to consider.</param>
+		/// <returns>A boolean value.</returns>
+		bool IsSatisfied(Scenario scenario);
 
 		/// <summary>
-		/// Whether this constraint may still be satisfied in the future.
+		/// Gets a value indicating whether this constraint may still be satisfied in the future.
 		/// </summary>
-		bool IsSatisfiable { get; }
+		/// <param name="scenario">The scenario to consider.</param>
+		/// <returns>A boolean value.</returns>
+		bool IsSatisfiable(Scenario scenario);
 
 		/// <summary>
-		/// Whether this constraint is already irrepairably broken.
+		/// Gets a value indicating whether this constraint may still be broken in the future.
 		/// </summary>
-		bool IsBroken { get; }
-
-		/// <summary>
-		/// Whether this constraint may still be broken in the future.
-		/// </summary>
-		bool IsBreakable { get; }
-
-		/// <summary>
-		/// Whether this constraint is just as tight as possible.
-		/// </summary>
-		bool IsMinimized { get; }
-
-		/// <summary>
-		/// Whether this constraint contains any useful information.
-		/// </summary>
-		bool IsWorthwhile { get; }
-
-		/// <summary>
-		/// Whether this constraint can be discarded without any information loss.
-		/// </summary>
-		bool IsWorthless { get; }
+		/// <param name="scenario">The scenario to consider.</param>
+		/// <returns>A boolean value.</returns>
+		bool IsBreakable(Scenario scenario);
 	}
 }

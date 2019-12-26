@@ -7,44 +7,44 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	using System.Runtime.Serialization;
 
 	/// <summary>
-	/// An exception that identifies when a combination of constraints cannot be simultaneously satisfied.
+	/// An exception thrown when some <see cref="IConstraint"/> misbehaves.
 	/// </summary>
 	[Serializable]
 #pragma warning disable CA1032 // Implement standard exception constructors
-	public class BrokenConstraintException : Exception
+	public class BadConstraintException : Exception
 #pragma warning restore CA1032 // Implement standard exception constructors
 	{
-		/// <inheritdoc cref="BrokenConstraintException(IConstraint, string, Exception)"/>
-		public BrokenConstraintException(IConstraint constraint)
+		/// <inheritdoc cref="BadConstraintException(IConstraint, string, Exception)"/>
+		public BadConstraintException(IConstraint constraint)
 		{
 			this.Constraint = constraint ?? throw new ArgumentNullException(nameof(constraint));
 		}
 
-		/// <inheritdoc cref="BrokenConstraintException(IConstraint, string, Exception)"/>
-		public BrokenConstraintException(IConstraint constraint, string message)
+		/// <inheritdoc cref="BadConstraintException(IConstraint, string, Exception)"/>
+		public BadConstraintException(IConstraint constraint, string message)
 			: base(message)
 		{
 			this.Constraint = constraint ?? throw new ArgumentNullException(nameof(constraint));
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BrokenConstraintException"/> class.
+		/// Initializes a new instance of the <see cref="BadConstraintException"/> class.
 		/// </summary>
 		/// <param name="constraint">The constraint that misbehaved.</param>
 		/// <param name="message">A message about how the constraint misbehaved.</param>
 		/// <param name="inner">An inner exception.</param>
-		public BrokenConstraintException(IConstraint constraint, string message, Exception inner)
+		public BadConstraintException(IConstraint constraint, string message, Exception inner)
 			: base(message, inner)
 		{
 			this.Constraint = constraint ?? throw new ArgumentNullException(nameof(constraint));
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BrokenConstraintException"/> class.
+		/// Initializes a new instance of the <see cref="BadConstraintException"/> class.
 		/// </summary>
 		/// <param name="info">Serialization info.</param>
 		/// <param name="context">Serialization context.</param>
-		protected BrokenConstraintException(SerializationInfo info, StreamingContext context)
+		protected BadConstraintException(SerializationInfo info, StreamingContext context)
 			: base(info, context)
 		{
 			this.Constraint = (IConstraint)info.GetValue(nameof(this.Constraint), typeof(IConstraint));

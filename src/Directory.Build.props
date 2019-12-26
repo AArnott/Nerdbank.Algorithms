@@ -8,12 +8,6 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-
-    <!-- Ignore documentation requirements till we catch up. -->
-    <NoWarn>$(NoWarn);SA1600;CS1591;SA1614;SA1611;SA1623;SA1642</NoWarn>
-    
-    <!-- Ignore member ordering and naming rules for now. -->
-    <NoWarn>$(NoWarn);SA1201;SA1202;SA1300</NoWarn>
     
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\strongname.snk</AssemblyOriginatorKeyFile>

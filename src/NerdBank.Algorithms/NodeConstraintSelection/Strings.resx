@@ -135,6 +135,12 @@
   <data name="CardsToPlayersDistributionError" xml:space="preserve">
     <value>The cards in the game have not been properly distributed to the players.</value>
   </data>
+  <data name="ConstraintResolveReturnedTrueWithNoChanges" xml:space="preserve">
+    <value>Resolve returned true but made no changes.</value>
+  </data>
+  <data name="ConstraintThrewUnexpectedException" xml:space="preserve">
+    <value>A constraint threw an unexpected exception.</value>
+  </data>
   <data name="DisprovingCardNotInSuspicion" xml:space="preserve">
     <value>The value of the {0} argument must be one of the cards in the {1} argument.</value>
   </data>
@@ -147,11 +153,23 @@
   <data name="ListCannotBeEmpty" xml:space="preserve">
     <value>A non-empty list is required.</value>
   </data>
+  <data name="NodeAlreadySet" xml:space="preserve">
+    <value>This node already has a set state.</value>
+  </data>
+  <data name="NodeCountMismatch" xml:space="preserve">
+    <value>Template does not have matching node count.</value>
+  </data>
+  <data name="NonEmptyArrayRequired" xml:space="preserve">
+    <value>Array must be initialized and non-empty.</value>
+  </data>
   <data name="NonNegativeRequired" xml:space="preserve">
     <value>A non-negative value is required.</value>
   </data>
   <data name="NotSimulating" xml:space="preserve">
     <value>This node is not in simulation mode.</value>
+  </data>
+  <data name="NullMemberOfCollection" xml:space="preserve">
+    <value>Collection had null member.</value>
   </data>
   <data name="PlayersRequired" xml:space="preserve">
     <value>Players must be added to the game first.</value>

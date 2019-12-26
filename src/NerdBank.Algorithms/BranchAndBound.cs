@@ -7,6 +7,9 @@ namespace NerdBank.Algorithms
 	using System.Diagnostics;
 	using System.Threading;
 
+	/// <summary>
+	/// Implements the branch and bound algorithm.
+	/// </summary>
 	public static class BranchAndBound
 	{
 		/// <summary>
@@ -44,9 +47,9 @@ namespace NerdBank.Algorithms
 		/// <returns>
 		/// The node that represents the optimal solution.
 		/// </returns>
-		public static T Search<T>(
+		public static T? Search<T>(
 			T start,
-			T quickSolution,
+			T? quickSolution,
 			bool pruning,
 			CancellationToken cancellationToken,
 			out bool optimalFound,
@@ -54,7 +57,7 @@ namespace NerdBank.Algorithms
 			out int nodesExplored,
 			out int maxNodes,
 			out int prunedNodes)
-			where T : IBranchAndBoundNode
+			where T : class, IBranchAndBoundNode
 		{
 			if (start is null)
 			{
@@ -66,10 +69,10 @@ namespace NerdBank.Algorithms
 			nodesExplored = 0;
 			solutionsConsidered = 0;
 			optimalFound = true; // assume yes
-			T bestSoFar = quickSolution;
+			T? bestSoFar = quickSolution;
 			C5.IPriorityQueue<T> queue = new C5.IntervalHeap<T>();
 			////Wintellect.PowerCollections.OrderedBag<T> queue = new Wintellect.PowerCollections.OrderedBag<T>();
-			if (quickSolution != null)
+			if (quickSolution is object)
 			{
 				queue.Add(quickSolution);
 				////Trace.WriteLine("Enqueue: " + quickSolution.ToString());
@@ -84,7 +87,7 @@ namespace NerdBank.Algorithms
 				Debug.Assert(!node.IsSolution, "!node.IsSolution");
 				foreach (T child in node.ChildNodes)
 				{
-					if (child.CompareTo(bestSoFar) < 0)
+					if (bestSoFar is null || child.CompareTo(bestSoFar) < 0)
 					{
 						////Trace.WriteLine("Enqueue: " + child.ToString());
 						queue.Add(child);
@@ -94,7 +97,7 @@ namespace NerdBank.Algorithms
 					if (child.IsSolution)
 					{
 						solutionsConsidered++;
-						if (bestSoFar == null || child.CompareTo(bestSoFar) < 0)
+						if (bestSoFar is null || child.CompareTo(bestSoFar) < 0)
 						{
 							bestSoFar = child;
 						}
@@ -120,7 +123,6 @@ namespace NerdBank.Algorithms
 			////    Trace.WriteLine(runthru);
 
 			////Debug.Assert(queue.GetFirst().CompareTo(bestSoFar) == 0);
-			Debug.Assert(bestSoFar.IsSolution, "bestSoFar.IsSolution");
 			return bestSoFar;
 		}
 	}
