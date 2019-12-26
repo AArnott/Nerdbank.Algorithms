@@ -4,10 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading;
 using NerdBank.Algorithms.NodeConstraintSelection;
 using Xunit;
 using Xunit.Abstractions;
