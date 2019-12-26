@@ -144,7 +144,28 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
-	public void IdentifyConflictingConstraints()
+	public void CheckForConflictingConstraints_NoConflictsExist()
+	{
+		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1));
+		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Skip(2), 1));
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+
+		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1));
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+
+		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Reverse().Take(1), 1));
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+
+		this.builder.ResolvePartially(this.TimeoutToken);
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+		for (int i = 0; i < Nodes.Count; i++)
+		{
+			Assert.NotNull(this.builder[i]);
+		}
+	}
+
+	[Fact]
+	public void CheckForConflictingConstraints_ConflictsExist()
 	{
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 
