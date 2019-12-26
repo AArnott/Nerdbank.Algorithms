@@ -73,6 +73,12 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
+	public void AddConstraint_IrrelevantNodes()
+	{
+		Assert.Throws<KeyNotFoundException>(() => this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(new[] { new DummyNode("x") }, 1)));
+	}
+
+	[Fact]
 	public void AddConstraints()
 	{
 		this.builder.AddConstraints(new[]
@@ -257,6 +263,41 @@ public class SolutionBuilderTests : TestBase
 		Assert.NotNull(analysis.Conflicts);
 		Assert.Throws<InvalidOperationException>(() => analysis.GetNodeSelectedCount(0));
 		Assert.Throws<InvalidOperationException>(() => analysis.ApplyAnalysisBackToBuilder());
+	}
+
+	/// <summary>
+	/// Verifies that checking for conflicting constraints can quickly find a conflict even in a very large problem space.
+	/// </summary>
+	[Fact]
+	public void CheckForConflictingConstraints_VeryLargeProblemSpace()
+	{
+		SolutionBuilder conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
+		ConflictedConstraints? conflicts = conflictedBuilder.CheckForConflictingConstraints(this.TimeoutToken);
+		Assert.NotNull(conflicts);
+	}
+
+	/// <summary>
+	/// Verifies that solution analysis can quickly find a conflict even in a very large problem space.
+	/// </summary>
+	[Fact(Skip = "This runs too long, and that's probably By Design.")]
+	public void AnalyzeSolution_VeryLargeProblemSpace()
+	{
+		SolutionBuilder conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
+		SolutionsAnalysis analysis = conflictedBuilder.AnalyzeSolutions(this.TimeoutToken);
+		Assert.Equal(0, analysis.ViableSolutionsFound);
+		Assert.NotNull(analysis.Conflicts);
+	}
+
+	private static SolutionBuilder CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace()
+	{
+		DummyNode[] nodes = Enumerable.Range(1, 100).Select(n => new DummyNode(n)).ToArray();
+		var builder = new SolutionBuilder(nodes);
+		builder.AddConstraints(new[]
+		{
+			SelectionCountConstraint.ExactSelected(nodes.Skip(90).Take(3), 1),
+			SelectionCountConstraint.ExactSelected(nodes.Skip(90).Take(3), 2),
+		});
+		return builder;
 	}
 
 	private void AssertAllNodesIndeterminate()

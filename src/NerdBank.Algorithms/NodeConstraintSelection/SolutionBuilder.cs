@@ -100,6 +100,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Adds a constraint that describes the solution.
 		/// </summary>
 		/// <param name="constraint">The constraint to be added.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="constraint"/> is <c>null</c>.</exception>
+		/// <exception cref="BadConstraintException">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint.Nodes"/>.</exception>
+		/// <exception cref="KeyNotFoundException">Thrown when the <paramref name="constraint"/> refers to nodes that do not belong to this problem/solution.</exception>
 		public void AddConstraint(IConstraint constraint)
 		{
 			if (constraint is null)
@@ -301,20 +304,23 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 			internal void RecordSolutionFound(Scenario scenario)
 			{
-				this.SolutionsFound++;
-
-				if (!this.StopAfterFirstSolutionFound)
+				checked
 				{
-					if (this.NodesSelectedInSolutions is null)
-					{
-						this.NodesSelectedInSolutions = new long[scenario.NodeCount];
-					}
+					this.SolutionsFound++;
 
-					for (int i = 0; i < scenario.NodeCount; i++)
+					if (!this.StopAfterFirstSolutionFound)
 					{
-						if (scenario[i] is bool selected && selected)
+						if (this.NodesSelectedInSolutions is null)
 						{
-							this.NodesSelectedInSolutions[i]++;
+							this.NodesSelectedInSolutions = new long[scenario.NodeCount];
+						}
+
+						for (int i = 0; i < scenario.NodeCount; i++)
+						{
+							if (scenario[i] is bool selected && selected)
+							{
+								this.NodesSelectedInSolutions[i]++;
+							}
 						}
 					}
 				}
