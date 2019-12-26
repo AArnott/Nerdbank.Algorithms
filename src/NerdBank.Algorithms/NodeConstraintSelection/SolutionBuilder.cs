@@ -5,12 +5,16 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Diagnostics;
 	using System.Linq;
 	using System.Threading;
 
 	/// <summary>
 	/// Tracks the state of a problem and its solution as constraints are added.
 	/// </summary>
+	/// <remarks>
+	/// Thread safety: Instance members on this class are not thread safe.
+	/// </remarks>
 	public partial class SolutionBuilder
 	{
 		/// <summary>
@@ -34,7 +38,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private readonly IReadOnlyDictionary<object, int> nodeIndex;
 
 		/// <summary>
-		/// The latest stable state of the (partial) solution.
+		/// The latest stable state of the (often partial) solution.
 		/// </summary>
 		private readonly Scenario currentScenario;
 
@@ -65,6 +69,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Occurs when one or more nodes' selection state has changed.
 		/// </summary>
 		public event EventHandler<SelectionChangedEventArgs>? SelectionChanged;
+
+		/// <summary>
+		/// Gets the number of nodes in the problem/solution.
+		/// </summary>
+		private int NodeCount => this.nodeIndex.Count;
 
 		/// <summary>
 		/// Gets the selection state for a node with a given index.
@@ -153,7 +162,19 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		{
 			var stats = new SolutionStats { StopAfterFirstSolutionFound = true };
 			this.EnumerateSolutions(this.currentScenario, 0, ref stats, cancellationToken);
-			return stats.SolutionsFound == 0 ? new ConflictedConstraints() : null;
+			return CreateConflictedConstraints(stats);
+		}
+
+		/// <summary>
+		/// Exhaustively scan the solution space and collect statistics on the aggregate set.
+		/// </summary>
+		/// <param name="cancellationToken">A cancellation token.</param>
+		/// <returns>The results of the analysis.</returns>
+		public SolutionsAnalysis AnalyzeSolutions(CancellationToken cancellationToken)
+		{
+			var stats = default(SolutionStats);
+			this.EnumerateSolutions(this.currentScenario, 0, ref stats, cancellationToken);
+			return new SolutionsAnalysis(stats.SolutionsFound, CreateConflictedConstraints(stats));
 		}
 
 		/// <summary>
@@ -161,6 +182,8 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="args">The args to pass to the event handlers.</param>
 		protected virtual void OnSelectionChanged(SelectionChangedEventArgs args) => this.SelectionChanged?.Invoke(this, args);
+
+		private static ConflictedConstraints? CreateConflictedConstraints(SolutionStats stats) => stats.SolutionsFound == 0 ? new ConflictedConstraints() : null;
 
 		private void ResolvePartially(Scenario scenario, CancellationToken cancellationToken)
 		{
@@ -214,15 +237,16 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 					canAnyConstraintsBeBroken |= state.HasFlag(ConstraintStates.Breakable);
 				}
 
-				if (!canAnyConstraintsBeBroken)
+				if (stats.StopAfterFirstSolutionFound && !canAnyConstraintsBeBroken)
 				{
 					// There's nothing we can simulate that would break constraints, so everything we might try constitutes a valid solution.
 					// Don't waste time enumerating them.
-					stats.SolutionsFound++;
+					stats.RecordSolutionFound(experiment.Candidate);
 					return;
 				}
 
-				for (int i = firstNode; i < this.constraintsPerNode.Length; i++)
+				int i;
+				for (i = firstNode; i < this.NodeCount; i++)
 				{
 					cancellationToken.ThrowIfCancellationRequested();
 
@@ -232,11 +256,16 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 						continue;
 					}
 
-					List<IConstraint> applicableConstraints = this.constraintsPerNode[i];
-					if (applicableConstraints.Count == 0)
+					if (stats.StopAfterFirstSolutionFound)
 					{
-						// Skip any node that can be any value without impact to constraints.
-						continue;
+						// When we're only interested in whether there's a solution,
+						// we don't need to enumerate possibilities for a node for which no constraints exist.
+						List<IConstraint> applicableConstraints = this.constraintsPerNode[i];
+						if (applicableConstraints.Count == 0)
+						{
+							// Skip any node that can be any value without impact to constraints.
+							continue;
+						}
 					}
 
 					experiment.Candidate[i] = true;
@@ -244,6 +273,15 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 					experiment.Candidate.ResetNode(i, false);
 					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
+
+					// Once we drill into one node, we don't want to drill into any more nodes since
+					// we did that via our recursive call.
+					break;
+				}
+
+				if (i >= this.NodeCount)
+				{
+					stats.RecordSolutionFound(experiment.Candidate);
 				}
 			}
 		}
@@ -252,7 +290,12 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		{
 			internal bool StopAfterFirstSolutionFound { get; set; }
 
-			internal int SolutionsFound { get; set; }
+			internal long SolutionsFound { get; private set; }
+
+			internal void RecordSolutionFound(Scenario scenario)
+			{
+				this.SolutionsFound++;
+			}
 		}
 
 		/// <summary>

@@ -9,6 +9,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <summary>
 	/// Object pooling for <see cref="Scenario"/> objects.
 	/// </summary>
+	/// <remarks>
+	/// Thread safety: Instance members on this class are not thread safe.
+	/// </remarks>
 	internal class ScenarioPool
 	{
 		private readonly Stack<Scenario> bag = new Stack<Scenario>();

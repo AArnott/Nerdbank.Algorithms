@@ -10,7 +10,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// and tests whether a partial solution satisfies the constraint.
 	/// </summary>
 	/// <remarks>
-	/// Implementations should be immutable.
+	/// Implementations should be immutable and thread-safe.
 	/// </remarks>
 	public interface IConstraint
 	{

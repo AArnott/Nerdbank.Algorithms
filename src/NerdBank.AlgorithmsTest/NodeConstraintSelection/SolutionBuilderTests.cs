@@ -184,8 +184,18 @@ public class SolutionBuilderTests : TestBase
 		this.builder.ResolvePartially(this.TimeoutToken);
 		this.AssertAllNodesIndeterminate();
 
-		SolutionBuilder.ConflictedConstraints? conflictingConstraints = this.builder.CheckForConflictingConstraints(this.TimeoutToken);
+		ConflictedConstraints? conflictingConstraints = this.builder.CheckForConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflictingConstraints);
+	}
+
+	[Fact]
+	public void AnalyzeSolution()
+	{
+		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		Assert.NotNull(analysis);
+
+		Assert.Null(analysis.Conflicts);
+		Assert.Equal(16, analysis.ViableSolutionsFound);
 	}
 
 	private void AssertAllNodesIndeterminate()

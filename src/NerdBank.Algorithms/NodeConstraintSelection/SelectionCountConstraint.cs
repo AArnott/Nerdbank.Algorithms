@@ -15,6 +15,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <summary>
 	/// A constraint that verifies that the number of selected nodes within some set of nodes falls within a required range.
 	/// </summary>
+	/// <remarks>
+	/// Thread safety: This class is thread safe.
+	/// </remarks>
 	public class SelectionCountConstraint : IConstraint
 	{
 		/// <summary>
@@ -207,8 +210,14 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns>A boolean value.</returns>
 		private bool IsSatisfiable(in NodeStats stats) => this.Minimum <= stats.Selected + stats.Indeterminate && this.Maximum >= stats.Selected;
 
-		/// <inheritdoc cref="ConstraintExtensions.IsResolved(IConstraint, Scenario)"/>
+		/// <summary>
+		/// Gets a value indicating whether every node in this constraint has a determined selection state.
+		/// </summary>
 		/// <param name="stats">The node selection stats.</param>
+		/// <returns>A boolean value.</returns>
+		/// <remarks>
+		/// This check does not test whether the constraint it actually satisfied.
+		/// </remarks>
 		private bool IsResolved(in NodeStats stats) => stats.Indeterminate == 0;
 
 		/// <summary>

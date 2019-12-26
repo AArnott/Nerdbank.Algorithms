@@ -11,6 +11,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <summary>
 	/// A scenario where nodes are considered to be selected or not.
 	/// </summary>
+	/// <remarks>
+	/// Thread safety: Instance members on this class are not thread safe.
+	/// </remarks>
 	public class Scenario
 	{
 		/// <summary>
@@ -76,6 +79,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			get => this.selectionState[index];
 			set
 			{
+				if (value is null)
+				{
+					throw new ArgumentNullException(nameof(value));
+				}
+
 				if (this.selectionState[index].HasValue)
 				{
 					throw new InvalidOperationException(Strings.NodeAlreadySet);
