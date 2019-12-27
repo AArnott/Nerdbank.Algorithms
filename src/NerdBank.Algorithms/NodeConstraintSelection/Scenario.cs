@@ -161,18 +161,21 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="copyFrom">The template scenario.</param>
 		/// <exception cref="ArgumentException">Thrown if the <paramref name="copyFrom"/> scenario does not have the same number of nodes as this one.</exception>
-		internal void CopyFrom(Scenario copyFrom)
+		internal unsafe void CopyFrom(Scenario copyFrom)
 		{
 			if (copyFrom.selectionState.Length != this.selectionState.Length)
 			{
 				throw new ArgumentException(Strings.NodeCountMismatch);
 			}
 
+			// Copy using memmove because it's much faster than a loop that iterates over the array copying one element at a time.
 			bool?[] src = copyFrom.selectionState;
 			bool?[] dest = this.selectionState;
-			for (int i = 0; i < src.Length; i++)
+			fixed (void* pSrc = &src[0])
+			fixed (void* pDest = &dest[0])
 			{
-				dest[i] = src[i];
+				int bytesToCopy = sizeof(bool?) * src.Length;
+				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
 			}
 
 			this.Version++;
