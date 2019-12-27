@@ -22,7 +22,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <param name="viableSolutionsFound">The number of viable solutions that exist.</param>
 		/// <param name="nodeSelectedCount">The number of times each node was selected in a viable solution.</param>
 		/// <param name="conflicts">Information about the conflicting constraints that prevent any viable solution from being found.</param>
-		internal SolutionsAnalysis(SolutionBuilder owner, long viableSolutionsFound, long[]? nodeSelectedCount, ConflictedConstraints? conflicts)
+		internal SolutionsAnalysis(SolutionBuilder owner, long viableSolutionsFound, long[]? nodeSelectedCount, SolutionBuilder.ConflictedConstraints? conflicts)
 		{
 			this.owner = owner;
 			this.ViableSolutionsFound = viableSolutionsFound;
@@ -39,7 +39,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Gets information about the conflicting constraints that prevent any viable solution from being found.
 		/// </summary>
 		/// <value>Null if there were no conflicting constraints.</value>
-		public ConflictedConstraints? Conflicts { get; }
+		public SolutionBuilder.ConflictedConstraints? Conflicts { get; }
 
 		/// <summary>
 		/// Gets the number of solutions in which a given node was selected.

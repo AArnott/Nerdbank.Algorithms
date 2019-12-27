@@ -177,18 +177,26 @@ public class SolutionBuilderTests : TestBase
 			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
 			SelectionCountConstraint.ExactSelected(Nodes.Skip(2), 1),
 			SelectionCountConstraint.ExactSelected(Nodes, 1),
+			SelectionCountConstraint.RangeSelected(Nodes, 1, Nodes.Count),
 		};
-		foreach (SelectionCountConstraint constraint in constraints)
-		{
-			this.builder.AddConstraint(constraint);
-		}
+		this.builder.AddConstraints(constraints);
 
 		// Verify that ResolvePartially doesn't notice or care about conflicting constraints.
 		this.builder.ResolvePartially(this.TimeoutToken);
 		this.AssertAllNodesIndeterminate();
 
-		ConflictedConstraints? conflictingConstraints = this.builder.CheckForConflictingConstraints(this.TimeoutToken);
+		IReadOnlyCollection<IConstraint>? conflictingConstraints = this.builder
+			.CheckForConflictingConstraints(this.TimeoutToken)
+			?.GetConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflictingConstraints);
+
+		Assert.Equal(3, conflictingConstraints?.Count);
+		Assert.Contains(constraints[0], conflictingConstraints);
+		Assert.Contains(constraints[1], conflictingConstraints);
+		Assert.Contains(constraints[2], conflictingConstraints);
+
+		this.builder.RemoveConstraint(constraints[1]);
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
 	[Fact]
@@ -288,7 +296,7 @@ public class SolutionBuilderTests : TestBase
 	public void CheckForConflictingConstraints_VeryLargeProblemSpace()
 	{
 		SolutionBuilder conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
-		ConflictedConstraints? conflicts = conflictedBuilder.CheckForConflictingConstraints(this.TimeoutToken);
+		SolutionBuilder.ConflictedConstraints? conflicts = conflictedBuilder.CheckForConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflicts);
 	}
 

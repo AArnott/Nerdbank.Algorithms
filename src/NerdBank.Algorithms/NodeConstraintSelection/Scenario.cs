@@ -7,6 +7,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	using System.Collections.Generic;
 	using System.Collections.Immutable;
 	using System.Collections.ObjectModel;
+	using System.Linq;
 
 	/// <summary>
 	/// A scenario where nodes are considered to be selected or not.
@@ -32,6 +33,16 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private readonly IReadOnlyDictionary<object, int> nodeIndex;
 
 		/// <summary>
+		/// The constraints that describe the solution.
+		/// </summary>
+		private ImmutableArray<IConstraint> constraints = ImmutableArray.Create<IConstraint>();
+
+		/// <summary>
+		/// All constraints, indexed by each node that impact them.
+		/// </summary>
+		private ImmutableArray<ImmutableArray<IConstraint>> constraintsPerNode;
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="Scenario"/> class.
 		/// </summary>
 		/// <param name="nodes">The list of nodes.</param>
@@ -48,6 +59,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			this.selectionState = new bool?[nodes.Count];
 			this.nodes = nodes;
 			this.nodeIndex = CreateNodeIndex(nodes);
+			this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint>()).ToImmutableArray();
 		}
 
 		/// <summary>
@@ -60,12 +72,18 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			this.selectionState = new bool?[nodes.Count];
 			this.nodes = nodes;
 			this.nodeIndex = nodeIndex;
+			this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint>()).ToImmutableArray();
 		}
 
 		/// <summary>
 		/// Gets the number of nodes in the problem/solution.
 		/// </summary>
 		public int NodeCount => this.nodes.Count;
+
+		/// <summary>
+		/// Gets the constraints that are applied in this scenario.
+		/// </summary>
+		internal ImmutableArray<IConstraint> Constraints => this.constraints;
 
 		/// <summary>
 		/// Gets a value that changes each time a node selection is changed.
@@ -157,6 +175,59 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
+		/// Gets the constraints that apply to a node with the given index.
+		/// </summary>
+		/// <param name="nodeIndex">The index of the node.</param>
+		/// <returns>The constraints that apply to that node.</returns>
+		internal ImmutableArray<IConstraint> GetConstraintsThatApplyTo(int nodeIndex) => this.constraintsPerNode[nodeIndex];
+
+		/// <summary>
+		/// Adds a constraint to this scenario.
+		/// </summary>
+		/// <param name="constraint">The constraint to be added.</param>
+		/// <exception cref="BadConstraintException">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint.Nodes"/>.</exception>
+		internal void AddConstraint(IConstraint constraint)
+		{
+			if (constraint.Nodes.Count == 0)
+			{
+				throw new BadConstraintException(constraint, Strings.ConstraintForEmptySetOfNodes);
+			}
+
+			this.constraints = this.constraints.Add(constraint);
+
+			var constraintsPerNode = this.constraintsPerNode.ToBuilder();
+			foreach (var node in constraint.Nodes)
+			{
+				int nodeIndex = this.nodeIndex[node];
+				constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Add(constraint);
+			}
+
+			this.constraintsPerNode = constraintsPerNode.ToImmutable();
+
+			this.Version++;
+		}
+
+		/// <summary>
+		/// Removes a constraint from this scenario.
+		/// </summary>
+		/// <param name="constraint">The constraint to remove.</param>
+		internal void RemoveConstraint(IConstraint constraint)
+		{
+			this.constraints = this.constraints.Remove(constraint);
+
+			var constraintsPerNode = this.constraintsPerNode.ToBuilder();
+			foreach (var node in constraint.Nodes)
+			{
+				int nodeIndex = this.nodeIndex[node];
+				constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Remove(constraint);
+			}
+
+			this.constraintsPerNode = constraintsPerNode.ToImmutable();
+
+			this.Version++;
+		}
+
+		/// <summary>
 		/// Applies the selection state of another scenario to this one.
 		/// </summary>
 		/// <param name="copyFrom">The template scenario.</param>
@@ -177,6 +248,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				int bytesToCopy = sizeof(bool?) * src.Length;
 				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
 			}
+
+			this.constraints = copyFrom.Constraints;
+			this.constraintsPerNode = copyFrom.constraintsPerNode;
 
 			this.Version++;
 		}
