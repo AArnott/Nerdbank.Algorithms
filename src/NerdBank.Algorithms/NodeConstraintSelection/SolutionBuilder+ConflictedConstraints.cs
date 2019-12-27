@@ -46,6 +46,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			/// </summary>
 			/// <param name="cancellationToken">A cancellation token.</param>
 			/// <returns>A set of constraints.</returns>
+			/// <exception cref="ComplexConflictException">Thrown when there is no single constraint whose removal would remove the conflict.</exception>
 			public IReadOnlyCollection<IConstraint> GetConflictingConstraints(CancellationToken cancellationToken)
 			{
 				var conflictingConstraints = new List<IConstraint>();
@@ -62,6 +63,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 							conflictingConstraints.Add(constraint);
 						}
 					}
+				}
+
+				if (conflictingConstraints.Count == 0)
+				{
+					throw new ComplexConflictException();
 				}
 
 				return conflictingConstraints;

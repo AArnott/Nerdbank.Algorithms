@@ -199,6 +199,27 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
+	/// <summary>
+	/// Simulates a case where a conflict exists that cannot be resolved by removing any *one* constraint (two would have to be removed).
+	/// </summary>
+	[Fact]
+	public void CheckForConflictingConstraints_CompoundConflictsExist()
+	{
+		SelectionCountConstraint[] constraints = new[]
+		{
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Skip(2), 1),
+			SelectionCountConstraint.ExactSelected(Nodes, 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Skip(2), 1),
+			SelectionCountConstraint.ExactSelected(Nodes, 1),
+		};
+		this.builder.AddConstraints(constraints);
+		SolutionBuilder.ConflictedConstraints? conflictingConstraints = this.builder.CheckForConflictingConstraints(this.TimeoutToken);
+		Assert.NotNull(conflictingConstraints);
+		Assert.Throws<ComplexConflictException>(() => conflictingConstraints!.GetConflictingConstraints(this.TimeoutToken));
+	}
+
 	[Fact]
 	public void AnalyzeSolution_NoConstraints()
 	{
