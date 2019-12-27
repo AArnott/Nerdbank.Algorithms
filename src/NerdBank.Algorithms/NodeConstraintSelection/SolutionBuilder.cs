@@ -188,8 +188,15 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			{
 				this.ResolvePartially(experiment.Candidate, cancellationToken);
 				var stats = default(SolutionStats);
-				this.EnumerateSolutions(experiment.Candidate, 0, ref stats, cancellationToken);
-				return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesSelectedInSolutions, CreateConflictedConstraints(stats));
+				try
+				{
+					this.EnumerateSolutions(experiment.Candidate, 0, ref stats, cancellationToken);
+					return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesSelectedInSolutions, CreateConflictedConstraints(stats));
+				}
+				catch (OperationCanceledException ex)
+				{
+					throw new OperationCanceledException("Canceled after considering " + stats.ConsideredScenarios + " scenarios.", ex);
+				}
 			}
 		}
 
@@ -258,6 +265,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 		private void EnumerateSolutions(Scenario basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken)
 		{
+			stats.ConsideredScenarios++;
 			cancellationToken.ThrowIfCancellationRequested();
 			using (var experiment = new Experiment(this, basis))
 			{
@@ -342,6 +350,8 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			internal long SolutionsFound { get; private set; }
 
 			internal long[]? NodesSelectedInSolutions { get; private set; }
+
+			internal long ConsideredScenarios { get; set; }
 
 			internal void RecordSolutionFound(Scenario scenario)
 			{
