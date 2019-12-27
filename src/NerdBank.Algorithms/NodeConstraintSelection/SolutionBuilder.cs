@@ -200,8 +200,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			do
 			{
 				anyResolved = false;
-				foreach (IConstraint constraint in this.constraints)
+				for (int i = 0; i < this.constraints.Count; i++)
 				{
+					IConstraint constraint = this.constraints[i];
 					cancellationToken.ThrowIfCancellationRequested();
 					bool resolved;
 					int scenarioVersion = scenario.Version;
@@ -233,8 +234,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				this.ResolvePartially(experiment.Candidate, cancellationToken);
 
 				bool canAnyConstraintsBeBroken = false;
-				foreach (IConstraint constraint in this.constraints)
+				for (int j = 0; j < this.constraints.Count; j++)
 				{
+					IConstraint constraint = this.constraints[j];
 					cancellationToken.ThrowIfCancellationRequested();
 					ConstraintStates state = constraint.GetState(experiment.Candidate);
 					if ((state & ConstraintStates.Satisfiable) != ConstraintStates.Satisfiable)
