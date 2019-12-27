@@ -34,6 +34,13 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
+	public void Ctor_NonUniqueNodes()
+	{
+		var n = new DummyNode("a");
+		Assert.Throws<ArgumentException>(() => new SolutionBuilder(new[] { n, n }));
+	}
+
+	[Fact]
 	public void Indexers_DefaultState()
 	{
 		Assert.Null(this.builder[0]);

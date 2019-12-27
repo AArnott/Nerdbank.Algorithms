@@ -157,7 +157,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			var lookup = new Dictionary<object, int>();
 			for (int i = 0; i < nodes.Count; i++)
 			{
-				lookup[nodes[i]] = i;
+				lookup.Add(nodes[i], i);
 			}
 
 			return new ReadOnlyDictionary<object, int>(lookup);

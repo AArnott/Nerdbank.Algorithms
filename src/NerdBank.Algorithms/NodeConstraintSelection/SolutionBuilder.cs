@@ -32,6 +32,8 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Initializes a new instance of the <see cref="SolutionBuilder"/> class.
 		/// </summary>
 		/// <param name="nodes">The nodes in the problem/solution.</param>
+		/// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <c>null</c>.</exception>
+		/// <exception cref="ArgumentException">Thrown if <paramref name="nodes"/> is empty or contains duplicates.</exception>
 		public SolutionBuilder(IReadOnlyList<object> nodes)
 		{
 			if (nodes is null)
@@ -298,8 +300,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 						continue;
 					}
 
-					// When we're only interested in whether there's a solution,
-					// we don't need to enumerate possibilities for a node for which no constraints exist.
+					// We don't need to enumerate possibilities for a node for which no constraints exist.
 					ImmutableArray<IConstraint> applicableConstraints = experiment.Candidate.GetConstraintsThatApplyTo(i);
 					if (applicableConstraints.IsEmpty)
 					{
