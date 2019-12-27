@@ -168,9 +168,13 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns><c>null</c> if a solution can be found; or diagnostic data about which sets of constraints conflict.</returns>
 		public ConflictedConstraints? CheckForConflictingConstraints(CancellationToken cancellationToken)
 		{
-			var stats = new SolutionStats { StopAfterFirstSolutionFound = true };
-			this.EnumerateSolutions(this.currentScenario, 0, ref stats, cancellationToken);
-			return CreateConflictedConstraints(stats);
+			using (var experiment = new Experiment(this))
+			{
+				this.ResolvePartially(experiment.Candidate, cancellationToken);
+				var stats = new SolutionStats { StopAfterFirstSolutionFound = true };
+				this.EnumerateSolutions(this.currentScenario, 0, ref stats, cancellationToken);
+				return CreateConflictedConstraints(stats);
+			}
 		}
 
 		/// <summary>
@@ -180,9 +184,13 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns>The results of the analysis.</returns>
 		public SolutionsAnalysis AnalyzeSolutions(CancellationToken cancellationToken)
 		{
-			var stats = default(SolutionStats);
-			this.EnumerateSolutions(this.currentScenario, 0, ref stats, cancellationToken);
-			return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesSelectedInSolutions, CreateConflictedConstraints(stats));
+			using (var experiment = new Experiment(this))
+			{
+				this.ResolvePartially(experiment.Candidate, cancellationToken);
+				var stats = default(SolutionStats);
+				this.EnumerateSolutions(experiment.Candidate, 0, ref stats, cancellationToken);
+				return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesSelectedInSolutions, CreateConflictedConstraints(stats));
+			}
 		}
 
 		/// <summary>
@@ -226,13 +234,33 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			while (anyResolved);
 		}
 
+		/// <summary>
+		/// Resolves a scenario using only a limited set of constraints,
+		/// and engage the rest of them only if changes are made.
+		/// </summary>
+		/// <param name="scenario">The scenario to resolve.</param>
+		/// <param name="applicableConstraints">The constraints to use to resolve.</param>
+		/// <param name="cancellationToken">A cancellation token.</param>
+		private void ResolveByCascadingConstraints(Scenario scenario, List<IConstraint> applicableConstraints, CancellationToken cancellationToken)
+		{
+			bool anyResolved = false;
+			for (int i = 0; i < applicableConstraints.Count; i++)
+			{
+				anyResolved |= applicableConstraints[i].Resolve(scenario);
+			}
+
+			// If any nodes changed, engage a regular resolve operation
+			if (anyResolved)
+			{
+				this.ResolvePartially(cancellationToken);
+			}
+		}
+
 		private void EnumerateSolutions(Scenario basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 			using (var experiment = new Experiment(this, basis))
 			{
-				this.ResolvePartially(experiment.Candidate, cancellationToken);
-
 				bool canAnyConstraintsBeBroken = false;
 				for (int j = 0; j < this.constraints.Count; j++)
 				{
@@ -266,11 +294,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 						continue;
 					}
 
+					List<IConstraint> applicableConstraints = this.constraintsPerNode[i];
 					if (stats.StopAfterFirstSolutionFound)
 					{
 						// When we're only interested in whether there's a solution,
 						// we don't need to enumerate possibilities for a node for which no constraints exist.
-						List<IConstraint> applicableConstraints = this.constraintsPerNode[i];
 						if (applicableConstraints.Count == 0)
 						{
 							// Skip any node that can be any value without impact to constraints.
@@ -278,10 +306,21 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 						}
 					}
 
+					// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
 					experiment.Candidate[i] = true;
+					int version1 = experiment.Candidate.Version;
+					this.ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
 					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
 
+					// If our resolving actually changed arbitrary nodes, we need to rollback
+					// before we can try our second test of UNselecting the node.
+					if (experiment.Candidate.Version != version1)
+					{
+						experiment.Candidate.CopyFrom(basis);
+					}
+
 					experiment.Candidate.ResetNode(i, false);
+					this.ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
 					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
 
 					// Once we drill into one node, we don't want to drill into any more nodes since
