@@ -26,6 +26,14 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private readonly object[] nodes;
 
 		/// <summary>
+		/// The indexes for each node in <see cref="nodes"/>.
+		/// </summary>
+		/// <remarks>
+		/// This value is lazily initialized by <see cref="GetNodeIndexes"/>.
+		/// </remarks>
+		private int[]? nodeIndexes;
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="SelectionCountConstraint"/> class.
 		/// </summary>
 		/// <param name="minSelected">The minimum number of nodes that may be selected.</param>
@@ -258,9 +266,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			int selectedCount = 0;
 			int unselectedCount = 0;
 			int indeterminateCount = 0;
-			foreach (object node in this.nodes)
+			foreach (int nodeIndex in this.GetNodeIndexes(scenario))
 			{
-				bool? state = scenario[node];
+				bool? state = scenario[nodeIndex];
 				if (state is bool isSelected)
 				{
 					if (isSelected)
@@ -290,16 +298,37 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private bool MarkIndeterminateNodes(Scenario scenario, bool select)
 		{
 			bool changed = false;
-			foreach (object node in this.nodes)
+			foreach (int nodeIndex in this.GetNodeIndexes(scenario))
 			{
-				if (!scenario[node].HasValue)
+				if (!scenario[nodeIndex].HasValue)
 				{
-					scenario[node] = select;
+					scenario[nodeIndex] = select;
 					changed = true;
 				}
 			}
 
 			return changed;
+		}
+
+		/// <summary>
+		/// Retrieves an array of the indexes to nodes included in this constraint.
+		/// </summary>
+		/// <param name="scenario">A scenario from which to derive the indexes if it has not already been cached.</param>
+		/// <returns>An array of node indexes.</returns>
+		private int[] GetNodeIndexes(Scenario scenario)
+		{
+			var nodeIndexes = this.nodeIndexes;
+			if (nodeIndexes is null)
+			{
+				this.nodeIndexes = nodeIndexes = new int[this.nodes.Length];
+
+				for (int i = 0; i < this.nodes.Length; i++)
+				{
+					nodeIndexes[i] = scenario.GetNodeIndex(this.nodes[i]);
+				}
+			}
+
+			return nodeIndexes;
 		}
 
 		private struct NodeStats

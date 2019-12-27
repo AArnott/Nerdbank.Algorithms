@@ -106,11 +106,28 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns>The selection state of the node. Null if the selection state isn't yet determined.</returns>
 		/// <exception cref="InvalidOperationException">Thrown when setting a node that already has a known state.</exception>
 		/// <exception cref="KeyNotFoundException">Thrown if the <paramref name="node"/> is not among the nodes in the solution.</exception>
+		/// <remarks>
+		/// As this call incurs a dictionary lookup penalty to translate the <paramref name="node"/> into an array index,
+		/// frequent callers should use <see cref="GetNodeIndex(object)"/> to perform this lookup and store the result
+		/// so that node indexes can be used instead of node objects in perf-critical code.
+		/// </remarks>
 		public bool? this[object node]
 		{
 			get => this[this.nodeIndex[node]];
 			set => this[this.nodeIndex[node]] = value;
 		}
+
+		/// <summary>
+		/// Gets the index for the given node.
+		/// </summary>
+		/// <param name="node">The node.</param>
+		/// <returns>The index of the given node.</returns>
+		/// <exception cref="KeyNotFoundException">Thrown if the <paramref name="node"/> is not among the nodes in the solution.</exception>
+		/// <remarks>
+		/// This method can be used by <see cref="IConstraint"/> implementations to translate and cache nodes into indexes
+		/// for improved performance in <see cref="IConstraint.GetState(Scenario)"/>.
+		/// </remarks>
+		public int GetNodeIndex(object node) => this.nodeIndex[node];
 
 		/// <summary>
 		/// Creates a map of nodes to the index in a list.
