@@ -21,6 +21,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	public class SelectionCountConstraint : IConstraint
 	{
 		/// <summary>
+		/// Backing field for the <see cref="Nodes"/> property.
+		/// </summary>
+		private readonly object[] nodes;
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="SelectionCountConstraint"/> class.
 		/// </summary>
 		/// <param name="minSelected">The minimum number of nodes that may be selected.</param>
@@ -48,22 +53,21 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.Arg1GreaterThanArg2Required, nameof(maxSelected), nameof(minSelected)));
 			}
 
-			IReadOnlyCollection<object> nodesCollection = nodes as IReadOnlyCollection<object> ?? nodes.ToImmutableArray();
+			this.nodes = nodes as object[] ?? nodes.ToArray();
 
-			if (nodesCollection.Count == 0)
+			if (this.nodes.Length == 0)
 			{
 				throw new ArgumentException(Strings.ListCannotBeEmpty, nameof(nodes));
 			}
 
-			maxSelected = Math.Min(nodesCollection.Count, maxSelected);
+			maxSelected = Math.Min(this.nodes.Length, maxSelected);
 
-			this.Nodes = nodesCollection;
 			this.Minimum = minSelected;
 			this.Maximum = maxSelected;
 		}
 
 		/// <inheritdoc/>
-		public IReadOnlyCollection<object> Nodes { get; }
+		public IReadOnlyCollection<object> Nodes => this.nodes;
 
 		/// <summary>
 		/// Gets the minimum number of nodes that must be selected.
@@ -254,7 +258,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			int selectedCount = 0;
 			int unselectedCount = 0;
 			int indeterminateCount = 0;
-			foreach (object node in this.Nodes)
+			foreach (object node in this.nodes)
 			{
 				bool? state = scenario[node];
 				if (state is bool isSelected)
@@ -286,7 +290,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private bool MarkIndeterminateNodes(Scenario scenario, bool select)
 		{
 			bool changed = false;
-			foreach (object node in this.Nodes)
+			foreach (object node in this.nodes)
 			{
 				if (!scenario[node].HasValue)
 				{

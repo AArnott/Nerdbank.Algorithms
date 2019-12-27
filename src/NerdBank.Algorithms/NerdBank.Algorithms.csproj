@@ -7,7 +7,11 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="C5" Version="3.0.2-beta-g50c080daa6" />
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="2.9.8" PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="BannedSymbols.txt" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="NodeConstraintSelection\Strings.Designer.cs">

@@ -237,12 +237,12 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				{
 					cancellationToken.ThrowIfCancellationRequested();
 					ConstraintStates state = constraint.GetState(experiment.Candidate);
-					if (!state.HasFlag(ConstraintStates.Satisfiable))
+					if ((state & ConstraintStates.Satisfiable) != ConstraintStates.Satisfiable)
 					{
 						return;
 					}
 
-					canAnyConstraintsBeBroken |= state.HasFlag(ConstraintStates.Breakable);
+					canAnyConstraintsBeBroken |= (state & ConstraintStates.Breakable) == ConstraintStates.Breakable;
 				}
 
 				if (stats.StopAfterFirstSolutionFound && !canAnyConstraintsBeBroken)
