@@ -261,7 +261,8 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			int selectedCount = 0;
 			int unselectedCount = 0;
 			int indeterminateCount = 0;
-			foreach (int nodeIndex in this.GetNodeIndexes(scenario))
+			int[] nodeIndexes = this.nodeIndexes ?? this.GetNodeIndexes(scenario);
+			foreach (int nodeIndex in nodeIndexes)
 			{
 				bool? state = scenario[nodeIndex];
 				if (state is bool isSelected)
@@ -293,7 +294,8 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private bool MarkIndeterminateNodes(Scenario scenario, bool select)
 		{
 			bool changed = false;
-			foreach (int nodeIndex in this.GetNodeIndexes(scenario))
+			int[] nodeIndexes = this.nodeIndexes ?? this.GetNodeIndexes(scenario);
+			foreach (int nodeIndex in nodeIndexes)
 			{
 				if (!scenario[nodeIndex].HasValue)
 				{
