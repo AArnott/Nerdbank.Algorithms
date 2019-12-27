@@ -14,7 +14,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <remarks>
 	/// Thread safety: Instance members on this class are not thread safe.
 	/// </remarks>
-	public class Scenario
+	public sealed class Scenario
 	{
 		/// <summary>
 		/// The selection state for each node.

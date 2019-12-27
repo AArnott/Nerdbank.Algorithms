@@ -258,11 +258,6 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns>The aggregate stats.</returns>
 		private NodeStats GetNodeStates(Scenario scenario)
 		{
-			if (scenario is null)
-			{
-				throw new ArgumentNullException(nameof(scenario));
-			}
-
 			int selectedCount = 0;
 			int unselectedCount = 0;
 			int indeterminateCount = 0;
