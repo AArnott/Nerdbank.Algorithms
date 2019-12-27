@@ -45,7 +45,10 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Gets the number of solutions in which a given node was selected.
 		/// </summary>
 		/// <param name="nodeIndex">The index of the node of interest.</param>
-		/// <returns>The number of viable solutions where the node at <paramref name="nodeIndex"/> was selected.</returns>
+		/// <returns>
+		/// The number of viable solutions where the node at <paramref name="nodeIndex"/> was selected.
+		/// May be -1 if the node at <paramref name="nodeIndex"/> is not constrained by anything and therefore can be anything in any solution.
+		/// </returns>
 		/// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="nodeIndex"/> is negative or exceeds the number of nodes in the solution.</exception>
 		public long GetNodeSelectedCount(int nodeIndex) => this.nodeSelectedCount?[nodeIndex] ?? throw new InvalidOperationException(Strings.ViableSolutionStatsNotAvailable);
 

@@ -192,8 +192,24 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
-	public void AnalyzeSolution()
+	public void AnalyzeSolution_NoConstraints()
 	{
+		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		Assert.NotNull(analysis);
+
+		Assert.Null(analysis.Conflicts);
+		Assert.Equal(1, analysis.ViableSolutionsFound);
+
+		for (int i = 0; i < Nodes.Count; i++)
+		{
+			Assert.Equal(-1, analysis.GetNodeSelectedCount(0));
+		}
+	}
+
+	[Fact]
+	public void AnalyzeSolution_WorthlessConstraint()
+	{
+		this.builder.AddConstraint(SelectionCountConstraint.RangeSelected(Nodes, 0, Nodes.Count));
 		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.NotNull(analysis);
 
@@ -225,12 +241,12 @@ public class SolutionBuilderTests : TestBase
 
 		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 
-		// viable solutions are: 0100 and 0101
-		Assert.Equal(2, analysis.ViableSolutionsFound);
+		// viable solutions are: 010x
+		Assert.Equal(1, analysis.ViableSolutionsFound);
 		Assert.Equal(0, analysis.GetNodeSelectedCount(0));
 		Assert.Equal(analysis.ViableSolutionsFound, analysis.GetNodeSelectedCount(1));
 		Assert.Equal(0, analysis.GetNodeSelectedCount(2));
-		Assert.Equal(1, analysis.GetNodeSelectedCount(3));
+		Assert.Equal(-1, analysis.GetNodeSelectedCount(3));
 
 		// Verify that analysis didn't impact any node selections.
 		this.AssertAllNodesIndeterminate();
@@ -279,7 +295,7 @@ public class SolutionBuilderTests : TestBase
 	/// <summary>
 	/// Verifies that solution analysis can quickly find a conflict even in a very large problem space.
 	/// </summary>
-	[Fact(Skip = "This runs too long, and that's probably By Design.")]
+	[Fact]
 	public void AnalyzeSolution_VeryLargeProblemSpace()
 	{
 		SolutionBuilder conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();

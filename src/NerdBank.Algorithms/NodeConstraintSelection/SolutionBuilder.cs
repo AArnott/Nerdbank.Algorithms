@@ -302,16 +302,13 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 						continue;
 					}
 
+					// When we're only interested in whether there's a solution,
+					// we don't need to enumerate possibilities for a node for which no constraints exist.
 					List<IConstraint> applicableConstraints = this.constraintsPerNode[i];
-					if (stats.StopAfterFirstSolutionFound)
+					if (applicableConstraints.Count == 0)
 					{
-						// When we're only interested in whether there's a solution,
-						// we don't need to enumerate possibilities for a node for which no constraints exist.
-						if (applicableConstraints.Count == 0)
-						{
-							// Skip any node that can be any value without impact to constraints.
-							continue;
-						}
+						// Skip any node that can be any value without impact to constraints.
+						continue;
 					}
 
 					// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
@@ -368,9 +365,18 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 						for (int i = 0; i < scenario.NodeCount; i++)
 						{
-							if (scenario[i] is bool selected && selected)
+							if (scenario[i] is bool selected)
 							{
-								this.NodesSelectedInSolutions[i]++;
+								if (selected)
+								{
+									this.NodesSelectedInSolutions[i]++;
+								}
+							}
+							else
+							{
+								// This node is not constrained by anything. So it is a free radical and shouldn't be counted as selected or unselected
+								// since solutions are not enumerated based on flipping this.
+								this.NodesSelectedInSolutions[i] = -1;
 							}
 						}
 					}
