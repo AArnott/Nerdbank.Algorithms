@@ -314,6 +314,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 					ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
 					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
 
+					if (stats.StopAfterFirstSolutionFound && stats.SolutionsFound > 0)
+					{
+						return;
+					}
+
 					// If our resolving actually changed arbitrary nodes, we need to rollback
 					// before we can try our second test of UNselecting the node.
 					if (experiment.Candidate.Version != version1)

@@ -53,6 +53,17 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		public long GetNodeSelectedCount(int nodeIndex) => this.nodeSelectedCount?[nodeIndex] ?? throw new InvalidOperationException(Strings.ViableSolutionStatsNotAvailable);
 
 		/// <summary>
+		/// Gets the number of solutions in which a given node was selected.
+		/// </summary>
+		/// <param name="node">The node of interest.</param>
+		/// <returns>
+		/// The number of viable solutions where the <paramref name="node"/> was selected.
+		/// May be -1 if the <paramref name="node"/> is not constrained by anything and therefore can be anything in any solution.
+		/// </returns>
+		/// <exception cref="KeyNotFoundException">Thrown if the <paramref name="node"/> is not among the nodes in the solution.</exception>
+		public long GetNodeSelectedCount(object node) => this.GetNodeSelectedCount(this.owner.CurrentScenario.GetNodeIndex(node));
+
+		/// <summary>
 		/// Select or unselect any indeterminate nodes which are unconditionally in just one state in all viable solutions.
 		/// </summary>
 		/// <remarks>
