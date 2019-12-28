@@ -22,11 +22,11 @@ public class ClueScenarioTests : TestBase
 	private static readonly ImmutableArray<Card> Rooms = Enumerable.Range(1, 9).Select(n => new Card($"Room {n}")).ToImmutableArray();
 	private static readonly ImmutableArray<Card> Cards;
 	private static readonly ImmutableArray<object> Nodes;
-	private static readonly ImmutableArray<IConstraint> StartingConstraints;
+	private static readonly ImmutableArray<IConstraint<bool>> StartingConstraints;
 	private static readonly CardHolder InteractivePlayer;
 	private static readonly int NumberOfCardsHeldByInteractivePlayer;
 
-	private readonly SolutionBuilder builder;
+	private readonly SolutionBuilder<bool> builder;
 
 #pragma warning disable CA1810 // Initialize reference type static fields inline
 	static ClueScenarioTests()
@@ -34,7 +34,7 @@ public class ClueScenarioTests : TestBase
 	{
 		Cards = Suspects.AddRange(Weapons).AddRange(Rooms);
 
-		ImmutableArray<IConstraint>.Builder constraints = ImmutableArray.CreateBuilder<IConstraint>();
+		ImmutableArray<IConstraint<bool>>.Builder constraints = ImmutableArray.CreateBuilder<IConstraint<bool>>();
 		ImmutableArray<object>.Builder nodes = ImmutableArray.CreateBuilder<object>();
 
 		var cardsPerPlayer = new Dictionary<CardHolder, List<object>>();
@@ -97,7 +97,7 @@ public class ClueScenarioTests : TestBase
 	public ClueScenarioTests(ITestOutputHelper logger)
 		: base(logger)
 	{
-		this.builder = new SolutionBuilder(Nodes);
+		this.builder = new SolutionBuilder<bool>(Nodes, ImmutableArray.Create(true, false));
 		this.builder.AddConstraints(StartingConstraints);
 	}
 
@@ -122,7 +122,7 @@ public class ClueScenarioTests : TestBase
 		// This next step takes 3-12 seconds on a really fast machine.
 		using (var longTimeoutCts = new CancellationTokenSource(20 * 1024))
 		{
-			SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(longTimeoutCts.Token);
+			SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(longTimeoutCts.Token);
 			this.Logger.WriteLine("Identified {0} unique solutions.", analysis.ViableSolutionsFound);
 			this.PrintSolutionAnalysis(analysis);
 		}
@@ -172,7 +172,7 @@ public class ClueScenarioTests : TestBase
 		this.Logger.WriteLine(sb.ToString());
 	}
 
-	private void PrintSolutionAnalysis(SolutionsAnalysis analysis)
+	private void PrintSolutionAnalysis(SolutionBuilder<bool>.SolutionsAnalysis analysis)
 	{
 		IEnumerable<CardHolder> cardHolders = Players.Concat(new[] { CaseFile });
 		var sb = new StringBuilder();
@@ -191,7 +191,7 @@ public class ClueScenarioTests : TestBase
 
 			foreach (CardHolder cardHolder in Players.Concat(new[] { CaseFile }))
 			{
-				double count = (double)analysis.GetNodeSelectedCount((card, cardHolder)) / analysis.ViableSolutionsFound;
+				double count = (double)analysis.GetNodeValueCount((card, cardHolder), true) / analysis.ViableSolutionsFound;
 				sb.AppendFormat(CultureInfo.CurrentCulture, "{0,-15}", (int)(count * 100) + "%");
 			}
 

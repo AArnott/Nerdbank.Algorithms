@@ -9,10 +9,12 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// Describes some known constraint on the final solution
 	/// and tests whether a partial solution satisfies the constraint.
 	/// </summary>
+	/// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 	/// <remarks>
 	/// Implementations should be immutable and thread-safe.
 	/// </remarks>
-	public interface IConstraint
+	public interface IConstraint<TNodeState>
+		where TNodeState : struct
 	{
 		/// <summary>
 		/// Gets the set of indexes to nodes that are involved in the constraint.
@@ -29,7 +31,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="scenario">The scenario to consider.</param>
 		/// <returns>A collection of flags that represent the state.</returns>
-		ConstraintStates GetState(Scenario scenario);
+		ConstraintStates GetState(Scenario<TNodeState> scenario);
 
 		/// <summary>
 		/// Sets any indeterminate nodes to selected or unselected based on this constraint, if possible.
@@ -38,6 +40,6 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns>
 		/// A value indicating whether any indeterminate nodes were changed.
 		/// </returns>
-		bool Resolve(Scenario scenario);
+		bool Resolve(Scenario<TNodeState> scenario);
 	}
 }

@@ -18,7 +18,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <remarks>
 	/// Thread safety: This class is thread safe.
 	/// </remarks>
-	public class SelectionCountConstraint : IConstraint
+	public class SelectionCountConstraint : IConstraint<bool>
 	{
 		/// <summary>
 		/// Backing field for the <see cref="Nodes"/> property.
@@ -127,7 +127,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		public override string ToString() => $"{this.GetType().Name}({this.Minimum}-{this.Maximum} from {{{string.Join(", ", this.Nodes)}}})";
 
 		/// <inheritdoc/>
-		public ConstraintStates GetState(Scenario scenario)
+		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			if (scenario is null)
 			{
@@ -167,7 +167,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <inheritdoc/>
-		public bool Resolve(Scenario scenario)
+		public bool Resolve(Scenario<bool> scenario)
 		{
 			if (scenario is null)
 			{
@@ -256,7 +256,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="scenario">The scenario to consider.</param>
 		/// <returns>The aggregate stats.</returns>
-		private NodeStats GetNodeStates(Scenario scenario)
+		private NodeStats GetNodeStates(Scenario<bool> scenario)
 		{
 			int selectedCount = 0;
 			int unselectedCount = 0;
@@ -291,7 +291,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <param name="scenario">The scenario to alter.</param>
 		/// <param name="select"><c>true</c> to select indeterminate nodes; <c>false</c> to unselect them.</param>
 		/// <returns><c>true</c> if any nodes were actually changed; <c>false</c> if there were no indeterminate nodes.</returns>
-		private bool MarkIndeterminateNodes(Scenario scenario, bool select)
+		private bool MarkIndeterminateNodes(Scenario<bool> scenario, bool select)
 		{
 			bool changed = false;
 			int[] nodeIndexes = this.nodeIndexes ?? this.GetNodeIndexes(scenario);
@@ -312,7 +312,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="scenario">A scenario from which to derive the indexes if it has not already been cached.</param>
 		/// <returns>An array of node indexes.</returns>
-		private int[] GetNodeIndexes(Scenario scenario)
+		private int[] GetNodeIndexes(Scenario<bool> scenario)
 		{
 			var nodeIndexes = this.nodeIndexes;
 			if (nodeIndexes is null)

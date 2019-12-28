@@ -88,6 +88,15 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least two node states must be defined..
+        /// </summary>
+        internal static string AtLeastTwoNodeStatesRequired {
+            get {
+                return ResourceManager.GetString("AtLeastTwoNodeStatesRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This constraint is broken..
         /// </summary>
         internal static string BrokenConstraint {

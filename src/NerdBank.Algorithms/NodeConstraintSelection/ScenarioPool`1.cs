@@ -7,19 +7,21 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	using System.Collections.Immutable;
 
 	/// <summary>
-	/// Object pooling for <see cref="Scenario"/> objects.
+	/// Object pooling for <see cref="Scenario{TNodeState}"/> objects.
 	/// </summary>
+	/// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 	/// <remarks>
 	/// Thread safety: Instance members on this class are not thread safe.
 	/// </remarks>
-	internal class ScenarioPool
+	internal class ScenarioPool<TNodeState>
+		where TNodeState : struct
 	{
-		private readonly Stack<Scenario> bag = new Stack<Scenario>();
+		private readonly Stack<Scenario<TNodeState>> bag = new Stack<Scenario<TNodeState>>();
 		private readonly IReadOnlyList<object> nodes;
 		private readonly IReadOnlyDictionary<object, int> nodeIndex;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="ScenarioPool"/> class.
+		/// Initializes a new instance of the <see cref="ScenarioPool{TNodeState}"/> class.
 		/// </summary>
 		/// <param name="nodes">The nodes in the problem/solution.</param>
 		/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
@@ -30,23 +32,23 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
-		/// Acquires a recycled or new <see cref="Scenario"/> instance.
+		/// Acquires a recycled or new <see cref="Scenario{TNodeState}"/> instance.
 		/// </summary>
-		/// <returns>An instance of <see cref="Scenario"/>.</returns>
-		internal Scenario Take()
+		/// <returns>An instance of <see cref="Scenario{TNodeState}"/>.</returns>
+		internal Scenario<TNodeState> Take()
 		{
 			if (this.bag.Count > 0)
 			{
 				return this.bag.Pop();
 			}
 
-			return new Scenario(this.nodes, this.nodeIndex);
+			return new Scenario<TNodeState>(this.nodes, this.nodeIndex);
 		}
 
 		/// <summary>
-		/// Returns a <see cref="Scenario"/> for recycling.
+		/// Returns a <see cref="Scenario{TNodeState}"/> for recycling.
 		/// </summary>
 		/// <param name="scenario">The instance to recycle.</param>
-		internal void Return(Scenario scenario) => this.bag.Push(scenario);
+		internal void Return(Scenario<TNodeState> scenario) => this.bag.Push(scenario);
 	}
 }

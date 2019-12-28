@@ -10,7 +10,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <content>
 	/// Contains the <see cref="ConflictedConstraints"/> nested type.
 	/// </content>
-	public partial class SolutionBuilder
+	public partial class SolutionBuilder<TNodeState>
 	{
 		/// <summary>
 		/// Describes a state where no solution exists.
@@ -22,19 +22,19 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			/// <summary>
 			/// The solution builder that created this.
 			/// </summary>
-			private readonly SolutionBuilder owner;
+			private readonly SolutionBuilder<TNodeState> owner;
 
 			/// <summary>
 			/// The conflicted scenario.
 			/// </summary>
-			private readonly Scenario conflictedScenario;
+			private readonly Scenario<TNodeState> conflictedScenario;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="ConflictedConstraints"/> class.
 			/// </summary>
 			/// <param name="owner">The solution builder that created this.</param>
 			/// <param name="conflictedScenario">The conflicted scenario.</param>
-			internal ConflictedConstraints(SolutionBuilder owner, Scenario conflictedScenario)
+			internal ConflictedConstraints(SolutionBuilder<TNodeState> owner, Scenario<TNodeState> conflictedScenario)
 			{
 				this.owner = owner;
 				this.conflictedScenario = conflictedScenario;
@@ -47,10 +47,10 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			/// <param name="cancellationToken">A cancellation token.</param>
 			/// <returns>A set of constraints.</returns>
 			/// <exception cref="ComplexConflictException">Thrown when there is no single constraint whose removal would remove the conflict.</exception>
-			public IReadOnlyCollection<IConstraint> GetConflictingConstraints(CancellationToken cancellationToken)
+			public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(CancellationToken cancellationToken)
 			{
-				var conflictingConstraints = new List<IConstraint>();
-				foreach (IConstraint constraint in this.conflictedScenario.Constraints)
+				var conflictingConstraints = new List<IConstraint<TNodeState>>();
+				foreach (IConstraint<TNodeState> constraint in this.conflictedScenario.Constraints)
 				{
 					cancellationToken.ThrowIfCancellationRequested();
 

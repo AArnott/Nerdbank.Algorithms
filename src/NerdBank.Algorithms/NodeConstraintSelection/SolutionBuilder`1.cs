@@ -13,15 +13,17 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <summary>
 	/// Tracks the state of a problem and its solution as constraints are added.
 	/// </summary>
+	/// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 	/// <remarks>
 	/// Thread safety: Instance members on this class are not thread safe.
 	/// </remarks>
-	public partial class SolutionBuilder
+	public partial class SolutionBuilder<TNodeState>
+		where TNodeState : struct
 	{
 		/// <summary>
 		/// The pool that recycles scenarios for simulations.
 		/// </summary>
-		private readonly ScenarioPool scenarioPool;
+		private readonly ScenarioPool<TNodeState> scenarioPool;
 
 		/// <summary>
 		/// A map of nodes to their index as they appear in an ordered list.
@@ -29,12 +31,18 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private readonly IReadOnlyDictionary<object, int> nodeIndex;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SolutionBuilder"/> class.
+		/// An array of allowed values for each node.
+		/// </summary>
+		private readonly ImmutableArray<TNodeState> resolvedNodeStates;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SolutionBuilder{TNodeState}"/> class.
 		/// </summary>
 		/// <param name="nodes">The nodes in the problem/solution.</param>
+		/// <param name="resolvedNodeStates">An array of allowed values for each node.</param>
 		/// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <c>null</c>.</exception>
 		/// <exception cref="ArgumentException">Thrown if <paramref name="nodes"/> is empty or contains duplicates.</exception>
-		public SolutionBuilder(IReadOnlyList<object> nodes)
+		public SolutionBuilder(IReadOnlyList<object> nodes, ImmutableArray<TNodeState> resolvedNodeStates)
 		{
 			if (nodes is null)
 			{
@@ -46,20 +54,31 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				throw new ArgumentException(Strings.NonEmptyArrayRequired, nameof(nodes));
 			}
 
-			this.nodeIndex = Scenario.CreateNodeIndex(nodes);
-			this.scenarioPool = new ScenarioPool(nodes, this.nodeIndex);
+			if (resolvedNodeStates.IsDefaultOrEmpty)
+			{
+				throw new ArgumentException(Strings.NonEmptyArrayRequired, nameof(resolvedNodeStates));
+			}
+
+			if (resolvedNodeStates.Length < 2)
+			{
+				throw new ArgumentException(Strings.AtLeastTwoNodeStatesRequired, nameof(resolvedNodeStates));
+			}
+
+			this.resolvedNodeStates = resolvedNodeStates;
+			this.nodeIndex = Scenario<TNodeState>.CreateNodeIndex(nodes);
+			this.scenarioPool = new ScenarioPool<TNodeState>(nodes, this.nodeIndex);
 			this.CurrentScenario = this.scenarioPool.Take();
 		}
 
 		/// <summary>
-		/// Occurs when one or more nodes' selection state has changed.
+		/// Occurs when one or more nodes' state has changed.
 		/// </summary>
 		public event EventHandler<SelectionChangedEventArgs>? SelectionChanged;
 
 		/// <summary>
 		/// Gets the current scenario.
 		/// </summary>
-		internal Scenario CurrentScenario { get; }
+		internal Scenario<TNodeState> CurrentScenario { get; }
 
 		/// <summary>
 		/// Gets the number of nodes in the problem/solution.
@@ -67,29 +86,29 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private int NodeCount => this.CurrentScenario.NodeCount;
 
 		/// <summary>
-		/// Gets the selection state for a node with a given index.
+		/// Gets the state for a node with a given index.
 		/// </summary>
 		/// <param name="index">The index of the node.</param>
-		/// <returns>The selection state of the node. Null if the selection state isn't yet determined.</returns>
+		/// <returns>The state of the node. Null if the state isn't yet determined.</returns>
 		/// <exception cref="IndexOutOfRangeException">Thrown if the <paramref name="index"/> is negative or exceeds the number of nodes in the solution.</exception>
-		public bool? this[int index] => this.CurrentScenario[index];
+		public TNodeState? this[int index] => this.CurrentScenario[index];
 
 		/// <summary>
-		/// Gets the selection state for the given node.
+		/// Gets the state for the given node.
 		/// </summary>
 		/// <param name="node">The node.</param>
-		/// <returns>The selection state of the node. Null if the selection state isn't yet determined.</returns>
+		/// <returns>The state of the node. Null if the state isn't yet determined.</returns>
 		/// <exception cref="IndexOutOfRangeException">Thrown if the <paramref name="node"/> is not among the nodes in the solution.</exception>
-		public bool? this[object node] => this.CurrentScenario[node];
+		public TNodeState? this[object node] => this.CurrentScenario[node];
 
 		/// <summary>
 		/// Adds a constraint that describes the solution.
 		/// </summary>
 		/// <param name="constraint">The constraint to be added.</param>
 		/// <exception cref="ArgumentNullException">Thrown when <paramref name="constraint"/> is <c>null</c>.</exception>
-		/// <exception cref="BadConstraintException">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint.Nodes"/>.</exception>
+		/// <exception cref="BadConstraintException{TNodeState}">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint{TNodeState}.Nodes"/>.</exception>
 		/// <exception cref="KeyNotFoundException">Thrown when the <paramref name="constraint"/> refers to nodes that do not belong to this problem/solution.</exception>
-		public void AddConstraint(IConstraint constraint)
+		public void AddConstraint(IConstraint<TNodeState> constraint)
 		{
 			if (constraint is null)
 			{
@@ -103,14 +122,14 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Adds constraints that describes the solution.
 		/// </summary>
 		/// <param name="constraints">The constraints to be added.</param>
-		public void AddConstraints(IEnumerable<IConstraint> constraints)
+		public void AddConstraints(IEnumerable<IConstraint<TNodeState>> constraints)
 		{
 			if (constraints is null)
 			{
 				throw new ArgumentNullException(nameof(constraints));
 			}
 
-			foreach (IConstraint constraint in constraints)
+			foreach (IConstraint<TNodeState> constraint in constraints)
 			{
 				if (constraint is null)
 				{
@@ -129,7 +148,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// This is typically used to remove a constraint previously identified as the cause for a conflict
 		/// by <see cref="ConflictedConstraints.GetConflictingConstraints(CancellationToken)"/>.
 		/// </remarks>
-		public void RemoveConstraint(IConstraint constraint)
+		public void RemoveConstraint(IConstraint<TNodeState> constraint)
 		{
 			if (constraint is null)
 			{
@@ -181,7 +200,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				try
 				{
 					this.EnumerateSolutions(experiment.Candidate, 0, ref stats, cancellationToken);
-					return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesSelectedInSolutions, this.CreateConflictedConstraints(stats));
+					return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesResolvedStateInSolutions, this.CreateConflictedConstraints(stats));
 				}
 				catch (OperationCanceledException ex)
 				{
@@ -196,7 +215,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <param name="args">The args to pass to the event handlers.</param>
 		protected virtual void OnSelectionChanged(SelectionChangedEventArgs args) => this.SelectionChanged?.Invoke(this, args);
 
-		private static void ResolvePartially(Scenario scenario, CancellationToken cancellationToken)
+		private static void ResolvePartially(Scenario<TNodeState> scenario, CancellationToken cancellationToken)
 		{
 			// Keep looping through constraints asking each one to resolve nodes until no changes are applied.
 			bool anyResolved;
@@ -205,7 +224,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				anyResolved = false;
 				for (int i = 0; i < scenario.Constraints.Length; i++)
 				{
-					IConstraint constraint = scenario.Constraints[i];
+					IConstraint<TNodeState> constraint = scenario.Constraints[i];
 					cancellationToken.ThrowIfCancellationRequested();
 					bool resolved;
 					int scenarioVersion = scenario.Version;
@@ -215,12 +234,12 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 					}
 					catch (Exception ex)
 					{
-						throw new BadConstraintException(constraint, Strings.ConstraintThrewUnexpectedException, ex);
+						throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintThrewUnexpectedException, ex);
 					}
 
 					if (resolved && scenario.Version == scenarioVersion)
 					{
-						throw new BadConstraintException(constraint, Strings.ConstraintResolveReturnedTrueWithNoChanges);
+						throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintResolveReturnedTrueWithNoChanges);
 					}
 
 					anyResolved |= resolved;
@@ -236,7 +255,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <param name="scenario">The scenario to resolve.</param>
 		/// <param name="applicableConstraints">The constraints to use to resolve.</param>
 		/// <param name="cancellationToken">A cancellation token.</param>
-		private static void ResolveByCascadingConstraints(Scenario scenario, ImmutableArray<IConstraint> applicableConstraints, CancellationToken cancellationToken)
+		private static void ResolveByCascadingConstraints(Scenario<TNodeState> scenario, ImmutableArray<IConstraint<TNodeState>> applicableConstraints, CancellationToken cancellationToken)
 		{
 			bool anyResolved = false;
 			for (int i = 0; i < applicableConstraints.Length; i++)
@@ -251,7 +270,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			}
 		}
 
-		private ConflictedConstraints? CheckForConflictingConstraints(Scenario scenario, CancellationToken cancellationToken)
+		private ConflictedConstraints? CheckForConflictingConstraints(Scenario<TNodeState> scenario, CancellationToken cancellationToken)
 		{
 			ResolvePartially(scenario, cancellationToken);
 			var stats = new SolutionStats { StopAfterFirstSolutionFound = true };
@@ -261,14 +280,14 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 		private ConflictedConstraints? CreateConflictedConstraints(SolutionStats stats) => stats.SolutionsFound == 0 ? new ConflictedConstraints(this, this.CurrentScenario) : null;
 
-		private void EnumerateSolutions(Scenario basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken)
+		private void EnumerateSolutions(Scenario<TNodeState> basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken)
 		{
 			stats.ConsideredScenarios++;
 			cancellationToken.ThrowIfCancellationRequested();
 			bool canAnyConstraintsBeBroken = false;
 			for (int j = 0; j < basis.Constraints.Length; j++)
 			{
-				IConstraint constraint = basis.Constraints[j];
+				IConstraint<TNodeState> constraint = basis.Constraints[j];
 				cancellationToken.ThrowIfCancellationRequested();
 				ConstraintStates state = constraint.GetState(basis);
 				if ((state & ConstraintStates.Satisfiable) != ConstraintStates.Satisfiable)
@@ -299,7 +318,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				}
 
 				// We don't need to enumerate possibilities for a node for which no constraints exist.
-				ImmutableArray<IConstraint> applicableConstraints = basis.GetConstraintsThatApplyTo(i);
+				ImmutableArray<IConstraint<TNodeState>> applicableConstraints = basis.GetConstraintsThatApplyTo(i);
 				if (applicableConstraints.IsEmpty)
 				{
 					// Skip any node that can be any value without impact to constraints.
@@ -307,21 +326,21 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				}
 
 				// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
-				using (var experiment = new Experiment(this, basis))
+				for (int k = 0; k < this.resolvedNodeStates.Length; k++)
 				{
-					experiment.Candidate[i] = true;
-					ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
-					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
+					TNodeState value = this.resolvedNodeStates[k];
 
-					if (stats.StopAfterFirstSolutionFound && stats.SolutionsFound > 0)
+					using (var experiment = new Experiment(this, basis))
 					{
-						return;
-					}
+						experiment.Candidate[i] = value;
+						ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
+						this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
 
-					experiment.Rollback();
-					experiment.Candidate[i] = false;
-					ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
-					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
+						if (stats.StopAfterFirstSolutionFound && stats.SolutionsFound > 0)
+						{
+							return;
+						}
+					}
 				}
 
 				// Once we drill into one node, we don't want to drill into any more nodes since
@@ -341,11 +360,11 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 			internal long SolutionsFound { get; private set; }
 
-			internal long[]? NodesSelectedInSolutions { get; private set; }
+			internal Dictionary<TNodeState, long>?[]? NodesResolvedStateInSolutions { get; private set; }
 
 			internal long ConsideredScenarios { get; set; }
 
-			internal void RecordSolutionFound(Scenario scenario)
+			internal void RecordSolutionFound(Scenario<TNodeState> scenario)
 			{
 				checked
 				{
@@ -353,25 +372,28 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 
 					if (!this.StopAfterFirstSolutionFound)
 					{
-						if (this.NodesSelectedInSolutions is null)
+						if (this.NodesResolvedStateInSolutions is null)
 						{
-							this.NodesSelectedInSolutions = new long[scenario.NodeCount];
+							this.NodesResolvedStateInSolutions = new Dictionary<TNodeState, long>?[scenario.NodeCount];
 						}
 
 						for (int i = 0; i < scenario.NodeCount; i++)
 						{
-							if (scenario[i] is bool selected)
+							if (scenario[i] is TNodeState resolvedState)
 							{
-								if (selected)
+								Dictionary<TNodeState, long>? statesAndCounts = this.NodesResolvedStateInSolutions[i];
+								if (statesAndCounts is null)
 								{
-									this.NodesSelectedInSolutions[i]++;
+									this.NodesResolvedStateInSolutions[i] = statesAndCounts = new Dictionary<TNodeState, long>();
 								}
+
+								statesAndCounts.TryGetValue(resolvedState, out long counts);
+								statesAndCounts[resolvedState] = counts + 1;
 							}
 							else
 							{
 								// This node is not constrained by anything. So it is a free radical and shouldn't be counted as selected or unselected
 								// since solutions are not enumerated based on flipping this.
-								this.NodesSelectedInSolutions[i] = -1;
 							}
 						}
 					}
@@ -387,19 +409,19 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			/// <summary>
 			/// The owner.
 			/// </summary>
-			private readonly SolutionBuilder builder;
+			private readonly SolutionBuilder<TNodeState> builder;
 
 			/// <summary>
 			/// The scenario from which this experiment started.
 			/// </summary>
-			private readonly Scenario basis;
+			private readonly Scenario<TNodeState> basis;
 
 			/// <summary>
 			/// Initializes a new instance of the <see cref="Experiment"/> struct.
 			/// </summary>
 			/// <param name="builder">The owner of this instance.</param>
-			/// <param name="basis">The scenario to use as a template. If unspecified, the <see cref="SolutionBuilder.CurrentScenario"/> is used.</param>
-			internal Experiment(SolutionBuilder builder, Scenario? basis = default)
+			/// <param name="basis">The scenario to use as a template. If unspecified, the <see cref="SolutionBuilder{TNodeState}.CurrentScenario"/> is used.</param>
+			internal Experiment(SolutionBuilder<TNodeState> builder, Scenario<TNodeState>? basis = default)
 			{
 				this.basis = basis ?? builder.CurrentScenario;
 				this.builder = builder;
@@ -410,10 +432,10 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			/// <summary>
 			/// Gets the experimental scenario.
 			/// </summary>
-			public Scenario Candidate { get; }
+			public Scenario<TNodeState> Candidate { get; }
 
 			/// <summary>
-			/// Commits the <see cref="Candidate"/> to the current scenario in the <see cref="SolutionBuilder"/>.
+			/// Commits the <see cref="Candidate"/> to the current scenario in the <see cref="SolutionBuilder{TNodeState}"/>.
 			/// </summary>
 			public void Commit()
 			{

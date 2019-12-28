@@ -11,7 +11,7 @@ using Xunit;
 public class SelectionCountConstraintTests
 {
 	private ImmutableArray<DummyNode> nodes;
-	private Scenario scenario;
+	private Scenario<bool> scenario;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SelectionCountConstraintTests"/> class.
@@ -19,7 +19,7 @@ public class SelectionCountConstraintTests
 	public SelectionCountConstraintTests()
 	{
 		this.nodes = ImmutableArray.Create(new DummyNode("a"), new DummyNode("b"), new DummyNode("c"), new DummyNode("d"));
-		this.scenario = new Scenario(this.nodes);
+		this.scenario = new Scenario<bool>(this.nodes);
 	}
 
 	[Fact]

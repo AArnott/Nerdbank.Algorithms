@@ -13,31 +13,44 @@ public class SolutionBuilderTests : TestBase
 {
 	private static readonly IReadOnlyList<DummyNode> Nodes = ImmutableList.Create(new DummyNode("a"), new DummyNode("b"), new DummyNode("c"), new DummyNode("d"));
 
-	private readonly SolutionBuilder builder;
+	private readonly SolutionBuilder<bool> builder;
 
 	public SolutionBuilderTests(ITestOutputHelper logger)
 		: base(logger)
 	{
-		this.builder = new SolutionBuilder(Nodes);
+		this.builder = new SolutionBuilder<bool>(Nodes, ImmutableArray.Create(true, false));
 	}
 
 	[Fact]
-	public void Ctor_Null()
+	public void Ctor_NullNodes()
 	{
-		Assert.Throws<ArgumentNullException>("nodes", () => new SolutionBuilder(default!));
+		Assert.Throws<ArgumentNullException>("nodes", () => new SolutionBuilder<bool>(default!, ImmutableArray.Create(true, false)));
+	}
+
+	[Fact]
+	public void Ctor_UninitializedStates()
+	{
+		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(new[] { new DummyNode("a") }, default));
+	}
+
+	[Fact]
+	public void Ctor_LessThanTwoStates()
+	{
+		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(new[] { new DummyNode("a") }, ImmutableArray<bool>.Empty));
+		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(new[] { new DummyNode("a") }, ImmutableArray.Create(true)));
 	}
 
 	[Fact]
 	public void Ctor_EmptyNodeList()
 	{
-		Assert.Throws<ArgumentException>("nodes", () => new SolutionBuilder(Array.Empty<DummyNode>()));
+		Assert.Throws<ArgumentException>("nodes", () => new SolutionBuilder<bool>(Array.Empty<DummyNode>(), ImmutableArray.Create(true, false)));
 	}
 
 	[Fact]
 	public void Ctor_NonUniqueNodes()
 	{
 		var n = new DummyNode("a");
-		Assert.Throws<ArgumentException>(() => new SolutionBuilder(new[] { n, n }));
+		Assert.Throws<ArgumentException>(() => new SolutionBuilder<bool>(new[] { n, n }, ImmutableArray.Create(true, false)));
 	}
 
 	[Fact]
@@ -62,7 +75,7 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void AddConstraints_NullElement()
 	{
-		Assert.Throws<ArgumentException>("constraints", () => this.builder.AddConstraints(new IConstraint[1]));
+		Assert.Throws<ArgumentException>("constraints", () => this.builder.AddConstraints(new IConstraint<bool>[1]));
 	}
 
 	[Fact]
@@ -75,7 +88,7 @@ public class SolutionBuilderTests : TestBase
 	public void AddConstraint_ThrowsOnEmptyNodeSet()
 	{
 		var badConstraint = new EmptyNodeSetConstraint();
-		BadConstraintException ex = Assert.Throws<BadConstraintException>(() => this.builder.AddConstraint(badConstraint));
+		BadConstraintException<bool> ex = Assert.Throws<BadConstraintException<bool>>(() => this.builder.AddConstraint(badConstraint));
 		Assert.Same(badConstraint, ex.Constraint);
 	}
 
@@ -140,7 +153,7 @@ public class SolutionBuilderTests : TestBase
 		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1));
 		this.builder.AddConstraint(new ThrowingConstraint());
 
-		Assert.Throws<BadConstraintException>(() => this.builder.ResolvePartially(this.TimeoutToken));
+		Assert.Throws<BadConstraintException<bool>>(() => this.builder.ResolvePartially(this.TimeoutToken));
 		this.AssertAllNodesIndeterminate();
 	}
 
@@ -149,7 +162,7 @@ public class SolutionBuilderTests : TestBase
 	{
 		var badConstraint = new FalselyNonResolvingConstraint();
 		this.builder.AddConstraint(badConstraint);
-		BadConstraintException ex = Assert.Throws<BadConstraintException>(() => this.builder.ResolvePartially(this.TimeoutToken));
+		BadConstraintException<bool> ex = Assert.Throws<BadConstraintException<bool>>(() => this.builder.ResolvePartially(this.TimeoutToken));
 		Assert.Same(badConstraint, ex.Constraint);
 	}
 
@@ -192,7 +205,7 @@ public class SolutionBuilderTests : TestBase
 		this.builder.ResolvePartially(this.TimeoutToken);
 		this.AssertAllNodesIndeterminate();
 
-		IReadOnlyCollection<IConstraint>? conflictingConstraints = this.builder
+		IReadOnlyCollection<IConstraint<bool>>? conflictingConstraints = this.builder
 			.CheckForConflictingConstraints(this.TimeoutToken)
 			?.GetConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflictingConstraints);
@@ -222,7 +235,7 @@ public class SolutionBuilderTests : TestBase
 			SelectionCountConstraint.ExactSelected(Nodes, 1),
 		};
 		this.builder.AddConstraints(constraints);
-		SolutionBuilder.ConflictedConstraints? conflictingConstraints = this.builder.CheckForConflictingConstraints(this.TimeoutToken);
+		SolutionBuilder<bool>.ConflictedConstraints? conflictingConstraints = this.builder.CheckForConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflictingConstraints);
 		Assert.Throws<ComplexConflictException>(() => conflictingConstraints!.GetConflictingConstraints(this.TimeoutToken));
 	}
@@ -230,7 +243,7 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void AnalyzeSolution_NoConstraints()
 	{
-		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.NotNull(analysis);
 
 		Assert.Null(analysis.Conflicts);
@@ -238,7 +251,7 @@ public class SolutionBuilderTests : TestBase
 
 		for (int i = 0; i < Nodes.Count; i++)
 		{
-			Assert.Equal(-1, analysis.GetNodeSelectedCount(0));
+			Assert.Equal(-1, analysis.GetNodeValueCount(0, true));
 		}
 	}
 
@@ -246,7 +259,7 @@ public class SolutionBuilderTests : TestBase
 	public void AnalyzeSolution_WorthlessConstraint()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.RangeSelected(Nodes, 0, Nodes.Count));
-		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.NotNull(analysis);
 
 		Assert.Null(analysis.Conflicts);
@@ -254,7 +267,7 @@ public class SolutionBuilderTests : TestBase
 
 		for (int i = 0; i < Nodes.Count; i++)
 		{
-			Assert.Equal(analysis.ViableSolutionsFound / 2, analysis.GetNodeSelectedCount(0));
+			Assert.Equal(analysis.ViableSolutionsFound / 2, analysis.GetNodeValueCount(0, true));
 		}
 	}
 
@@ -275,14 +288,14 @@ public class SolutionBuilderTests : TestBase
 		this.builder.ResolvePartially(this.TimeoutToken);
 		this.AssertAllNodesIndeterminate();
 
-		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 
 		// viable solutions are: 010x
 		Assert.Equal(1, analysis.ViableSolutionsFound);
-		Assert.Equal(0, analysis.GetNodeSelectedCount(0));
-		Assert.Equal(analysis.ViableSolutionsFound, analysis.GetNodeSelectedCount(1));
-		Assert.Equal(0, analysis.GetNodeSelectedCount(2));
-		Assert.Equal(-1, analysis.GetNodeSelectedCount(3));
+		Assert.Equal(0, analysis.GetNodeValueCount(0, true));
+		Assert.Equal(analysis.ViableSolutionsFound, analysis.GetNodeValueCount(1, true));
+		Assert.Equal(0, analysis.GetNodeValueCount(2, true));
+		Assert.Equal(-1, analysis.GetNodeValueCount(3, true));
 
 		// Verify that analysis didn't impact any node selections.
 		this.AssertAllNodesIndeterminate();
@@ -297,7 +310,7 @@ public class SolutionBuilderTests : TestBase
 
 		Assert.Null(this.builder[Nodes.Count - 1]);
 
-		SolutionsAnalysis analysis2 = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		SolutionBuilder<bool>.SolutionsAnalysis analysis2 = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.Equal(analysis.ViableSolutionsFound, analysis2.ViableSolutionsFound);
 		Assert.Null(analysis2.Conflicts);
 	}
@@ -310,10 +323,10 @@ public class SolutionBuilderTests : TestBase
 			SelectionCountConstraint.ExactSelected(Nodes.Take(3), 1),
 			SelectionCountConstraint.ExactSelected(Nodes.Take(3), 2),
 		});
-		SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
+		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.Equal(0, analysis.ViableSolutionsFound);
 		Assert.NotNull(analysis.Conflicts);
-		Assert.Throws<InvalidOperationException>(() => analysis.GetNodeSelectedCount(0));
+		Assert.Throws<InvalidOperationException>(() => analysis.GetNodeValueCount(0, true));
 		Assert.Throws<InvalidOperationException>(() => analysis.ApplyAnalysisBackToBuilder());
 	}
 
@@ -323,8 +336,8 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void CheckForConflictingConstraints_VeryLargeProblemSpace()
 	{
-		SolutionBuilder conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
-		SolutionBuilder.ConflictedConstraints? conflicts = conflictedBuilder.CheckForConflictingConstraints(this.TimeoutToken);
+		SolutionBuilder<bool> conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
+		SolutionBuilder<bool>.ConflictedConstraints? conflicts = conflictedBuilder.CheckForConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflicts);
 	}
 
@@ -334,16 +347,16 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void AnalyzeSolution_VeryLargeProblemSpace()
 	{
-		SolutionBuilder conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
-		SolutionsAnalysis analysis = conflictedBuilder.AnalyzeSolutions(this.TimeoutToken);
+		SolutionBuilder<bool> conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
+		SolutionBuilder<bool>.SolutionsAnalysis analysis = conflictedBuilder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.Equal(0, analysis.ViableSolutionsFound);
 		Assert.NotNull(analysis.Conflicts);
 	}
 
-	private static SolutionBuilder CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace()
+	private static SolutionBuilder<bool> CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace()
 	{
 		DummyNode[] nodes = Enumerable.Range(1, 100).Select(n => new DummyNode(n)).ToArray();
-		var builder = new SolutionBuilder(nodes);
+		var builder = new SolutionBuilder<bool>(nodes, ImmutableArray.Create(true, false));
 		builder.AddConstraints(new[]
 		{
 			SelectionCountConstraint.ExactSelected(nodes.Skip(90).Take(3), 1),
@@ -361,55 +374,55 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	/// <summary>
-	/// A constraint that returns true from <see cref="IConstraint.Resolve(Scenario)"/>
+	/// A constraint that returns true from <see cref="IConstraint{T}.Resolve(Scenario{T})"/>
 	/// even though it doesn't change anything.
 	/// </summary>
-	private class FalselyNonResolvingConstraint : IConstraint
+	private class FalselyNonResolvingConstraint : IConstraint<bool>
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
 		public bool IsEmpty => throw new NotImplementedException();
 
-		public ConstraintStates GetState(Scenario scenario)
+		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool Resolve(Scenario scenario) => true;
+		public bool Resolve(Scenario<bool> scenario) => true;
 	}
 
 	/// <summary>
 	/// A constraint that throws from everything.
 	/// </summary>
-	private class ThrowingConstraint : IConstraint
+	private class ThrowingConstraint : IConstraint<bool>
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
 		public bool IsEmpty => throw new NotImplementedException();
 
-		public ConstraintStates GetState(Scenario scenario)
+		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool Resolve(Scenario scenario)
+		public bool Resolve(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
 		}
 	}
 
-	private class EmptyNodeSetConstraint : IConstraint
+	private class EmptyNodeSetConstraint : IConstraint<bool>
 	{
 		public IReadOnlyCollection<object> Nodes => Array.Empty<object>();
 
 		public bool IsEmpty => throw new NotImplementedException();
 
-		public ConstraintStates GetState(Scenario scenario)
+		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
 		}
 
-		public bool Resolve(Scenario scenario)
+		public bool Resolve(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
 		}

@@ -126,6 +126,9 @@
   <data name="AtLeastOneOfTwoArgumentsMustBeSet" xml:space="preserve">
     <value>At least one of the arguments {0}, {1} must be set to {2}.</value>
   </data>
+  <data name="AtLeastTwoNodeStatesRequired" xml:space="preserve">
+    <value>At least two node states must be defined.</value>
+  </data>
   <data name="BrokenConstraint" xml:space="preserve">
     <value>This constraint is broken.</value>
   </data>

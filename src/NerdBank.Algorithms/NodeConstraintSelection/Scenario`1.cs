@@ -12,15 +12,17 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 	/// <summary>
 	/// A scenario where nodes are considered to be selected or not.
 	/// </summary>
+	/// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 	/// <remarks>
 	/// Thread safety: Instance members on this class are not thread safe.
 	/// </remarks>
-	public sealed class Scenario
+	public sealed class Scenario<TNodeState>
+		where TNodeState : struct
 	{
 		/// <summary>
 		/// The selection state for each node.
 		/// </summary>
-		private readonly bool?[] selectionState;
+		private readonly TNodeState?[] selectionState;
 
 		/// <summary>
 		/// The nodes in the solution.
@@ -35,15 +37,15 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <summary>
 		/// The constraints that describe the solution.
 		/// </summary>
-		private ImmutableArray<IConstraint> constraints = ImmutableArray.Create<IConstraint>();
+		private ImmutableArray<IConstraint<TNodeState>> constraints = ImmutableArray.Create<IConstraint<TNodeState>>();
 
 		/// <summary>
 		/// All constraints, indexed by each node that impact them.
 		/// </summary>
-		private ImmutableArray<ImmutableArray<IConstraint>> constraintsPerNode;
+		private ImmutableArray<ImmutableArray<IConstraint<TNodeState>>> constraintsPerNode;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Scenario"/> class.
+		/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
 		/// </summary>
 		/// <param name="nodes">The list of nodes.</param>
 		/// <remarks>
@@ -56,23 +58,23 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				throw new ArgumentNullException(nameof(nodes));
 			}
 
-			this.selectionState = new bool?[nodes.Count];
+			this.selectionState = new TNodeState?[nodes.Count];
 			this.nodes = nodes;
 			this.nodeIndex = CreateNodeIndex(nodes);
-			this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint>()).ToImmutableArray();
+			this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
 		}
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Scenario"/> class.
+		/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
 		/// </summary>
 		/// <param name="nodes">The nodes in the problem/solution.</param>
 		/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
 		internal Scenario(IReadOnlyList<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
 		{
-			this.selectionState = new bool?[nodes.Count];
+			this.selectionState = new TNodeState?[nodes.Count];
 			this.nodes = nodes;
 			this.nodeIndex = nodeIndex;
-			this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint>()).ToImmutableArray();
+			this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
 		}
 
 		/// <summary>
@@ -83,7 +85,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <summary>
 		/// Gets the constraints that are applied in this scenario.
 		/// </summary>
-		internal ImmutableArray<IConstraint> Constraints => this.constraints;
+		internal ImmutableArray<IConstraint<TNodeState>> Constraints => this.constraints;
 
 		/// <summary>
 		/// Gets a value that changes each time a node selection is changed.
@@ -97,7 +99,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns>The selection state of the node. Null if the selection state isn't yet determined.</returns>
 		/// <exception cref="InvalidOperationException">Thrown when setting a node that already has a known state.</exception>
 		/// <exception cref="IndexOutOfRangeException">Thrown if the <paramref name="index"/> is negative or exceeds the number of nodes in the solution.</exception>
-		public bool? this[int index]
+		public TNodeState? this[int index]
 		{
 			get => this.selectionState[index];
 			set
@@ -129,7 +131,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// frequent callers should use <see cref="GetNodeIndex(object)"/> to perform this lookup and store the result
 		/// so that node indexes can be used instead of node objects in perf-critical code.
 		/// </remarks>
-		public bool? this[object node]
+		public TNodeState? this[object node]
 		{
 			get => this[this.nodeIndex[node]];
 			set => this[this.nodeIndex[node]] = value;
@@ -142,8 +144,8 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <returns>The index of the given node.</returns>
 		/// <exception cref="KeyNotFoundException">Thrown if the <paramref name="node"/> is not among the nodes in the solution.</exception>
 		/// <remarks>
-		/// This method can be used by <see cref="IConstraint"/> implementations to translate and cache nodes into indexes
-		/// for improved performance in <see cref="IConstraint.GetState(Scenario)"/>.
+		/// This method can be used by <see cref="IConstraint{TNodeState}"/> implementations to translate and cache nodes into indexes
+		/// for improved performance in <see cref="IConstraint{TNodeState}.GetState(Scenario{TNodeState})"/>.
 		/// </remarks>
 		public int GetNodeIndex(object node) => this.nodeIndex[node];
 
@@ -168,7 +170,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="index">The index of the node to change.</param>
 		/// <param name="selected">The new state.</param>
-		internal void ResetNode(int index, bool? selected)
+		internal void ResetNode(int index, TNodeState? selected)
 		{
 			this.selectionState[index] = selected;
 			this.Version++;
@@ -179,18 +181,18 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="nodeIndex">The index of the node.</param>
 		/// <returns>The constraints that apply to that node.</returns>
-		internal ImmutableArray<IConstraint> GetConstraintsThatApplyTo(int nodeIndex) => this.constraintsPerNode[nodeIndex];
+		internal ImmutableArray<IConstraint<TNodeState>> GetConstraintsThatApplyTo(int nodeIndex) => this.constraintsPerNode[nodeIndex];
 
 		/// <summary>
 		/// Adds a constraint to this scenario.
 		/// </summary>
 		/// <param name="constraint">The constraint to be added.</param>
-		/// <exception cref="BadConstraintException">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint.Nodes"/>.</exception>
-		internal void AddConstraint(IConstraint constraint)
+		/// <exception cref="BadConstraintException{TNodeState}">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint{TNodeState}.Nodes"/>.</exception>
+		internal void AddConstraint(IConstraint<TNodeState> constraint)
 		{
 			if (constraint.Nodes.Count == 0)
 			{
-				throw new BadConstraintException(constraint, Strings.ConstraintForEmptySetOfNodes);
+				throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintForEmptySetOfNodes);
 			}
 
 			this.constraints = this.constraints.Add(constraint);
@@ -211,7 +213,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// Removes a constraint from this scenario.
 		/// </summary>
 		/// <param name="constraint">The constraint to remove.</param>
-		internal void RemoveConstraint(IConstraint constraint)
+		internal void RemoveConstraint(IConstraint<TNodeState> constraint)
 		{
 			this.constraints = this.constraints.Remove(constraint);
 
@@ -232,7 +234,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		/// <param name="copyFrom">The template scenario.</param>
 		/// <exception cref="ArgumentException">Thrown if the <paramref name="copyFrom"/> scenario does not have the same number of nodes as this one.</exception>
-		internal unsafe void CopyFrom(Scenario copyFrom)
+		internal unsafe void CopyFrom(Scenario<TNodeState> copyFrom)
 		{
 			if (copyFrom.selectionState.Length != this.selectionState.Length)
 			{
@@ -240,12 +242,12 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			}
 
 			// Copy using memmove because it's much faster than a loop that iterates over the array copying one element at a time.
-			bool?[] src = copyFrom.selectionState;
-			bool?[] dest = this.selectionState;
+			TNodeState?[] src = copyFrom.selectionState;
+			TNodeState?[] dest = this.selectionState;
 			fixed (void* pSrc = &src[0])
 			fixed (void* pDest = &dest[0])
 			{
-				int bytesToCopy = sizeof(bool?) * src.Length;
+				int bytesToCopy = sizeof(TNodeState?) * src.Length;
 				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
 			}
 
