@@ -265,52 +265,51 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		{
 			stats.ConsideredScenarios++;
 			cancellationToken.ThrowIfCancellationRequested();
-			using (var experiment = new Experiment(this, basis))
+			bool canAnyConstraintsBeBroken = false;
+			for (int j = 0; j < basis.Constraints.Length; j++)
 			{
-				bool canAnyConstraintsBeBroken = false;
-				for (int j = 0; j < experiment.Candidate.Constraints.Length; j++)
+				IConstraint constraint = basis.Constraints[j];
+				cancellationToken.ThrowIfCancellationRequested();
+				ConstraintStates state = constraint.GetState(basis);
+				if ((state & ConstraintStates.Satisfiable) != ConstraintStates.Satisfiable)
 				{
-					IConstraint constraint = experiment.Candidate.Constraints[j];
-					cancellationToken.ThrowIfCancellationRequested();
-					ConstraintStates state = constraint.GetState(experiment.Candidate);
-					if ((state & ConstraintStates.Satisfiable) != ConstraintStates.Satisfiable)
-					{
-						return;
-					}
-
-					canAnyConstraintsBeBroken |= (state & ConstraintStates.Breakable) == ConstraintStates.Breakable;
-				}
-
-				if (stats.StopAfterFirstSolutionFound && !canAnyConstraintsBeBroken)
-				{
-					// There's nothing we can simulate that would break constraints, so everything we might try constitutes a valid solution.
-					// Don't waste time enumerating them.
-					stats.RecordSolutionFound(experiment.Candidate);
 					return;
 				}
 
-				int i;
-				for (i = firstNode; i < this.NodeCount; i++)
+				canAnyConstraintsBeBroken |= (state & ConstraintStates.Breakable) == ConstraintStates.Breakable;
+			}
+
+			if (stats.StopAfterFirstSolutionFound && !canAnyConstraintsBeBroken)
+			{
+				// There's nothing we can simulate that would break constraints, so everything we might try constitutes a valid solution.
+				// Don't waste time enumerating them.
+				stats.RecordSolutionFound(basis);
+				return;
+			}
+
+			int i;
+			for (i = firstNode; i < this.NodeCount; i++)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+
+				if (basis[i].HasValue)
 				{
-					cancellationToken.ThrowIfCancellationRequested();
+					// Skip any node that already has a set value.
+					continue;
+				}
 
-					if (experiment.Candidate[i].HasValue)
-					{
-						// Skip any node that already has a set value.
-						continue;
-					}
+				// We don't need to enumerate possibilities for a node for which no constraints exist.
+				ImmutableArray<IConstraint> applicableConstraints = basis.GetConstraintsThatApplyTo(i);
+				if (applicableConstraints.IsEmpty)
+				{
+					// Skip any node that can be any value without impact to constraints.
+					continue;
+				}
 
-					// We don't need to enumerate possibilities for a node for which no constraints exist.
-					ImmutableArray<IConstraint> applicableConstraints = experiment.Candidate.GetConstraintsThatApplyTo(i);
-					if (applicableConstraints.IsEmpty)
-					{
-						// Skip any node that can be any value without impact to constraints.
-						continue;
-					}
-
-					// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
+				// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
+				using (var experiment = new Experiment(this, basis))
+				{
 					experiment.Candidate[i] = true;
-					int version1 = experiment.Candidate.Version;
 					ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
 					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
 
@@ -319,26 +318,20 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 						return;
 					}
 
-					// If our resolving actually changed arbitrary nodes, we need to rollback
-					// before we can try our second test of UNselecting the node.
-					if (experiment.Candidate.Version != version1)
-					{
-						experiment.Candidate.CopyFrom(basis);
-					}
-
-					experiment.Candidate.ResetNode(i, false);
+					experiment.Rollback();
+					experiment.Candidate[i] = false;
 					ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
 					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
-
-					// Once we drill into one node, we don't want to drill into any more nodes since
-					// we did that via our recursive call.
-					break;
 				}
 
-				if (i >= this.NodeCount)
-				{
-					stats.RecordSolutionFound(experiment.Candidate);
-				}
+				// Once we drill into one node, we don't want to drill into any more nodes since
+				// we did that via our recursive call.
+				break;
+			}
+
+			if (i >= this.NodeCount)
+			{
+				stats.RecordSolutionFound(basis);
 			}
 		}
 
@@ -397,15 +390,21 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			private readonly SolutionBuilder builder;
 
 			/// <summary>
+			/// The scenario from which this experiment started.
+			/// </summary>
+			private readonly Scenario basis;
+
+			/// <summary>
 			/// Initializes a new instance of the <see cref="Experiment"/> struct.
 			/// </summary>
 			/// <param name="builder">The owner of this instance.</param>
 			/// <param name="basis">The scenario to use as a template. If unspecified, the <see cref="SolutionBuilder.CurrentScenario"/> is used.</param>
 			internal Experiment(SolutionBuilder builder, Scenario? basis = default)
 			{
+				this.basis = basis ?? builder.CurrentScenario;
 				this.builder = builder;
 				this.Candidate = builder.scenarioPool.Take();
-				this.Candidate.CopyFrom(basis ?? builder.CurrentScenario);
+				this.Candidate.CopyFrom(this.basis);
 			}
 
 			/// <summary>
@@ -419,6 +418,14 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			public void Commit()
 			{
 				this.builder.CurrentScenario.CopyFrom(this.Candidate);
+			}
+
+			/// <summary>
+			/// Rolls back this experiment to the original basis.
+			/// </summary>
+			public void Rollback()
+			{
+				this.Candidate.CopyFrom(this.basis);
 			}
 
 			/// <summary>
