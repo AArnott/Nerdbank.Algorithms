@@ -22,11 +22,6 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		IReadOnlyCollection<object> Nodes { get; }
 
 		/// <summary>
-		/// Gets a value indicating whether this constraint can be discarded without any information loss.
-		/// </summary>
-		bool IsEmpty { get; }
-
-		/// <summary>
 		/// Gets the state of the constraint with respect to a given scenario.
 		/// </summary>
 		/// <param name="scenario">The scenario to consider.</param>

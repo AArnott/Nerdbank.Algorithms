@@ -298,14 +298,4 @@ public class SelectionCountConstraintTests
 		Assert.True(this.scenario[0]);
 		Assert.False(target.Resolve(this.scenario));
 	}
-
-	[Fact]
-	public void IsEmpty()
-	{
-		var target = SelectionCountConstraint.RangeSelected(this.nodes, 0, int.MaxValue);
-		Assert.True(target.IsEmpty);
-
-		target = SelectionCountConstraint.RangeSelected(this.nodes, 0, 1);
-		Assert.False(target.IsEmpty);
-	}
 }

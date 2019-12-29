@@ -381,8 +381,6 @@ public class SolutionBuilderTests : TestBase
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
-		public bool IsEmpty => throw new NotImplementedException();
-
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
@@ -398,8 +396,6 @@ public class SolutionBuilderTests : TestBase
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
-		public bool IsEmpty => throw new NotImplementedException();
-
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
@@ -414,8 +410,6 @@ public class SolutionBuilderTests : TestBase
 	private class EmptyNodeSetConstraint : IConstraint<bool>
 	{
 		public IReadOnlyCollection<object> Nodes => Array.Empty<object>();
-
-		public bool IsEmpty => throw new NotImplementedException();
 
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{

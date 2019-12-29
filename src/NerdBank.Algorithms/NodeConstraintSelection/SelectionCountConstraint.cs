@@ -87,9 +87,6 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// </summary>
 		public int Maximum { get; }
 
-		/// <inheritdoc/>
-		public bool IsEmpty => this.Minimum == 0 && this.Maximum >= this.Nodes.Count;
-
 		/// <summary>
 		/// Creates a new constraint with the specified maximum for nodes that must be selected in the solution.
 		/// </summary>
