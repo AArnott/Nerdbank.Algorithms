@@ -123,6 +123,16 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
+	public void RemoveConstraint_RemovesSideEffects()
+	{
+		IConstraint<bool> constraint = this.builder.SetNodeState(Nodes[0], true);
+		this.builder.ResolvePartially(this.TimeoutToken);
+		this.builder.RemoveConstraint(constraint);
+		this.builder.ResolvePartially(this.TimeoutToken);
+		Assert.Null(this.builder[0]);
+	}
+
+	[Fact]
 	public void ResolvePartially_NoOpWithoutConstraints()
 	{
 		this.builder.ResolvePartially(this.TimeoutToken);

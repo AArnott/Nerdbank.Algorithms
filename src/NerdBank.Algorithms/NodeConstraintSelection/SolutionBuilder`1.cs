@@ -36,6 +36,13 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		private readonly ImmutableArray<TNodeState> resolvedNodeStates;
 
 		/// <summary>
+		/// Tracks when the next <see cref="ResolvePartially(CancellationToken)"/>
+		/// should clear the <see cref="Scenario{TNodeState}"/> before re-applying all constraints.
+		/// For example when removing constraints, its side-effects must be removed.
+		/// </summary>
+		private bool fullRefreshNeeded;
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="SolutionBuilder{TNodeState}"/> class.
 		/// </summary>
 		/// <param name="nodes">The nodes in the problem/solution.</param>
@@ -156,6 +163,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 			}
 
 			this.CurrentScenario.RemoveConstraint(constraint);
+			this.fullRefreshNeeded = true;
 		}
 
 		/// <summary>
@@ -166,9 +174,18 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		{
 			using (var experiment = new Experiment(this))
 			{
+				if (this.fullRefreshNeeded)
+				{
+					for (int i = 0; i < this.NodeCount; i++)
+					{
+						experiment.Candidate.ResetNode(i, null);
+					}
+				}
+
 				ResolvePartially(experiment.Candidate, cancellationToken);
 
 				experiment.Commit();
+				this.fullRefreshNeeded = false;
 			}
 		}
 
