@@ -12,7 +12,7 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\strongname.snk</AssemblyOriginatorKeyFile>
 
-    <PackageProjectUrl>https://github.com/AArnott/NerdBank.Algorithms</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/AArnott/Nerdbank.Algorithms</PackageProjectUrl>
     <Company>Andrew Arnott</Company>
     <Authors>Andrew Arnott</Authors>
     <Copyright>© Andrew Arnott. All rights reserved.</Copyright>

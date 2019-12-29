@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace NerdBank.Algorithms.NodeConstraintSelection
+namespace Nerdbank.Algorithms.NodeConstraintSelection
 {
 	using System;
 	using System.Collections.Generic;

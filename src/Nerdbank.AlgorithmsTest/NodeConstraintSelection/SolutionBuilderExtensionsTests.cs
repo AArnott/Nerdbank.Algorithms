@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
-using NerdBank.Algorithms.NodeConstraintSelection;
+using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
 using Xunit.Abstractions;
 

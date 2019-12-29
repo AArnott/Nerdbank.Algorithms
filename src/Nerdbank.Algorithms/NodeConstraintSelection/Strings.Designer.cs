@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NerdBank.Algorithms.NodeConstraintSelection {
+namespace Nerdbank.Algorithms.NodeConstraintSelection {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace NerdBank.Algorithms.NodeConstraintSelection {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NerdBank.Algorithms.NodeConstraintSelection.Strings", typeof(Strings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Nerdbank.Algorithms.NodeConstraintSelection.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

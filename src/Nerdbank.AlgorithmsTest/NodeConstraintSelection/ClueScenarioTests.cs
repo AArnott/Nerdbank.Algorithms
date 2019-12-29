@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using NerdBank.Algorithms.NodeConstraintSelection;
+using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
 using Xunit.Abstractions;
 

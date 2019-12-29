@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NerdBank.Algorithms\NerdBank.Algorithms.csproj" />
+    <ProjectReference Include="..\Nerdbank.Algorithms\Nerdbank.Algorithms.csproj" />
   </ItemGroup>
 
   <ItemGroup>

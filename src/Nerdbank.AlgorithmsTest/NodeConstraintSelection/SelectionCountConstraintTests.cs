@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using NerdBank.Algorithms.NodeConstraintSelection;
+using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
 
 public class SelectionCountConstraintTests

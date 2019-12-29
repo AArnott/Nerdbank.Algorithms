@@ -11,7 +11,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using NerdBank.Algorithms.NodeConstraintSelection;
+using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
 using Xunit.Abstractions;
 
