@@ -117,6 +117,12 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
+	public void RemoveConstraint_NullArg()
+	{
+		Assert.Throws<ArgumentNullException>("constraint", () => this.builder.RemoveConstraint(null!));
+	}
+
+	[Fact]
 	public void ResolvePartially_NoOpWithoutConstraints()
 	{
 		this.builder.ResolvePartially(this.TimeoutToken);

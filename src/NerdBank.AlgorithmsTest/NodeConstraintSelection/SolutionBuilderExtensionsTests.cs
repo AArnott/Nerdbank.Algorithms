@@ -27,7 +27,7 @@ public class SolutionBuilderExtensionsTests : TestBase
 	[Fact]
 	public void SetNodeState()
 	{
-		this.builder.SetNodeState(Nodes[0], true);
+		Assert.NotNull(this.builder.SetNodeState(Nodes[0], true));
 		Assert.Null(this.builder[0]);
 
 		this.builder.ResolvePartially(this.TimeoutToken);

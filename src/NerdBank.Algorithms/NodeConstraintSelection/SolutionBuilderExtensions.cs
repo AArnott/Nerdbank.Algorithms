@@ -17,11 +17,12 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 		/// <param name="builder">The <see cref="SolutionBuilder{TNodeState}"/> to add a constraint to.</param>
 		/// <param name="node">The node to modify.</param>
 		/// <param name="value">The value to set on the node.</param>
+		/// <returns>The constraint that was created and added to the solution to set the node to the desired state.</returns>
 		/// <remarks>
 		/// The new constraint's value is not applied to the node immediately.
 		/// The caller must use <see cref="SolutionBuilder{TNodeState}.ResolvePartially(System.Threading.CancellationToken)"/> to activate the constraint.
 		/// </remarks>
-		public static void SetNodeState<TNodeState>(this SolutionBuilder<TNodeState> builder, object node, TNodeState value)
+		public static IConstraint<TNodeState> SetNodeState<TNodeState>(this SolutionBuilder<TNodeState> builder, object node, TNodeState value)
 			where TNodeState : struct, IEquatable<TNodeState>
 		{
 			if (builder is null)
@@ -34,7 +35,9 @@ namespace NerdBank.Algorithms.NodeConstraintSelection
 				throw new ArgumentNullException(nameof(node));
 			}
 
-			builder.AddConstraint(new SetOneNodeValueConstraint<TNodeState>(node, value));
+			var constraint = new SetOneNodeValueConstraint<TNodeState>(node, value);
+			builder.AddConstraint(constraint);
+			return constraint;
 		}
 	}
 }
