@@ -17,7 +17,7 @@ variables:
   BuildPlatform: Any CPU
   codecov_token: 6e76f3c2-9715-4609-b4b5-b12f624e4786
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
-  ci_feed: CI
+  ci_feed: OSS/PublicCI
 
 jobs:
 - template: azure-pipelines/build.yml
