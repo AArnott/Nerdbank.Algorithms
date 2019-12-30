@@ -1,0 +1,192 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Arg1GreaterThanArg2Required" xml:space="preserve">
+    <value>{0} must be greater than {1}.</value>
+  </data>
+  <data name="Arg1NoGreaterThanElementsInArg2Required" xml:space="preserve">
+    <value>{0} cannot be greater than the number of elements in {1}.</value>
+  </data>
+  <data name="AtLeastOneOfTwoArgumentsMustBeSet" xml:space="preserve">
+    <value>At least one of the arguments {0}, {1} must be set to {2}.</value>
+  </data>
+  <data name="AtLeastTwoNodeStatesRequired" xml:space="preserve">
+    <value>At least two node states must be defined.</value>
+  </data>
+  <data name="BrokenConstraint" xml:space="preserve">
+    <value>This constraint is broken.</value>
+  </data>
+  <data name="CannotResetNodeDuringSimulation" xml:space="preserve">
+    <value>Cannot reset node during simulation.</value>
+  </data>
+  <data name="CardsToPlayersDistributionError" xml:space="preserve">
+    <value>The cards in the game have not been properly distributed to the players.</value>
+  </data>
+  <data name="ConstraintForEmptySetOfNodes" xml:space="preserve">
+    <value>No nodes included in the constraint.</value>
+  </data>
+  <data name="ConstraintResolveReturnedTrueWithNoChanges" xml:space="preserve">
+    <value>Resolve returned true but made no changes.</value>
+  </data>
+  <data name="ConstraintThrewUnexpectedException" xml:space="preserve">
+    <value>A constraint threw an unexpected exception.</value>
+  </data>
+  <data name="DisprovingCardNotInSuspicion" xml:space="preserve">
+    <value>The value of the {0} argument must be one of the cards in the {1} argument.</value>
+  </data>
+  <data name="IllegalAfterGameIsStarted" xml:space="preserve">
+    <value>You cannot do this once the game has started.</value>
+  </data>
+  <data name="IncompleteNodesList" xml:space="preserve">
+    <value>The list of nodes provided does not include all nodes necessary to construct the required constraint(s) or contains duplicate nodes.</value>
+  </data>
+  <data name="ListCannotBeEmpty" xml:space="preserve">
+    <value>A non-empty list is required.</value>
+  </data>
+  <data name="NodeAlreadySet" xml:space="preserve">
+    <value>This node already has a set state.</value>
+  </data>
+  <data name="NodeCountMismatch" xml:space="preserve">
+    <value>Template does not have matching node count.</value>
+  </data>
+  <data name="NonEmptyArrayRequired" xml:space="preserve">
+    <value>Array must be initialized and non-empty.</value>
+  </data>
+  <data name="NonNegativeRequired" xml:space="preserve">
+    <value>A non-negative value is required.</value>
+  </data>
+  <data name="NotSimulating" xml:space="preserve">
+    <value>This node is not in simulation mode.</value>
+  </data>
+  <data name="NullMemberOfCollection" xml:space="preserve">
+    <value>Collection had null member.</value>
+  </data>
+  <data name="PlayersRequired" xml:space="preserve">
+    <value>Players must be added to the game first.</value>
+  </data>
+  <data name="PropertyChangeFromToError" xml:space="preserve">
+    <value>This property cannot be changed from {0} to {1}.</value>
+  </data>
+  <data name="PropertyMustBeSetFirst" xml:space="preserve">
+    <value>{0} property must be set first.</value>
+  </data>
+  <data name="ViableSolutionStatsNotAvailable" xml:space="preserve">
+    <value>Viable solution statistics are not available.</value>
+  </data>
+</root>
