@@ -449,14 +449,6 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 			}
 
 			/// <summary>
-			/// Rolls back this experiment to the original basis.
-			/// </summary>
-			public void Rollback()
-			{
-				this.Candidate.CopyFrom(this.basis);
-			}
-
-			/// <summary>
 			/// Recycles the <see cref="Candidate"/> and concludes the experiment.
 			/// </summary>
 			public void Dispose()

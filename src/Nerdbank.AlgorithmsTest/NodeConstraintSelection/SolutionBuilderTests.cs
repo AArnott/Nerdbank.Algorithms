@@ -268,6 +268,7 @@ public class SolutionBuilderTests : TestBase
 		for (int i = 0; i < Nodes.Count; i++)
 		{
 			Assert.Equal(-1, analysis.GetNodeValueCount(0, true));
+			Assert.Equal(-1, analysis.GetNodeValueCount(Nodes[0], true));
 		}
 	}
 
