@@ -123,13 +123,45 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
-	public void RemoveConstraint_RemovesSideEffects()
+	public void RemoveConstraint_RevertsExplicitlySetNodes()
 	{
 		IConstraint<bool> constraint = this.builder.SetNodeState(Nodes[0], true);
 		this.builder.ResolvePartially(this.TimeoutToken);
 		this.builder.RemoveConstraint(constraint);
 		this.builder.ResolvePartially(this.TimeoutToken);
 		Assert.Null(this.builder[0]);
+	}
+
+	[Fact]
+	public void RemoveConstraint_RevertsDeducedNodeStates()
+	{
+		// Create a pair of constraints which when taken together effectively knock out a couple nodes from possible selection.
+		var explicitConstraints = new IConstraint<bool>[]
+		{
+			SelectionCountConstraint.ExactSelected(Nodes, 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+		};
+		this.builder.AddConstraints(explicitConstraints);
+
+		// Verify that the deduction hasn't been made yet, since it will have to come from solution analysis.
+		// We want to validate our own test that the node state is not explicitly set by constraint resolution.
+		this.builder.ResolvePartially();
+		Assert.Null(this.builder[2]);
+
+		// Analyze all viable solutions and apply back so that the deduced node state is set.
+		this.builder.AnalyzeSolutions(this.TimeoutToken).ApplyAnalysisBackToBuilder();
+
+		// Verify that the deduced constraint was added.
+		Assert.False(this.builder[2]);
+
+		// Now remove one of the constraints and verify that the deduced constraint is also removed.
+		this.builder.RemoveConstraint(explicitConstraints[0]);
+		this.builder.ResolvePartially(this.TimeoutToken);
+		Assert.Null(this.builder[2]);
+
+		// Verify once again that the deduced node can no longer be deduced.
+		this.builder.AnalyzeSolutions(this.TimeoutToken).ApplyAnalysisBackToBuilder();
+		Assert.Null(this.builder[2]);
 	}
 
 	[Fact]
