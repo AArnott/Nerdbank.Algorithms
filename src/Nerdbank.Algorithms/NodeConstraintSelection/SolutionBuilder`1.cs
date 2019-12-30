@@ -78,11 +78,6 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
-		/// Occurs when one or more nodes' state has changed.
-		/// </summary>
-		public event EventHandler<SelectionChangedEventArgs>? SelectionChanged;
-
-		/// <summary>
 		/// Gets the current scenario.
 		/// </summary>
 		internal Scenario<TNodeState> CurrentScenario { get; }
@@ -225,12 +220,6 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 				}
 			}
 		}
-
-		/// <summary>
-		/// Raises the <see cref="SelectionChanged"/> event.
-		/// </summary>
-		/// <param name="args">The args to pass to the event handlers.</param>
-		protected virtual void OnSelectionChanged(SelectionChangedEventArgs args) => this.SelectionChanged?.Invoke(this, args);
 
 		private static void ResolvePartially(Scenario<TNodeState> scenario, CancellationToken cancellationToken)
 		{
