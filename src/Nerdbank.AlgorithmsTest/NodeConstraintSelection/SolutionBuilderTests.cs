@@ -198,6 +198,33 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
+	public void CheckConstraint_NullArg()
+	{
+		Assert.Throws<ArgumentNullException>(() => this.builder.CheckConstraint(null!, this.TimeoutToken));
+	}
+
+	[Fact]
+	public void CheckConstraint_Valid()
+	{
+		Assert.True(this.builder.CheckConstraint(SelectionCountConstraint.MinSelected(Nodes, 1), this.TimeoutToken));
+	}
+
+	[Fact]
+	public void CheckConstraint_Invalid()
+	{
+		this.builder.AddConstraint(SelectionCountConstraint.MinSelected(Nodes, 2));
+		Assert.False(this.builder.CheckConstraint(SelectionCountConstraint.MaxSelected(Nodes, 1), this.TimeoutToken));
+	}
+
+	[Fact]
+	public void CheckConstraint_AlreadyInvalid()
+	{
+		this.builder.AddConstraint(SelectionCountConstraint.MinSelected(Nodes, 2));
+		this.builder.AddConstraint(SelectionCountConstraint.MaxSelected(Nodes, 1));
+		Assert.False(this.builder.CheckConstraint(SelectionCountConstraint.MinSelected(Nodes, 1), this.TimeoutToken));
+	}
+
+	[Fact]
 	public void ResolvePartially_NoOpWithoutConstraints()
 	{
 		this.builder.ResolvePartially(this.TimeoutToken);

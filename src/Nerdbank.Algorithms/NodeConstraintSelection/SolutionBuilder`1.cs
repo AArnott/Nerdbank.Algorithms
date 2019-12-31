@@ -186,6 +186,30 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
+		/// Checks whether viable solutions remain after applying the given constraint,
+		/// without actually adding the constraint to the solution.
+		/// </summary>
+		/// <param name="constraint">The constraint to test.</param>
+		/// <param name="cancellationToken">A cancellation token.</param>
+		/// <returns><c>true</c> if the constraint leaves viable solutions discoverable; <c>false</c> otherwise.</returns>
+		/// <remarks>
+		/// If no viable solutions exist before calling this method, this method will return <c>false</c>.
+		/// </remarks>
+		public bool CheckConstraint(IConstraint<TNodeState> constraint, CancellationToken cancellationToken)
+		{
+			if (constraint is null)
+			{
+				throw new ArgumentNullException(nameof(constraint));
+			}
+
+			using (var experiment = new Experiment(this))
+			{
+				experiment.Candidate.AddConstraint(constraint);
+				return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null;
+			}
+		}
+
+		/// <summary>
 		/// Applies immediately constraint resolutions to the solution where possible.
 		/// </summary>
 		/// <param name="cancellationToken">A cancellation token.</param>
