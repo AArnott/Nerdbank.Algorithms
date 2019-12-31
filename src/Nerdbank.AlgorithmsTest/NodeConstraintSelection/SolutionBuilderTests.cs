@@ -101,11 +101,13 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void AddConstraints()
 	{
-		this.builder.AddConstraints(new[]
+		SelectionCountConstraint[] constraints = new[]
 		{
 			SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1),
 			SelectionCountConstraint.ExactSelected(Nodes.Skip(1).Take(1), 1),
-		});
+		};
+		this.builder.AddConstraints(constraints);
+		Assert.Equal(constraints, this.builder.Constraints);
 
 		this.builder.ResolvePartially();
 		Assert.True(this.builder[0]);
@@ -123,11 +125,42 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
+	public void RemoveConstraints_NullArg()
+	{
+		Assert.Throws<ArgumentNullException>("constraints", () => this.builder.RemoveConstraints(null!));
+	}
+
+	[Fact]
+	public void RemoveConstraints_NullElement()
+	{
+		Assert.Throws<ArgumentException>("constraints", () => this.builder.RemoveConstraints(new IConstraint<bool>[1]));
+	}
+
+	[Fact]
+	public void RemoveConstraints_EmptyList()
+	{
+		this.builder.RemoveConstraints(Array.Empty<IConstraint<bool>>());
+	}
+
+	[Fact]
+	public void RemoveConstraints_TwoElements()
+	{
+		var explicitConstraints = new IConstraint<bool>[]
+		{
+				SelectionCountConstraint.ExactSelected(Nodes, 1),
+				SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+		};
+		this.builder.RemoveConstraints(explicitConstraints);
+		Assert.Empty(this.builder.Constraints);
+	}
+
+	[Fact]
 	public void RemoveConstraint_RevertsExplicitlySetNodes()
 	{
 		IConstraint<bool> constraint = this.builder.SetNodeState(Nodes[0], true);
 		this.builder.ResolvePartially(this.TimeoutToken);
 		this.builder.RemoveConstraint(constraint);
+		Assert.Empty(this.builder.Constraints);
 		this.builder.ResolvePartially(this.TimeoutToken);
 		Assert.Null(this.builder[0]);
 	}
@@ -430,6 +463,11 @@ public class SolutionBuilderTests : TestBase
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
+		public bool Equals(IConstraint<bool>? other)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
@@ -445,6 +483,11 @@ public class SolutionBuilderTests : TestBase
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
+		public bool Equals(IConstraint<bool>? other)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
@@ -459,6 +502,11 @@ public class SolutionBuilderTests : TestBase
 	private class EmptyNodeSetConstraint : IConstraint<bool>
 	{
 		public IReadOnlyCollection<object> Nodes => Array.Empty<object>();
+
+		public bool Equals(IConstraint<bool>? other)
+		{
+			throw new NotImplementedException();
+		}
 
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{

@@ -81,5 +81,8 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 
 		/// <inheritdoc/>
 		public override string ToString() => $"{this.GetType().Name}(Set {{{this.node}}} to {this.value})";
+
+		/// <inheritdoc/>
+		public bool Equals(IConstraint<TNodeState>? other) => other is SetOneNodeValueConstraint<TNodeState> sonv && this.node == sonv.node && this.value.Equals(sonv.value);
 	}
 }

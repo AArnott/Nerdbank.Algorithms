@@ -3,6 +3,7 @@
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection
 {
+	using System;
 	using System.Collections.Generic;
 
 	/// <summary>
@@ -13,7 +14,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 	/// <remarks>
 	/// Implementations should be immutable and thread-safe.
 	/// </remarks>
-	public interface IConstraint<TNodeState>
+	public interface IConstraint<TNodeState> : IEquatable<IConstraint<TNodeState>?>
 		where TNodeState : struct
 	{
 		/// <summary>

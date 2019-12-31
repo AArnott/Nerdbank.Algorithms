@@ -78,6 +78,11 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
+		/// Gets the applied constraints.
+		/// </summary>
+		public IReadOnlyCollection<IConstraint<TNodeState>> Constraints => this.CurrentScenario.Constraints;
+
+		/// <summary>
 		/// Gets the current scenario.
 		/// </summary>
 		internal Scenario<TNodeState> CurrentScenario { get; }
@@ -159,6 +164,25 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 
 			this.CurrentScenario.RemoveConstraint(constraint);
 			this.fullRefreshNeeded = true;
+		}
+
+		/// <summary>
+		/// Removes constraints from the solution.
+		/// </summary>
+		/// <param name="constraints">The constraints to remove.</param>
+		public void RemoveConstraints(IEnumerable<IConstraint<TNodeState>> constraints)
+		{
+			if (constraints is null)
+			{
+				throw new ArgumentNullException(nameof(constraints));
+			}
+
+			using (var experiment = new Experiment(this))
+			{
+				experiment.Candidate.RemoveConstraints(constraints);
+				experiment.Commit();
+				this.fullRefreshNeeded = true;
+			}
 		}
 
 		/// <summary>
