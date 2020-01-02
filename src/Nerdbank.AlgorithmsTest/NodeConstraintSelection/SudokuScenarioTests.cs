@@ -5,12 +5,9 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
 using Xunit.Abstractions;
@@ -139,6 +136,11 @@ public class SudokuScenarioTests : TestBase
 		}
 
 		public IReadOnlyCollection<object> Nodes { get; }
+
+		public bool Equals(IConstraint<int>? other)
+		{
+			return other is UniqueValueConstraint uv && this.Nodes.Count == uv.Nodes.Count && this.Nodes.SequenceEqual(uv.Nodes);
+		}
 
 		public ConstraintStates GetState(Scenario<int> scenario)
 		{

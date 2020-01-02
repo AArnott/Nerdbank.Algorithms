@@ -230,6 +230,34 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
+		/// Removes constraints from this scenario.
+		/// </summary>
+		/// <param name="constraints">The constraints to remove.</param>
+		internal void RemoveConstraints(IEnumerable<IConstraint<TNodeState>> constraints)
+		{
+			this.constraints = this.constraints.RemoveRange(constraints);
+
+			var constraintsPerNode = this.constraintsPerNode.ToBuilder();
+			foreach (IConstraint<TNodeState> constraint in constraints)
+			{
+				if (constraint is null)
+				{
+					throw new ArgumentException(Strings.NullMemberOfCollection, nameof(constraints));
+				}
+
+				foreach (var node in constraint.Nodes)
+				{
+					int nodeIndex = this.nodeIndex[node];
+					constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Remove(constraint);
+				}
+			}
+
+			this.constraintsPerNode = constraintsPerNode.ToImmutable();
+
+			this.Version++;
+		}
+
+		/// <summary>
 		/// Applies the selection state of another scenario to this one.
 		/// </summary>
 		/// <param name="copyFrom">The template scenario.</param>

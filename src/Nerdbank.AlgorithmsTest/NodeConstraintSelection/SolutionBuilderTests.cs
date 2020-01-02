@@ -101,11 +101,13 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void AddConstraints()
 	{
-		this.builder.AddConstraints(new[]
+		SelectionCountConstraint[] constraints = new[]
 		{
 			SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1),
 			SelectionCountConstraint.ExactSelected(Nodes.Skip(1).Take(1), 1),
-		});
+		};
+		this.builder.AddConstraints(constraints);
+		Assert.Equal(constraints, this.builder.Constraints);
 
 		this.builder.ResolvePartially();
 		Assert.True(this.builder[0]);
@@ -123,13 +125,103 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
-	public void RemoveConstraint_RemovesSideEffects()
+	public void RemoveConstraints_NullArg()
+	{
+		Assert.Throws<ArgumentNullException>("constraints", () => this.builder.RemoveConstraints(null!));
+	}
+
+	[Fact]
+	public void RemoveConstraints_NullElement()
+	{
+		Assert.Throws<ArgumentException>("constraints", () => this.builder.RemoveConstraints(new IConstraint<bool>[1]));
+	}
+
+	[Fact]
+	public void RemoveConstraints_EmptyList()
+	{
+		this.builder.RemoveConstraints(Array.Empty<IConstraint<bool>>());
+	}
+
+	[Fact]
+	public void RemoveConstraints_TwoElements()
+	{
+		var explicitConstraints = new IConstraint<bool>[]
+		{
+				SelectionCountConstraint.ExactSelected(Nodes, 1),
+				SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+		};
+		this.builder.RemoveConstraints(explicitConstraints);
+		Assert.Empty(this.builder.Constraints);
+	}
+
+	[Fact]
+	public void RemoveConstraint_RevertsExplicitlySetNodes()
 	{
 		IConstraint<bool> constraint = this.builder.SetNodeState(Nodes[0], true);
 		this.builder.ResolvePartially(this.TimeoutToken);
 		this.builder.RemoveConstraint(constraint);
+		Assert.Empty(this.builder.Constraints);
 		this.builder.ResolvePartially(this.TimeoutToken);
 		Assert.Null(this.builder[0]);
+	}
+
+	[Fact]
+	public void RemoveConstraint_RevertsDeducedNodeStates()
+	{
+		// Create a pair of constraints which when taken together effectively knock out a couple nodes from possible selection.
+		var explicitConstraints = new IConstraint<bool>[]
+		{
+			SelectionCountConstraint.ExactSelected(Nodes, 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+		};
+		this.builder.AddConstraints(explicitConstraints);
+
+		// Verify that the deduction hasn't been made yet, since it will have to come from solution analysis.
+		// We want to validate our own test that the node state is not explicitly set by constraint resolution.
+		this.builder.ResolvePartially();
+		Assert.Null(this.builder[2]);
+
+		// Analyze all viable solutions and apply back so that the deduced node state is set.
+		this.builder.AnalyzeSolutions(this.TimeoutToken).ApplyAnalysisBackToBuilder();
+
+		// Verify that the deduced constraint was added.
+		Assert.False(this.builder[2]);
+
+		// Now remove one of the constraints and verify that the deduced constraint is also removed.
+		this.builder.RemoveConstraint(explicitConstraints[0]);
+		this.builder.ResolvePartially(this.TimeoutToken);
+		Assert.Null(this.builder[2]);
+
+		// Verify once again that the deduced node can no longer be deduced.
+		this.builder.AnalyzeSolutions(this.TimeoutToken).ApplyAnalysisBackToBuilder();
+		Assert.Null(this.builder[2]);
+	}
+
+	[Fact]
+	public void CheckConstraint_NullArg()
+	{
+		Assert.Throws<ArgumentNullException>(() => this.builder.CheckConstraint(null!, this.TimeoutToken));
+	}
+
+	[Fact]
+	public void CheckConstraint_Valid()
+	{
+		Assert.True(this.builder.CheckConstraint(SelectionCountConstraint.MinSelected(Nodes, 1), this.TimeoutToken));
+	}
+
+	[Fact]
+	public void CheckConstraint_Invalid()
+	{
+		this.builder.AddConstraint(SelectionCountConstraint.MinSelected(Nodes, 2));
+		Assert.False(this.builder.CheckConstraint(SelectionCountConstraint.MaxSelected(Nodes, 1), this.TimeoutToken));
+	}
+
+	[Fact]
+	public void CheckConstraint_AlreadyInvalid()
+	{
+		this.builder.AddConstraint(SelectionCountConstraint.MinSelected(Nodes, 2));
+		this.builder.AddConstraint(SelectionCountConstraint.MaxSelected(Nodes, 1));
+		Assert.False(this.builder.CheckConstraint(SelectionCountConstraint.MinSelected(Nodes, 1), this.TimeoutToken));
 	}
 
 	[Fact]
@@ -398,6 +490,11 @@ public class SolutionBuilderTests : TestBase
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
+		public bool Equals(IConstraint<bool>? other)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
@@ -413,6 +510,11 @@ public class SolutionBuilderTests : TestBase
 	{
 		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
+		public bool Equals(IConstraint<bool>? other)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{
 			throw new NotImplementedException();
@@ -427,6 +529,11 @@ public class SolutionBuilderTests : TestBase
 	private class EmptyNodeSetConstraint : IConstraint<bool>
 	{
 		public IReadOnlyCollection<object> Nodes => Array.Empty<object>();
+
+		public bool Equals(IConstraint<bool>? other)
+		{
+			throw new NotImplementedException();
+		}
 
 		public ConstraintStates GetState(Scenario<bool> scenario)
 		{

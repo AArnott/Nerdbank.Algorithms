@@ -78,6 +78,11 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		}
 
 		/// <summary>
+		/// Gets the applied constraints.
+		/// </summary>
+		public IReadOnlyCollection<IConstraint<TNodeState>> Constraints => this.CurrentScenario.Constraints;
+
+		/// <summary>
 		/// Gets the current scenario.
 		/// </summary>
 		internal Scenario<TNodeState> CurrentScenario { get; }
@@ -159,6 +164,49 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 
 			this.CurrentScenario.RemoveConstraint(constraint);
 			this.fullRefreshNeeded = true;
+		}
+
+		/// <summary>
+		/// Removes constraints from the solution.
+		/// </summary>
+		/// <param name="constraints">The constraints to remove.</param>
+		public void RemoveConstraints(IEnumerable<IConstraint<TNodeState>> constraints)
+		{
+			if (constraints is null)
+			{
+				throw new ArgumentNullException(nameof(constraints));
+			}
+
+			using (var experiment = new Experiment(this))
+			{
+				experiment.Candidate.RemoveConstraints(constraints);
+				experiment.Commit();
+				this.fullRefreshNeeded = true;
+			}
+		}
+
+		/// <summary>
+		/// Checks whether viable solutions remain after applying the given constraint,
+		/// without actually adding the constraint to the solution.
+		/// </summary>
+		/// <param name="constraint">The constraint to test.</param>
+		/// <param name="cancellationToken">A cancellation token.</param>
+		/// <returns><c>true</c> if the constraint leaves viable solutions discoverable; <c>false</c> otherwise.</returns>
+		/// <remarks>
+		/// If no viable solutions exist before calling this method, this method will return <c>false</c>.
+		/// </remarks>
+		public bool CheckConstraint(IConstraint<TNodeState> constraint, CancellationToken cancellationToken)
+		{
+			if (constraint is null)
+			{
+				throw new ArgumentNullException(nameof(constraint));
+			}
+
+			using (var experiment = new Experiment(this))
+			{
+				experiment.Candidate.AddConstraint(constraint);
+				return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null;
+			}
 		}
 
 		/// <summary>

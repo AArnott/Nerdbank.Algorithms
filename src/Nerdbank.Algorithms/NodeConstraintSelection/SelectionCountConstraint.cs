@@ -189,6 +189,9 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 			return false;
 		}
 
+		/// <inheritdoc/>
+		public bool Equals(IConstraint<bool>? other) => other is SelectionCountConstraint scc && this.Maximum == scc.Maximum && this.Minimum == scc.Minimum && this.Nodes.Count == scc.Nodes.Count && this.Nodes.SequenceEqual(scc.Nodes);
+
 		/// <summary>
 		/// Gets a value indicating whether we have so many UNselected nodes that the remaining nodes equal the minimum allowed selected nodes
 		/// and we can resolve by selecting the rest.
