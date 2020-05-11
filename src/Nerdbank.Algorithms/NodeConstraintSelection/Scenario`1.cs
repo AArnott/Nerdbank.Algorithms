@@ -278,10 +278,12 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 			TNodeState?[] src = copyFrom.selectionState;
 			TNodeState?[] dest = this.selectionState;
 			fixed (void* pSrc = &src[0])
-			fixed (void* pDest = &dest[0])
 			{
-				int bytesToCopy = sizeof(TNodeState?) * src.Length;
-				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
+				fixed (void* pDest = &dest[0])
+				{
+					int bytesToCopy = sizeof(TNodeState?) * src.Length;
+					Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
+				}
 			}
 
 			this.constraints = copyFrom.Constraints;

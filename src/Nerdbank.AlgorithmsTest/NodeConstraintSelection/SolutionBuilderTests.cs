@@ -22,6 +22,32 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	[Fact]
+	public void GetProbableSolution()
+	{
+		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(new[] { Nodes[0], Nodes[2] }, 1));
+		Scenario<bool> scenario = this.builder.GetProbableSolution(this.TimeoutToken);
+		Assert.True(scenario[0]!.Value ^ scenario[2]!.Value);
+		Assert.False(scenario[1].HasValue);
+		Assert.False(scenario[3].HasValue);
+	}
+
+	[Fact]
+	public void GetProbableSolution_MultipleStates()
+	{
+		var nodes = new object[] { 1, 2, 3 };
+		var builder = new SolutionBuilder<char>(nodes, ImmutableArray.Create('a', 'b', 'c', 'd'));
+		builder.AddConstraint(new NoAConstraint(nodes));
+		builder.AddConstraint(new NoDuplicatesConstraint(nodes));
+		Scenario<char> scenario = builder.GetProbableSolution(this.TimeoutToken);
+		Assert.All(scenario.NodeStates, s => Assert.NotNull(s));
+		Assert.All(scenario.NodeStates, s => Assert.NotEqual('a', s));
+		var uniqueSet = new HashSet<char>();
+		Assert.All(scenario.NodeStates, s => Assert.True(uniqueSet.Add(s!.Value)));
+
+		this.Logger.WriteLine("Solution: {0}", string.Join(string.Empty, scenario.NodeStates));
+	}
+
+	[Fact]
 	public void Ctor_NullNodes()
 	{
 		Assert.Throws<ArgumentNullException>("nodes", () => new SolutionBuilder<bool>(default!, ImmutableArray.Create(true, false)));
@@ -544,5 +570,92 @@ public class SolutionBuilderTests : TestBase
 		{
 			throw new NotImplementedException();
 		}
+	}
+
+	private class NoAConstraint : IConstraint<char>
+	{
+		internal NoAConstraint(object[] nodes)
+		{
+			this.Nodes = nodes;
+		}
+
+		public IReadOnlyCollection<object> Nodes { get; }
+
+		public bool Equals(IConstraint<char>? other) => false;
+
+		public ConstraintStates GetState(Scenario<char> scenario)
+		{
+			ConstraintStates result = ConstraintStates.None;
+			if (this.Nodes.All(n => scenario[n].HasValue))
+			{
+				result |= ConstraintStates.Resolved;
+			}
+
+			foreach (object node in this.Nodes)
+			{
+				if (scenario[node] == 'a')
+				{
+					return result;
+				}
+			}
+
+			result |= ConstraintStates.Satisfiable;
+			if ((result & ConstraintStates.Resolved) == ConstraintStates.Resolved)
+			{
+				result |= ConstraintStates.Satisfied;
+			}
+			else
+			{
+				result |= ConstraintStates.Breakable;
+			}
+
+			return result;
+		}
+
+		public bool Resolve(Scenario<char> scenario) => false;
+	}
+
+	private class NoDuplicatesConstraint : IConstraint<char>
+	{
+		internal NoDuplicatesConstraint(object[] nodes)
+		{
+			this.Nodes = nodes;
+		}
+
+		public IReadOnlyCollection<object> Nodes { get; }
+
+		public bool Equals(IConstraint<char>? other) => false;
+
+		public ConstraintStates GetState(Scenario<char> scenario)
+		{
+			ConstraintStates result = ConstraintStates.None;
+			if (this.Nodes.All(n => scenario[n].HasValue))
+			{
+				result |= ConstraintStates.Resolved;
+			}
+
+			var usedChars = new HashSet<char>();
+			foreach (object node in this.Nodes)
+			{
+				if (scenario[node] is char ch && !usedChars.Add(ch))
+				{
+					return result;
+				}
+			}
+
+			result |= ConstraintStates.Satisfiable;
+			if ((result & ConstraintStates.Resolved) == ConstraintStates.Resolved)
+			{
+				result |= ConstraintStates.Satisfied;
+			}
+			else
+			{
+				result |= ConstraintStates.Breakable;
+			}
+
+			return result;
+		}
+
+		public bool Resolve(Scenario<char> scenario) => false;
 	}
 }
