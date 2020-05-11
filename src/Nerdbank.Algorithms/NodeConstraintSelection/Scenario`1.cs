@@ -83,6 +83,11 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		public int NodeCount => this.nodes.Count;
 
 		/// <summary>
+		/// Gets a list of the states of every node.
+		/// </summary>
+		public IReadOnlyList<TNodeState?> NodeStates => this.selectionState;
+
+		/// <summary>
 		/// Gets the constraints that are applied in this scenario.
 		/// </summary>
 		internal ImmutableArray<IConstraint<TNodeState>> Constraints => this.constraints;
