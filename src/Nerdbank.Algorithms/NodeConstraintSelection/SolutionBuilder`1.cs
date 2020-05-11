@@ -269,6 +269,74 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 			}
 		}
 
+		/// <summary>
+		/// Suggests the most probable solution.
+		/// </summary>
+		/// <param name="cancellationToken">A cancellation token.</param>
+		/// <returns>A probable scenario. Some nodes may still have indeterminate states when we have no constraints that impact them.</returns>
+		/// <remarks>
+		/// This isn't simply a matter of choosing the most probable state for each node, since selecting the state for some node
+		/// may impact the probabilities of other nodes.
+		/// This method instead sets the most probable state for the node with the most information,
+		/// then re-analyzes the remaining problem space before repeating the process until all nodes have known states.
+		/// As a result, this method can be significantly slower than <see cref="AnalyzeSolutions(CancellationToken)"/>.
+		/// </remarks>
+		public Scenario<TNodeState> GetProbableSolution(CancellationToken cancellationToken)
+		{
+			// We are taking a scenario from our pool, but we will *not* return it to the pool since we're returning it to our caller.
+			Scenario<TNodeState>? scenario = this.scenarioPool.Take();
+			scenario.CopyFrom(this.CurrentScenario);
+			while (true)
+			{
+				// Calculate fresh probabilities for the nodes that remain.
+				var stats = default(SolutionStats);
+				this.EnumerateSolutions(scenario, 0, ref stats, cancellationToken);
+				if (stats.NodesResolvedStateInSolutions is null)
+				{
+					throw new ApplicationException();
+				}
+
+				// Find the node and state with the highest probability of being correct.
+				int mostLikelyNodeIndex = 0;
+				long mostMatches = 0;
+				TNodeState? mostLikelyState = null;
+				for (int nodeIndex = 0; nodeIndex < this.NodeCount; nodeIndex++)
+				{
+					if (scenario[nodeIndex].HasValue)
+					{
+						// Skip this node as its state is already known.
+						continue;
+					}
+
+					if (stats.NodesResolvedStateInSolutions[nodeIndex] is { } stateProbabilities)
+					{
+						foreach (TNodeState state in this.resolvedNodeStates)
+						{
+							cancellationToken.ThrowIfCancellationRequested();
+
+							if (stateProbabilities.TryGetValue(state, out long matches) && matches > mostMatches)
+							{
+								mostLikelyNodeIndex = nodeIndex;
+								mostMatches = matches;
+								mostLikelyState = state;
+							}
+						}
+					}
+				}
+
+				if (mostLikelyState is null)
+				{
+					// No more indeterminate nodes exist for which we have *any* data.
+					break;
+				}
+
+				scenario[mostLikelyNodeIndex] = mostLikelyState;
+				ResolvePartially(scenario, cancellationToken);
+			}
+
+			return scenario;
+		}
+
 		private static void ResolvePartially(Scenario<TNodeState> scenario, CancellationToken cancellationToken)
 		{
 			// Keep looping through constraints asking each one to resolve nodes until no changes are applied.

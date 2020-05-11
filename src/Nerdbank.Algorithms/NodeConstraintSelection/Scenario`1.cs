@@ -83,6 +83,11 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		public int NodeCount => this.nodes.Count;
 
 		/// <summary>
+		/// Gets a list of the states of every node.
+		/// </summary>
+		public IReadOnlyList<TNodeState?> NodeStates => this.selectionState;
+
+		/// <summary>
 		/// Gets the constraints that are applied in this scenario.
 		/// </summary>
 		internal ImmutableArray<IConstraint<TNodeState>> Constraints => this.constraints;
@@ -273,10 +278,12 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 			TNodeState?[] src = copyFrom.selectionState;
 			TNodeState?[] dest = this.selectionState;
 			fixed (void* pSrc = &src[0])
-			fixed (void* pDest = &dest[0])
 			{
-				int bytesToCopy = sizeof(TNodeState?) * src.Length;
-				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
+				fixed (void* pDest = &dest[0])
+				{
+					int bytesToCopy = sizeof(TNodeState?) * src.Length;
+					Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
+				}
 			}
 
 			this.constraints = copyFrom.Constraints;
