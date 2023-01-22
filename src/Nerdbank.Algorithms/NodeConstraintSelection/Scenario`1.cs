@@ -22,15 +22,7 @@ public sealed class Scenario<TNodeState>
 	/// </summary>
 	private readonly TNodeState?[] selectionState;
 
-	/// <summary>
-	/// The nodes in the solution.
-	/// </summary>
-	private readonly ImmutableArray<object> nodes;
-
-	/// <summary>
-	/// A map of nodes to their index into <see cref="nodes"/>.
-	/// </summary>
-	private readonly ReadOnlyDictionary<object, int> nodeIndex;
+	private readonly Configuration<TNodeState> configuration;
 
 	/// <summary>
 	/// The constraints that describe the solution.
@@ -45,37 +37,28 @@ public sealed class Scenario<TNodeState>
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
 	/// </summary>
-	/// <param name="nodes">The list of nodes.</param>
-	/// <remarks>
-	/// This constructor is designed for unit testing constraints.
-	/// </remarks>
-	public Scenario(ImmutableArray<object> nodes)
-		: this(nodes, CreateNodeIndex(nodes))
+	/// <param name="configuration">The problem space configuration.</param>
+	public Scenario(Configuration<TNodeState> configuration)
 	{
-	}
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
-	/// </summary>
-	/// <param name="nodes">The nodes in the problem/solution.</param>
-	/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
-	internal Scenario(ImmutableArray<object> nodes, ReadOnlyDictionary<object, int> nodeIndex)
-	{
-		this.selectionState = new TNodeState?[nodes.Length];
-		this.nodes = nodes;
-		this.nodeIndex = nodeIndex;
-		this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
+		this.selectionState = new TNodeState?[configuration.Nodes.Length];
+		this.configuration = configuration;
+		this.constraintsPerNode = configuration.Nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
 	}
 
 	/// <summary>
 	/// Gets the number of nodes in the problem/solution.
 	/// </summary>
-	public int NodeCount => this.nodes.Length;
+	public int NodeCount => this.configuration.Nodes.Length;
 
 	/// <summary>
 	/// Gets a list of the states of every node.
 	/// </summary>
 	public IReadOnlyList<TNodeState?> NodeStates => this.selectionState;
+
+	/// <summary>
+	/// Gets the configuration that this scenario belongs to.
+	/// </summary>
+	internal Configuration<TNodeState> Configuration => this.configuration;
 
 	/// <summary>
 	/// Gets the constraints that are applied in this scenario.
@@ -128,8 +111,8 @@ public sealed class Scenario<TNodeState>
 	/// </remarks>
 	public TNodeState? this[object node]
 	{
-		get => this[this.nodeIndex[node]];
-		set => this[this.nodeIndex[node]] = value;
+		get => this[this.configuration.Index[node]];
+		set => this[this.configuration.Index[node]] = value;
 	}
 
 	/// <summary>
@@ -142,23 +125,7 @@ public sealed class Scenario<TNodeState>
 	/// This method can be used by <see cref="IConstraint{TNodeState}"/> implementations to translate and cache nodes into indexes
 	/// for improved performance in <see cref="IConstraint{TNodeState}.GetState(Scenario{TNodeState})"/>.
 	/// </remarks>
-	public int GetNodeIndex(object node) => this.nodeIndex[node];
-
-	/// <summary>
-	/// Creates a map of nodes to the index in a list.
-	/// </summary>
-	/// <param name="nodes">The list of nodes.</param>
-	/// <returns>The map of nodes to where they are found in the <paramref name="nodes"/> list.</returns>
-	internal static ReadOnlyDictionary<object, int> CreateNodeIndex(ImmutableArray<object> nodes)
-	{
-		var lookup = new Dictionary<object, int>(nodes.Length);
-		for (int i = 0; i < nodes.Length; i++)
-		{
-			lookup.Add(nodes[i], i);
-		}
-
-		return new ReadOnlyDictionary<object, int>(lookup);
-	}
+	public int GetNodeIndex(object node) => this.configuration.Index[node];
 
 	/// <summary>
 	/// Sets the selection state of a given node, even if it is already set.
@@ -195,7 +162,7 @@ public sealed class Scenario<TNodeState>
 		var constraintsPerNode = this.constraintsPerNode.ToBuilder();
 		foreach (var node in constraint.Nodes)
 		{
-			int nodeIndex = this.nodeIndex[node];
+			int nodeIndex = this.configuration.Index[node];
 			constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Add(constraint);
 		}
 
@@ -215,7 +182,7 @@ public sealed class Scenario<TNodeState>
 		var constraintsPerNode = this.constraintsPerNode.ToBuilder();
 		foreach (var node in constraint.Nodes)
 		{
-			int nodeIndex = this.nodeIndex[node];
+			int nodeIndex = this.configuration.Index[node];
 			constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Remove(constraint);
 		}
 
@@ -242,7 +209,7 @@ public sealed class Scenario<TNodeState>
 
 			foreach (var node in constraint.Nodes)
 			{
-				int nodeIndex = this.nodeIndex[node];
+				int nodeIndex = this.configuration.Index[node];
 				constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Remove(constraint);
 			}
 		}

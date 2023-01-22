@@ -9,6 +9,11 @@ Nerdbank.Algorithms.NodeConstraintSelection.ComplexConflictException.ComplexConf
 Nerdbank.Algorithms.NodeConstraintSelection.ComplexConflictException.ComplexConflictException(string! message) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.ComplexConflictException.ComplexConflictException(string! message, System.Exception! inner) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.ComplexConflictException.ComplexConflictException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+Nerdbank.Algorithms.NodeConstraintSelection.Configuration<TNodeState>
+Nerdbank.Algorithms.NodeConstraintSelection.Configuration<TNodeState>.Configuration(System.Collections.Immutable.ImmutableArray<object!> nodes, System.Collections.Immutable.ImmutableArray<TNodeState> resolvedNodeStates) -> void
+Nerdbank.Algorithms.NodeConstraintSelection.Configuration<TNodeState>.Index.get -> System.Collections.ObjectModel.ReadOnlyDictionary<object!, int>!
+Nerdbank.Algorithms.NodeConstraintSelection.Configuration<TNodeState>.Nodes.get -> System.Collections.Immutable.ImmutableArray<object!>
+Nerdbank.Algorithms.NodeConstraintSelection.Configuration<TNodeState>.ResolvedNodeStates.get -> System.Collections.Immutable.ImmutableArray<TNodeState>
 Nerdbank.Algorithms.NodeConstraintSelection.ConstraintStates
 Nerdbank.Algorithms.NodeConstraintSelection.ConstraintStates.Breakable = 16 -> Nerdbank.Algorithms.NodeConstraintSelection.ConstraintStates
 Nerdbank.Algorithms.NodeConstraintSelection.ConstraintStates.None = 0 -> Nerdbank.Algorithms.NodeConstraintSelection.ConstraintStates
@@ -24,7 +29,7 @@ Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>
 Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.GetNodeIndex(object! node) -> int
 Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.NodeCount.get -> int
 Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.NodeStates.get -> System.Collections.Generic.IReadOnlyList<TNodeState?>!
-Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.Scenario(System.Collections.Immutable.ImmutableArray<object!> nodes) -> void
+Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.Scenario(Nerdbank.Algorithms.NodeConstraintSelection.Configuration<TNodeState>! configuration) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.this[int index].get -> TNodeState?
 Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.this[int index].set -> void
 Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>.this[object! node].get -> TNodeState?
@@ -48,8 +53,10 @@ Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.AddConstraint(Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>! constraint) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.AddConstraints(System.Collections.Generic.IEnumerable<Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>!>! constraints) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.AnalyzeSolutions(System.Threading.CancellationToken cancellationToken) -> Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis!
+Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.AnalyzeSolutionsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis!>!
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.CheckConstraint(Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>! constraint, System.Threading.CancellationToken cancellationToken) -> bool
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.CheckForConflictingConstraints(System.Threading.CancellationToken cancellationToken) -> Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.ConflictedConstraints?
+Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.CommitAnalysis(Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis! analysis) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.ConflictedConstraints
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.ConflictedConstraints.GetConflictingConstraints(System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IReadOnlyCollection<Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>!>!
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.Constraints.get -> System.Collections.Generic.IReadOnlyCollection<Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>!>!
@@ -57,9 +64,9 @@ Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.GetProba
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.RemoveConstraint(Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>! constraint) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.RemoveConstraints(System.Collections.Generic.IEnumerable<Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>!>! constraints) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.ResolvePartially(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> void
+Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionBuilder(Nerdbank.Algorithms.NodeConstraintSelection.Configuration<TNodeState>! configuration) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionBuilder(System.Collections.Immutable.ImmutableArray<object!> nodes, System.Collections.Immutable.ImmutableArray<TNodeState> resolvedNodeStates) -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis
-Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis.ApplyAnalysisBackToBuilder() -> void
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis.Conflicts.get -> Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.ConflictedConstraints?
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis.GetNodeValueCount(int nodeIndex, TNodeState value) -> long
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis.GetNodeValueCount(object! node, TNodeState value) -> long

@@ -94,7 +94,7 @@ public class SudokuScenarioTests : TestBase
 		Assert.Equal(1, analysis.ViableSolutionsFound);
 
 		this.Logger.WriteLine("Solution:");
-		analysis.ApplyAnalysisBackToBuilder();
+		this.builder.CommitAnalysis(analysis);
 		this.PrintGrid();
 	}
 

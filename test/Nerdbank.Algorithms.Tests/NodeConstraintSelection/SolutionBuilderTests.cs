@@ -205,7 +205,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder[2]);
 
 		// Analyze all viable solutions and apply back so that the deduced node state is set.
-		this.builder.AnalyzeSolutions(this.TimeoutToken).ApplyAnalysisBackToBuilder();
+		this.builder.CommitAnalysis(this.builder.AnalyzeSolutions(this.TimeoutToken));
 
 		// Verify that the deduced constraint was added.
 		Assert.False(this.builder[2]);
@@ -216,7 +216,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder[2]);
 
 		// Verify once again that the deduced node can no longer be deduced.
-		this.builder.AnalyzeSolutions(this.TimeoutToken).ApplyAnalysisBackToBuilder();
+		this.builder.CommitAnalysis(this.builder.AnalyzeSolutions(this.TimeoutToken));
 		Assert.Null(this.builder[2]);
 	}
 
@@ -434,7 +434,7 @@ public class SolutionBuilderTests : TestBase
 
 		// Verify that applying the analysis results back to the builder
 		// lead to 010x results.
-		analysis.ApplyAnalysisBackToBuilder();
+		this.builder.CommitAnalysis(analysis);
 		for (int i = 0; i < Nodes.Length - 1; i++)
 		{
 			Assert.Equal(i == 1, this.builder[i]);
@@ -459,7 +459,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Equal(0, analysis.ViableSolutionsFound);
 		Assert.NotNull(analysis.Conflicts);
 		Assert.Throws<InvalidOperationException>(() => analysis.GetNodeValueCount(0, true));
-		Assert.Throws<InvalidOperationException>(() => analysis.ApplyAnalysisBackToBuilder());
+		Assert.Throws<InvalidOperationException>(() => this.builder.CommitAnalysis(analysis));
 	}
 
 	/// <summary>

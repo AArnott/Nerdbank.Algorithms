@@ -17,19 +17,9 @@ public partial class SolutionBuilder<TNodeState>
 	where TNodeState : unmanaged
 {
 	/// <summary>
-	/// The pool that recycles scenarios for simulations.
+	/// Immutable configuration for this builder.
 	/// </summary>
-	private readonly ScenarioPool<TNodeState> scenarioPool;
-
-	/// <summary>
-	/// A map of nodes to their index as they appear in an ordered list.
-	/// </summary>
-	private readonly ReadOnlyDictionary<object, int> nodeIndex;
-
-	/// <summary>
-	/// An array of allowed values for each node.
-	/// </summary>
-	private readonly ImmutableArray<TNodeState> resolvedNodeStates;
+	private readonly Configuration<TNodeState> configuration;
 
 	/// <summary>
 	/// Tracks when the next <see cref="ResolvePartially(CancellationToken)"/>
@@ -46,31 +36,18 @@ public partial class SolutionBuilder<TNodeState>
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException">Thrown if <paramref name="nodes"/> is empty or contains duplicates.</exception>
 	public SolutionBuilder(ImmutableArray<object> nodes, ImmutableArray<TNodeState> resolvedNodeStates)
+		: this(new Configuration<TNodeState>(nodes, resolvedNodeStates))
 	{
-		if (nodes.IsDefault)
-		{
-			throw new ArgumentNullException(nameof(nodes));
-		}
+	}
 
-		if (nodes.IsEmpty)
-		{
-			throw new ArgumentException(Strings.NonEmptyArrayRequired, nameof(nodes));
-		}
-
-		if (resolvedNodeStates.IsDefaultOrEmpty)
-		{
-			throw new ArgumentException(Strings.NonEmptyArrayRequired, nameof(resolvedNodeStates));
-		}
-
-		if (resolvedNodeStates.Length < 2)
-		{
-			throw new ArgumentException(Strings.AtLeastTwoNodeStatesRequired, nameof(resolvedNodeStates));
-		}
-
-		this.resolvedNodeStates = resolvedNodeStates;
-		this.nodeIndex = Scenario<TNodeState>.CreateNodeIndex(nodes);
-		this.scenarioPool = new ScenarioPool<TNodeState>(nodes, this.nodeIndex);
-		this.CurrentScenario = this.scenarioPool.Take();
+	/// <summary>
+	/// Initializes a new instance of the <see cref="SolutionBuilder{TNodeState}"/> class.
+	/// </summary>
+	/// <param name="configuration">The problem space configuration.</param>
+	public SolutionBuilder(Configuration<TNodeState> configuration)
+	{
+		this.configuration = configuration;
+		this.CurrentScenario = this.configuration.ScenarioPool.Take();
 	}
 
 	/// <summary>
@@ -82,11 +59,6 @@ public partial class SolutionBuilder<TNodeState>
 	/// Gets the current scenario.
 	/// </summary>
 	internal Scenario<TNodeState> CurrentScenario { get; }
-
-	/// <summary>
-	/// Gets the number of nodes in the problem/solution.
-	/// </summary>
-	private int NodeCount => this.CurrentScenario.NodeCount;
 
 	/// <summary>
 	/// Gets the state for a node with a given index.
@@ -173,7 +145,7 @@ public partial class SolutionBuilder<TNodeState>
 			throw new ArgumentNullException(nameof(constraints));
 		}
 
-		using var experiment = new Experiment(this);
+		using Experiment experiment = this.NewExperiment();
 		experiment.Candidate.RemoveConstraints(constraints);
 		experiment.Commit();
 		this.fullRefreshNeeded = true;
@@ -196,9 +168,9 @@ public partial class SolutionBuilder<TNodeState>
 			throw new ArgumentNullException(nameof(constraint));
 		}
 
-		using var experiment = new Experiment(this);
+		using Experiment experiment = this.NewExperiment();
 		experiment.Candidate.AddConstraint(constraint);
-		return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null;
+		return CheckForConflictingConstraints(this.configuration, experiment.Candidate, cancellationToken) is null;
 	}
 
 	/// <summary>
@@ -207,10 +179,10 @@ public partial class SolutionBuilder<TNodeState>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	public void ResolvePartially(CancellationToken cancellationToken = default)
 	{
-		using var experiment = new Experiment(this);
+		using Experiment experiment = this.NewExperiment();
 		if (this.fullRefreshNeeded)
 		{
-			for (int i = 0; i < this.NodeCount; i++)
+			for (int i = 0; i < this.configuration.Nodes.Length; i++)
 			{
 				experiment.Candidate.ResetNode(i, null);
 			}
@@ -230,8 +202,22 @@ public partial class SolutionBuilder<TNodeState>
 	/// <returns><see langword="null"/> if a solution can be found; or diagnostic data about which sets of constraints conflict.</returns>
 	public ConflictedConstraints? CheckForConflictingConstraints(CancellationToken cancellationToken)
 	{
-		using var experiment = new Experiment(this);
-		return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken);
+		Experiment experiment = this.NewExperiment();
+		try
+		{
+			ConflictedConstraints? result = CheckForConflictingConstraints(this.configuration, experiment.Candidate, cancellationToken);
+			if (result is null)
+			{
+				experiment.Dispose();
+			}
+
+			return result;
+		}
+		catch
+		{
+			experiment.Dispose();
+			throw;
+		}
 	}
 
 	/// <summary>
@@ -239,20 +225,46 @@ public partial class SolutionBuilder<TNodeState>
 	/// </summary>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns>The results of the analysis.</returns>
+	/// <remarks>
+	/// <para>
+	/// This method may take a <em>very</em> long time to complete.
+	/// Callers should provide a way for users to cancel the operation that is linked to the <paramref name="cancellationToken"/>,
+	/// and/or configure that token to self-cancel after some timeout.
+	/// </para>
+	/// <para>
+	/// This method enqueues async work that is safe to run concurrently with other methods on this class.
+	/// The synchronous preamble in this method should not run concurrently with any method on this class, however.
+	/// The recommended pattern then is to invoke this method while on the application's exclusive (i.e. main/UI) thread,
+	/// just like all other methods on this class.
+	/// Then to continue using this class from that thread as usual even while this method finishes its asynchronous execution.
+	/// </para>
+	/// </remarks>
+	public Task<SolutionsAnalysis> AnalyzeSolutionsAsync(CancellationToken cancellationToken)
+	{
+		// Any mutable data that this analysis must read from this instance must be copied now, before yielding back to the caller.
+		using Experiment experiment = this.NewExperiment();
+		ResolvePartially(experiment.Candidate, cancellationToken);
+
+		return Task.Run(() => AnalyzeSolutions(this.configuration, experiment, cancellationToken));
+	}
+
+	/// <summary>
+	/// Exhaustively scan the solution space and collect statistics on the aggregate set.
+	/// </summary>
+	/// <param name="cancellationToken">A cancellation token.</param>
+	/// <returns>The results of the analysis.</returns>
+	/// <remarks>
+	/// <para>
+	/// This method may take a <em>very</em> long time to complete.
+	/// Callers should provide a way for users to cancel the operation that is linked to the <paramref name="cancellationToken"/>,
+	/// and/or configure that token to self-cancel after some timeout.
+	/// </para>
+	/// </remarks>
 	public SolutionsAnalysis AnalyzeSolutions(CancellationToken cancellationToken)
 	{
-		using var experiment = new Experiment(this);
+		using Experiment experiment = this.NewExperiment();
 		ResolvePartially(experiment.Candidate, cancellationToken);
-		var stats = default(SolutionStats);
-		try
-		{
-			this.EnumerateSolutions(experiment.Candidate, 0, ref stats, cancellationToken);
-			return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesResolvedStateInSolutions, this.CreateConflictedConstraints(stats));
-		}
-		catch (OperationCanceledException ex)
-		{
-			throw new OperationCanceledException("Canceled after considering " + stats.ConsideredScenarios + " scenarios.", ex);
-		}
+		return AnalyzeSolutions(this.configuration, experiment, cancellationToken);
 	}
 
 	/// <summary>
@@ -270,7 +282,7 @@ public partial class SolutionBuilder<TNodeState>
 	public Scenario<TNodeState> GetProbableSolution(CancellationToken cancellationToken)
 	{
 		// We are taking a scenario from our pool, but we will *not* return it to the pool since we're returning it to our caller.
-		Scenario<TNodeState>? scenario = this.scenarioPool.Take();
+		Scenario<TNodeState>? scenario = this.configuration.ScenarioPool.Take();
 		scenario.CopyFrom(this.CurrentScenario);
 		while (true)
 		{
@@ -286,7 +298,7 @@ public partial class SolutionBuilder<TNodeState>
 			int mostLikelyNodeIndex = 0;
 			long mostMatches = 0;
 			TNodeState? mostLikelyState = null;
-			for (int nodeIndex = 0; nodeIndex < this.NodeCount; nodeIndex++)
+			for (int nodeIndex = 0; nodeIndex < this.configuration.Nodes.Length; nodeIndex++)
 			{
 				if (scenario[nodeIndex].HasValue)
 				{
@@ -296,7 +308,7 @@ public partial class SolutionBuilder<TNodeState>
 
 				if (stats.NodesResolvedStateInSolutions[nodeIndex] is { } stateProbabilities)
 				{
-					foreach (TNodeState state in this.resolvedNodeStates)
+					foreach (TNodeState state in this.configuration.ResolvedNodeStates)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
 
@@ -321,6 +333,43 @@ public partial class SolutionBuilder<TNodeState>
 		}
 
 		return scenario;
+	}
+
+	/// <summary>
+	/// Select or unselect any indeterminate nodes which are unconditionally in just one state in all viable solutions.
+	/// </summary>
+	/// <param name="analysis">The analysis to apply to this solution.</param>
+	/// <remarks>
+	/// Constraints can interact as they narrow the field of viable solutions such that
+	/// some nodes may be effectively constrained to a certain value even though that value
+	/// isn't explicitly required by any individual constraint.
+	/// When these interactions are understood, applying them back to the <see cref="SolutionBuilder{T}"/>
+	/// can speed up future analyses and lead each node's value to reflect the remaining possibilities.
+	/// </remarks>
+	public void CommitAnalysis(SolutionsAnalysis analysis)
+	{
+		if (analysis.ViableSolutionsFound == 0 || analysis.NodeValueCount is null)
+		{
+			throw new InvalidOperationException(Strings.ViableSolutionStatsNotAvailable);
+		}
+
+		if (analysis.ViableSolutionsFound > 0)
+		{
+			for (int i = 0; i < analysis.NodeValueCount.Length; i++)
+			{
+				if (this.CurrentScenario[i] is null && analysis.NodeValueCount[i] is { } valuesAndCounts)
+				{
+					foreach (TNodeState value in this.configuration.ResolvedNodeStates)
+					{
+						if (valuesAndCounts.TryGetValue(value, out long counts) && counts == analysis.ViableSolutionsFound)
+						{
+							this.CurrentScenario[i] = value;
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private static void ResolvePartially(Scenario<TNodeState> scenario, CancellationToken cancellationToken)
@@ -378,17 +427,17 @@ public partial class SolutionBuilder<TNodeState>
 		}
 	}
 
-	private ConflictedConstraints? CheckForConflictingConstraints(Scenario<TNodeState> scenario, CancellationToken cancellationToken)
+	private static ConflictedConstraints? CheckForConflictingConstraints(Configuration<TNodeState> configuration, Scenario<TNodeState> scenario, CancellationToken cancellationToken)
 	{
 		ResolvePartially(scenario, cancellationToken);
 		var stats = new SolutionStats { StopAfterFirstSolutionFound = true };
-		this.EnumerateSolutions(scenario, 0, ref stats, cancellationToken);
-		return this.CreateConflictedConstraints(stats);
+		EnumerateSolutions(configuration, scenario, 0, ref stats, cancellationToken);
+		return CreateConflictedConstraints(configuration, stats, scenario);
 	}
 
-	private ConflictedConstraints? CreateConflictedConstraints(SolutionStats stats) => stats.SolutionsFound == 0 ? new ConflictedConstraints(this, this.CurrentScenario) : null;
+	private static ConflictedConstraints? CreateConflictedConstraints(Configuration<TNodeState> configuration, SolutionStats stats, Scenario<TNodeState> conflictedScenario) => stats.SolutionsFound == 0 ? new ConflictedConstraints(configuration, conflictedScenario) : null;
 
-	private void EnumerateSolutions(Scenario<TNodeState> basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken)
+	private static void EnumerateSolutions(Configuration<TNodeState> configuration, Scenario<TNodeState> basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken)
 	{
 		stats.ConsideredScenarios++;
 		cancellationToken.ThrowIfCancellationRequested();
@@ -415,7 +464,7 @@ public partial class SolutionBuilder<TNodeState>
 		}
 
 		int i;
-		for (i = firstNode; i < this.NodeCount; i++)
+		for (i = firstNode; i < configuration.Nodes.Length; i++)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
@@ -434,14 +483,14 @@ public partial class SolutionBuilder<TNodeState>
 			}
 
 			// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
-			for (int k = 0; k < this.resolvedNodeStates.Length; k++)
+			for (int k = 0; k < configuration.ResolvedNodeStates.Length; k++)
 			{
-				TNodeState value = this.resolvedNodeStates[k];
+				TNodeState value = configuration.ResolvedNodeStates[k];
 
-				using var experiment = new Experiment(this, basis);
+				using Experiment experiment = new(basis);
 				experiment.Candidate[i] = value;
 				ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
-				this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
+				EnumerateSolutions(configuration, experiment.Candidate, i + 1, ref stats, cancellationToken);
 
 				if (stats.StopAfterFirstSolutionFound && stats.SolutionsFound > 0)
 				{
@@ -454,11 +503,29 @@ public partial class SolutionBuilder<TNodeState>
 			break;
 		}
 
-		if (i >= this.NodeCount)
+		if (i >= configuration.Nodes.Length)
 		{
 			stats.RecordSolutionFound(basis);
 		}
 	}
+
+	private static SolutionsAnalysis AnalyzeSolutions(Configuration<TNodeState> configuration, Experiment experiment, CancellationToken cancellationToken)
+	{
+		SolutionBuilder<TNodeState>.SolutionStats stats = default;
+		try
+		{
+			EnumerateSolutions(configuration, experiment.Candidate, 0, ref stats, cancellationToken);
+			return new SolutionsAnalysis(configuration, stats.SolutionsFound, stats.NodesResolvedStateInSolutions, CreateConflictedConstraints(configuration, stats, experiment.Candidate));
+		}
+		catch (OperationCanceledException ex)
+		{
+			throw new OperationCanceledException("Canceled after considering " + stats.ConsideredScenarios + " scenarios.", ex);
+		}
+	}
+
+	private Experiment NewExperiment() => new(this.CurrentScenario);
+
+	private void EnumerateSolutions(Scenario<TNodeState> basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken) => EnumerateSolutions(this.configuration, basis, firstNode, ref stats, cancellationToken);
 
 	private ref struct SolutionStats
 	{
@@ -510,39 +577,32 @@ public partial class SolutionBuilder<TNodeState>
 	private struct Experiment : IDisposable
 	{
 		/// <summary>
-		/// The owner.
-		/// </summary>
-		private readonly SolutionBuilder<TNodeState> builder;
-
-		/// <summary>
-		/// The scenario from which this experiment started.
-		/// </summary>
-		private readonly Scenario<TNodeState> basis;
-
-		/// <summary>
 		/// Initializes a new instance of the <see cref="Experiment"/> struct.
 		/// </summary>
-		/// <param name="builder">The owner of this instance.</param>
 		/// <param name="basis">The scenario to use as a template. If unspecified, the <see cref="SolutionBuilder{TNodeState}.CurrentScenario"/> is used.</param>
-		internal Experiment(SolutionBuilder<TNodeState> builder, Scenario<TNodeState>? basis = default)
+		internal Experiment(Scenario<TNodeState> basis)
 		{
-			this.basis = basis ?? builder.CurrentScenario;
-			this.builder = builder;
-			this.Candidate = builder.scenarioPool.Take();
-			this.Candidate.CopyFrom(this.basis);
+			this.Basis = basis;
+			this.Candidate = basis.Configuration.ScenarioPool.Take();
+			this.Candidate.CopyFrom(basis);
 		}
+
+		/// <summary>
+		/// Gets the scenario that was originally provided to the constructor.
+		/// </summary>
+		public Scenario<TNodeState> Basis { get; }
 
 		/// <summary>
 		/// Gets the experimental scenario.
 		/// </summary>
-		public Scenario<TNodeState> Candidate { get; }
+		public Scenario<TNodeState> Candidate { get; private set; }
 
 		/// <summary>
-		/// Commits the <see cref="Candidate"/> to the current scenario in the <see cref="SolutionBuilder{TNodeState}"/>.
+		/// Commits the <see cref="Candidate"/> to the <see cref="Basis"/> scenario.
 		/// </summary>
 		public void Commit()
 		{
-			this.builder.CurrentScenario.CopyFrom(this.Candidate);
+			this.Basis.CopyFrom(this.Candidate);
 		}
 
 		/// <summary>
@@ -550,7 +610,8 @@ public partial class SolutionBuilder<TNodeState>
 		/// </summary>
 		public void Dispose()
 		{
-			this.builder.scenarioPool.Return(this.Candidate);
+			this.Candidate.Configuration.ScenarioPool.Return(this.Candidate);
+			this.Candidate = null!; // go ahead and cause havoc if people reuse this after recycling.
 		}
 	}
 }

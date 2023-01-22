@@ -16,7 +16,7 @@ public class SelectionCountConstraintTests
 	public SelectionCountConstraintTests()
 	{
 		this.nodes = ImmutableArray.Create<object>(new DummyNode("a"), new DummyNode("b"), new DummyNode("c"), new DummyNode("d"));
-		this.scenario = new Scenario<bool>(this.nodes.As<object>());
+		this.scenario = new Scenario<bool>(new Configuration<bool>(this.nodes.As<object>(), ImmutableArray.Create(true, false)));
 	}
 
 	[Fact]
