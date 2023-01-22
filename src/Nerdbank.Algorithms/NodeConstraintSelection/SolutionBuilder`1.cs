@@ -44,14 +44,14 @@ public partial class SolutionBuilder<TNodeState>
 	/// <param name="resolvedNodeStates">An array of allowed values for each node.</param>
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="nodes"/> is <see langword="null"/>.</exception>
 	/// <exception cref="ArgumentException">Thrown if <paramref name="nodes"/> is empty or contains duplicates.</exception>
-	public SolutionBuilder(IReadOnlyList<object> nodes, ImmutableArray<TNodeState> resolvedNodeStates)
+	public SolutionBuilder(ImmutableArray<object> nodes, ImmutableArray<TNodeState> resolvedNodeStates)
 	{
-		if (nodes is null)
+		if (nodes.IsDefault)
 		{
 			throw new ArgumentNullException(nameof(nodes));
 		}
 
-		if (nodes.Count == 0)
+		if (nodes.IsEmpty)
 		{
 			throw new ArgumentException(Strings.NonEmptyArrayRequired, nameof(nodes));
 		}

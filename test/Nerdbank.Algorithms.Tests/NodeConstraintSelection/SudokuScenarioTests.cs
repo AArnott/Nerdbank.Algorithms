@@ -19,7 +19,7 @@ public class SudokuScenarioTests : TestBase
 	public SudokuScenarioTests(ITestOutputHelper logger)
 		: base(logger)
 	{
-		this.builder = new SolutionBuilder<int>(NodeGrid.SelectMany(a => a).ToList(), PossibleCellValues);
+		this.builder = new SolutionBuilder<int>(NodeGrid.SelectMany(a => a).ToImmutableArray(), PossibleCellValues);
 
 		for (int row = 0; row < 9; row++)
 		{
@@ -38,7 +38,7 @@ public class SudokuScenarioTests : TestBase
 				IEnumerable<object> nodes = from c in Enumerable.Range(column, 3)
 											from r in Enumerable.Range(row, 3)
 											select NodeGrid[c][r];
-				this.builder.AddConstraint(new UniqueValueConstraint(nodes.ToList()));
+				this.builder.AddConstraint(new UniqueValueConstraint(nodes.ToImmutableArray()));
 			}
 		}
 	}
@@ -122,9 +122,9 @@ public class SudokuScenarioTests : TestBase
 	/// </summary>
 	private class UniqueValueConstraint : IConstraint<int>
 	{
-		internal UniqueValueConstraint(IReadOnlyCollection<object> nodes)
+		internal UniqueValueConstraint(ImmutableArray<object> nodes)
 		{
-			if (nodes.Count != 9)
+			if (nodes.Length != 9)
 			{
 				throw new ArgumentException("Always applied to 9 nodes.", nameof(nodes));
 			}
@@ -132,11 +132,11 @@ public class SudokuScenarioTests : TestBase
 			this.Nodes = nodes;
 		}
 
-		public IReadOnlyCollection<object> Nodes { get; }
+		public ImmutableArray<object> Nodes { get; }
 
 		public bool Equals(IConstraint<int>? other)
 		{
-			return other is UniqueValueConstraint uv && this.Nodes.Count == uv.Nodes.Count && this.Nodes.SequenceEqual(uv.Nodes);
+			return other is UniqueValueConstraint uv && this.Nodes.Length == uv.Nodes.Length && this.Nodes.SequenceEqual(uv.Nodes);
 		}
 
 		public ConstraintStates GetState(Scenario<int> scenario)
@@ -167,7 +167,7 @@ public class SudokuScenarioTests : TestBase
 					}
 				}
 
-				if (resolvedNodesCount == this.Nodes.Count)
+				if (resolvedNodesCount == this.Nodes.Length)
 				{
 					result |= ConstraintStates.Resolved;
 

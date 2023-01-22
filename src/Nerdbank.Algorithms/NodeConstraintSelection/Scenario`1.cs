@@ -24,7 +24,7 @@ public sealed class Scenario<TNodeState>
 	/// <summary>
 	/// The nodes in the solution.
 	/// </summary>
-	private readonly IReadOnlyList<object> nodes;
+	private readonly ImmutableArray<object> nodes;
 
 	/// <summary>
 	/// A map of nodes to their index into <see cref="nodes"/>.
@@ -48,14 +48,14 @@ public sealed class Scenario<TNodeState>
 	/// <remarks>
 	/// This constructor is designed for unit testing constraints.
 	/// </remarks>
-	public Scenario(IReadOnlyList<object> nodes)
+	public Scenario(ImmutableArray<object> nodes)
 	{
-		if (nodes is null)
+		if (nodes.IsDefault)
 		{
 			throw new ArgumentNullException(nameof(nodes));
 		}
 
-		this.selectionState = new TNodeState?[nodes.Count];
+		this.selectionState = new TNodeState?[nodes.Length];
 		this.nodes = nodes;
 		this.nodeIndex = CreateNodeIndex(nodes);
 		this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
@@ -66,9 +66,9 @@ public sealed class Scenario<TNodeState>
 	/// </summary>
 	/// <param name="nodes">The nodes in the problem/solution.</param>
 	/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
-	internal Scenario(IReadOnlyList<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
+	internal Scenario(ImmutableArray<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
 	{
-		this.selectionState = new TNodeState?[nodes.Count];
+		this.selectionState = new TNodeState?[nodes.Length];
 		this.nodes = nodes;
 		this.nodeIndex = nodeIndex;
 		this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
@@ -77,7 +77,7 @@ public sealed class Scenario<TNodeState>
 	/// <summary>
 	/// Gets the number of nodes in the problem/solution.
 	/// </summary>
-	public int NodeCount => this.nodes.Count;
+	public int NodeCount => this.nodes.Length;
 
 	/// <summary>
 	/// Gets a list of the states of every node.
@@ -156,10 +156,10 @@ public sealed class Scenario<TNodeState>
 	/// </summary>
 	/// <param name="nodes">The list of nodes.</param>
 	/// <returns>The map of nodes to where they are found in the <paramref name="nodes"/> list.</returns>
-	internal static IReadOnlyDictionary<object, int> CreateNodeIndex(IReadOnlyList<object> nodes)
+	internal static IReadOnlyDictionary<object, int> CreateNodeIndex(ImmutableArray<object> nodes)
 	{
 		var lookup = new Dictionary<object, int>();
-		for (int i = 0; i < nodes.Count; i++)
+		for (int i = 0; i < nodes.Length; i++)
 		{
 			lookup.Add(nodes[i], i);
 		}
@@ -192,7 +192,7 @@ public sealed class Scenario<TNodeState>
 	/// <exception cref="BadConstraintException{TNodeState}">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint{TNodeState}.Nodes"/>.</exception>
 	internal void AddConstraint(IConstraint<TNodeState> constraint)
 	{
-		if (constraint.Nodes.Count == 0)
+		if (constraint.Nodes.IsEmpty)
 		{
 			throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintForEmptySetOfNodes);
 		}

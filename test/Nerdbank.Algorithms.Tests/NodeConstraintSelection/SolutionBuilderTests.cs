@@ -8,14 +8,14 @@ using Xunit.Abstractions;
 
 public class SolutionBuilderTests : TestBase
 {
-	private static readonly IReadOnlyList<DummyNode> Nodes = ImmutableList.Create(new DummyNode("a"), new DummyNode("b"), new DummyNode("c"), new DummyNode("d"));
+	private static readonly ImmutableArray<object> Nodes = ImmutableArray.Create<object>(new DummyNode("a"), new DummyNode("b"), new DummyNode("c"), new DummyNode("d"));
 
 	private readonly SolutionBuilder<bool> builder;
 
 	public SolutionBuilderTests(ITestOutputHelper logger)
 		: base(logger)
 	{
-		this.builder = new SolutionBuilder<bool>(Nodes, ImmutableArray.Create(true, false));
+		this.builder = new SolutionBuilder<bool>(Nodes.As<object>(), ImmutableArray.Create(true, false));
 	}
 
 	[Fact]
@@ -31,7 +31,7 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void GetProbableSolution_MultipleStates()
 	{
-		var nodes = new object[] { 1, 2, 3 };
+		var nodes = ImmutableArray.Create<object>(1, 2, 3);
 		var builder = new SolutionBuilder<char>(nodes, ImmutableArray.Create('a', 'b', 'c', 'd'));
 		builder.AddConstraint(new NoAConstraint(nodes));
 		builder.AddConstraint(new NoDuplicatesConstraint(nodes));
@@ -47,33 +47,33 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void Ctor_NullNodes()
 	{
-		Assert.Throws<ArgumentNullException>("nodes", () => new SolutionBuilder<bool>(default!, ImmutableArray.Create(true, false)));
+		Assert.Throws<ArgumentNullException>("nodes", () => new SolutionBuilder<bool>(default, ImmutableArray.Create(true, false)));
 	}
 
 	[Fact]
 	public void Ctor_UninitializedStates()
 	{
-		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(new[] { new DummyNode("a") }, default));
+		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(new DummyNode("a")), default));
 	}
 
 	[Fact]
 	public void Ctor_LessThanTwoStates()
 	{
-		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(new[] { new DummyNode("a") }, ImmutableArray<bool>.Empty));
-		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(new[] { new DummyNode("a") }, ImmutableArray.Create(true)));
+		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(new DummyNode("a")), ImmutableArray<bool>.Empty));
+		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(new DummyNode("a")), ImmutableArray.Create(true)));
 	}
 
 	[Fact]
 	public void Ctor_EmptyNodeList()
 	{
-		Assert.Throws<ArgumentException>("nodes", () => new SolutionBuilder<bool>(Array.Empty<DummyNode>(), ImmutableArray.Create(true, false)));
+		Assert.Throws<ArgumentException>("nodes", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(), ImmutableArray.Create(true, false)));
 	}
 
 	[Fact]
 	public void Ctor_NonUniqueNodes()
 	{
 		var n = new DummyNode("a");
-		Assert.Throws<ArgumentException>(() => new SolutionBuilder<bool>(new[] { n, n }, ImmutableArray.Create(true, false)));
+		Assert.Throws<ArgumentException>(() => new SolutionBuilder<bool>(ImmutableArray.Create<object>(n, n), ImmutableArray.Create(true, false)));
 	}
 
 	[Fact]
@@ -135,7 +135,7 @@ public class SolutionBuilderTests : TestBase
 		this.builder.ResolvePartially();
 		Assert.True(this.builder[0]);
 		Assert.True(this.builder[1]);
-		for (int i = 2; i < Nodes.Count; i++)
+		for (int i = 2; i < Nodes.Length; i++)
 		{
 			Assert.Null(this.builder[i]);
 		}
@@ -270,12 +270,12 @@ public class SolutionBuilderTests : TestBase
 
 		this.builder.ResolvePartially(this.TimeoutToken);
 		Assert.True(this.builder[0]);
-		for (int i = 1; i < Nodes.Count - 1; i++)
+		for (int i = 1; i < Nodes.Length - 1; i++)
 		{
 			Assert.False(this.builder[i]);
 		}
 
-		Assert.Null(this.builder[Nodes.Count - 1]);
+		Assert.Null(this.builder[Nodes.Length - 1]);
 	}
 
 	[Fact]
@@ -312,7 +312,7 @@ public class SolutionBuilderTests : TestBase
 
 		this.builder.ResolvePartially(this.TimeoutToken);
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
-		for (int i = 0; i < Nodes.Count; i++)
+		for (int i = 0; i < Nodes.Length; i++)
 		{
 			Assert.NotNull(this.builder[i]);
 		}
@@ -328,7 +328,7 @@ public class SolutionBuilderTests : TestBase
 			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
 			SelectionCountConstraint.ExactSelected(Nodes.Skip(2), 1),
 			SelectionCountConstraint.ExactSelected(Nodes, 1),
-			SelectionCountConstraint.RangeSelected(Nodes, 1, Nodes.Count),
+			SelectionCountConstraint.RangeSelected(Nodes, 1, Nodes.Length),
 		};
 		this.builder.AddConstraints(constraints);
 
@@ -380,7 +380,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(analysis.Conflicts);
 		Assert.Equal(1, analysis.ViableSolutionsFound);
 
-		for (int i = 0; i < Nodes.Count; i++)
+		for (int i = 0; i < Nodes.Length; i++)
 		{
 			Assert.Equal(-1, analysis.GetNodeValueCount(0, true));
 			Assert.Equal(-1, analysis.GetNodeValueCount(Nodes[0], true));
@@ -390,14 +390,14 @@ public class SolutionBuilderTests : TestBase
 	[Fact]
 	public void AnalyzeSolution_WorthlessConstraint()
 	{
-		this.builder.AddConstraint(SelectionCountConstraint.RangeSelected(Nodes, 0, Nodes.Count));
+		this.builder.AddConstraint(SelectionCountConstraint.RangeSelected(Nodes, 0, Nodes.Length));
 		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.NotNull(analysis);
 
 		Assert.Null(analysis.Conflicts);
 		Assert.Equal(16, analysis.ViableSolutionsFound);
 
-		for (int i = 0; i < Nodes.Count; i++)
+		for (int i = 0; i < Nodes.Length; i++)
 		{
 			Assert.Equal(analysis.ViableSolutionsFound / 2, analysis.GetNodeValueCount(0, true));
 		}
@@ -435,12 +435,12 @@ public class SolutionBuilderTests : TestBase
 		// Verify that applying the analysis results back to the builder
 		// lead to 010x results.
 		analysis.ApplyAnalysisBackToBuilder();
-		for (int i = 0; i < Nodes.Count - 1; i++)
+		for (int i = 0; i < Nodes.Length - 1; i++)
 		{
 			Assert.Equal(i == 1, this.builder[i]);
 		}
 
-		Assert.Null(this.builder[Nodes.Count - 1]);
+		Assert.Null(this.builder[Nodes.Length - 1]);
 
 		SolutionBuilder<bool>.SolutionsAnalysis analysis2 = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.Equal(analysis.ViableSolutionsFound, analysis2.ViableSolutionsFound);
@@ -487,8 +487,8 @@ public class SolutionBuilderTests : TestBase
 
 	private static SolutionBuilder<bool> CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace()
 	{
-		DummyNode[] nodes = Enumerable.Range(1, 100).Select(n => new DummyNode(n)).ToArray();
-		var builder = new SolutionBuilder<bool>(nodes, ImmutableArray.Create(true, false));
+		ImmutableArray<DummyNode> nodes = Enumerable.Range(1, 100).Select(n => new DummyNode(n)).ToImmutableArray();
+		var builder = new SolutionBuilder<bool>(nodes.As<object>(), ImmutableArray.Create(true, false));
 		builder.AddConstraints(new[]
 		{
 			SelectionCountConstraint.ExactSelected(nodes.Skip(90).Take(3), 1),
@@ -499,7 +499,7 @@ public class SolutionBuilderTests : TestBase
 
 	private void AssertAllNodesIndeterminate()
 	{
-		for (int i = 0; i < Nodes.Count; i++)
+		for (int i = 0; i < Nodes.Length; i++)
 		{
 			Assert.Null(this.builder[i]);
 		}
@@ -511,7 +511,7 @@ public class SolutionBuilderTests : TestBase
 	/// </summary>
 	private class FalselyNonResolvingConstraint : IConstraint<bool>
 	{
-		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
+		public ImmutableArray<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
 		public bool Equals(IConstraint<bool>? other)
 		{
@@ -531,7 +531,7 @@ public class SolutionBuilderTests : TestBase
 	/// </summary>
 	private class ThrowingConstraint : IConstraint<bool>
 	{
-		public IReadOnlyCollection<object> Nodes { get; } = SolutionBuilderTests.Nodes;
+		public ImmutableArray<object> Nodes { get; } = SolutionBuilderTests.Nodes;
 
 		public bool Equals(IConstraint<bool>? other)
 		{
@@ -551,7 +551,7 @@ public class SolutionBuilderTests : TestBase
 
 	private class EmptyNodeSetConstraint : IConstraint<bool>
 	{
-		public IReadOnlyCollection<object> Nodes => Array.Empty<object>();
+		public ImmutableArray<object> Nodes => ImmutableArray.Create<object>();
 
 		public bool Equals(IConstraint<bool>? other)
 		{
@@ -571,12 +571,12 @@ public class SolutionBuilderTests : TestBase
 
 	private class NoAConstraint : IConstraint<char>
 	{
-		internal NoAConstraint(object[] nodes)
+		internal NoAConstraint(ImmutableArray<object> nodes)
 		{
 			this.Nodes = nodes;
 		}
 
-		public IReadOnlyCollection<object> Nodes { get; }
+		public ImmutableArray<object> Nodes { get; }
 
 		public bool Equals(IConstraint<char>? other) => false;
 
@@ -614,12 +614,12 @@ public class SolutionBuilderTests : TestBase
 
 	private class NoDuplicatesConstraint : IConstraint<char>
 	{
-		internal NoDuplicatesConstraint(object[] nodes)
+		internal NoDuplicatesConstraint(ImmutableArray<object> nodes)
 		{
 			this.Nodes = nodes;
 		}
 
-		public IReadOnlyCollection<object> Nodes { get; }
+		public ImmutableArray<object> Nodes { get; }
 
 		public bool Equals(IConstraint<char>? other) => false;
 

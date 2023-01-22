@@ -55,7 +55,7 @@ public class SetOneNodeValueConstraintTests : TestBase
 	public void GetState_Resolvable()
 	{
 		var nodes = ImmutableArray.Create("my node");
-		var scenario = new Scenario<bool>(nodes);
+		var scenario = new Scenario<bool>(nodes.As<object>());
 		var constraint = new SetOneNodeValueConstraint<bool>(nodes[0], true);
 		Assert.Equal(ConstraintStates.Resolvable | ConstraintStates.Satisfiable | ConstraintStates.Breakable, constraint.GetState(scenario));
 	}
@@ -64,7 +64,7 @@ public class SetOneNodeValueConstraintTests : TestBase
 	public void GetState_Resolved()
 	{
 		var nodes = ImmutableArray.Create("my node");
-		var scenario = new Scenario<bool>(nodes);
+		var scenario = new Scenario<bool>(nodes.As<object>());
 		var constraint = new SetOneNodeValueConstraint<bool>(nodes[0], true);
 		scenario[0] = true;
 		Assert.Equal(ConstraintStates.Resolved | ConstraintStates.Satisfied, constraint.GetState(scenario));
@@ -74,7 +74,7 @@ public class SetOneNodeValueConstraintTests : TestBase
 	public void GetState_Broken()
 	{
 		var nodes = ImmutableArray.Create("my node");
-		var scenario = new Scenario<bool>(nodes);
+		var scenario = new Scenario<bool>(nodes.As<object>());
 		var constraint = new SetOneNodeValueConstraint<bool>(nodes[0], true);
 		scenario[0] = false;
 		Assert.Equal(ConstraintStates.Resolved, constraint.GetState(scenario));

@@ -35,7 +35,7 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 	}
 
 	/// <inheritdoc/>
-	public IReadOnlyCollection<object> Nodes { get; }
+	public ImmutableArray<object> Nodes { get; }
 
 	/// <inheritdoc/>
 	public ConstraintStates GetState(Scenario<TNodeState> scenario)

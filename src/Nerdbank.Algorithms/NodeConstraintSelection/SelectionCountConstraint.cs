@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
 using System.Globalization;
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
@@ -16,7 +17,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <summary>
 	/// Backing field for the <see cref="Nodes"/> property.
 	/// </summary>
-	private readonly object[] nodes;
+	private readonly ImmutableArray<object> nodes;
 
 	/// <summary>
 	/// The indexes for each node in <see cref="nodes"/>.
@@ -32,9 +33,9 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="minSelected">The minimum number of nodes that may be selected.</param>
 	/// <param name="maxSelected">The maximum number of nodes that may be selected. If this exceeds the count of <paramref name="nodes"/>, the value will be adjusted to equal the total count.</param>
 	/// <param name="nodes">The nodes involved in the constraint.</param>
-	public SelectionCountConstraint(IEnumerable<object> nodes, int minSelected, int maxSelected)
+	public SelectionCountConstraint(ImmutableArray<object> nodes, int minSelected, int maxSelected)
 	{
-		if (nodes is null)
+		if (nodes.IsDefault)
 		{
 			throw new ArgumentNullException(nameof(nodes));
 		}
@@ -54,7 +55,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 			throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.Arg1GreaterThanArg2Required, nameof(maxSelected), nameof(minSelected)));
 		}
 
-		this.nodes = nodes as object[] ?? nodes.ToArray();
+		this.nodes = nodes;
 
 		if (this.nodes.Length == 0)
 		{
@@ -68,7 +69,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	}
 
 	/// <inheritdoc/>
-	public IReadOnlyCollection<object> Nodes => this.nodes;
+	public ImmutableArray<object> Nodes => this.nodes;
 
 	/// <summary>
 	/// Gets the minimum number of nodes that must be selected.
@@ -86,7 +87,10 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="nodes">The nodes that the constraint applies to.</param>
 	/// <param name="maximum">The maximum nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint MaxSelected(IEnumerable<object> nodes, int maximum) => new(nodes, 0, maximum);
+	public static SelectionCountConstraint MaxSelected(ImmutableArray<object> nodes, int maximum) => new(nodes, 0, maximum);
+
+	/// <inheritdoc cref="MaxSelected(ImmutableArray{object}, int)"/>
+	public static SelectionCountConstraint MaxSelected(IEnumerable<object> nodes, int maximum) => MaxSelected(nodes.ToImmutableArray(), maximum);
 
 	/// <summary>
 	/// Creates a new constraint with the specified minimum for nodes that must be selected in the solution.
@@ -94,7 +98,10 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="nodes">The nodes that the constraint applies to.</param>
 	/// <param name="minimum">The minimum nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint MinSelected(IEnumerable<object> nodes, int minimum) => new(nodes, minimum, int.MaxValue);
+	public static SelectionCountConstraint MinSelected(ImmutableArray<object> nodes, int minimum) => new(nodes, minimum, int.MaxValue);
+
+	/// <inheritdoc cref="MinSelected(ImmutableArray{object}, int)"/>
+	public static SelectionCountConstraint MinSelected(IEnumerable<object> nodes, int minimum) => MinSelected(nodes.ToImmutableArray(), minimum);
 
 	/// <summary>
 	/// Creates a new constraint with the specified number of nodes that must be selected in the solution.
@@ -102,7 +109,10 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="nodes">The nodes that the constraint applies to.</param>
 	/// <param name="selectedCount">The number of nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint ExactSelected(IEnumerable<object> nodes, int selectedCount) => new(nodes, selectedCount, selectedCount);
+	public static SelectionCountConstraint ExactSelected(ImmutableArray<object> nodes, int selectedCount) => new(nodes, selectedCount, selectedCount);
+
+	/// <inheritdoc cref="ExactSelected(ImmutableArray{object}, int)"/>
+	public static SelectionCountConstraint ExactSelected(IEnumerable<object> nodes, int selectedCount) => ExactSelected(nodes.ToImmutableArray(), selectedCount);
 
 	/// <summary>
 	/// Creates a new constraint with the specified minimum and maximum for nodes that must be selected in the solution.
@@ -111,7 +121,10 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="minimum">The minimum nodes that must be selected in the solution.</param>
 	/// <param name="maximum">The maximum nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint RangeSelected(IEnumerable<object> nodes, int minimum, int maximum) => new(nodes, minimum, maximum);
+	public static SelectionCountConstraint RangeSelected(ImmutableArray<object> nodes, int minimum, int maximum) => new(nodes, minimum, maximum);
+
+	/// <inheritdoc cref="RangeSelected(ImmutableArray{object}, int, int)"/>
+	public static SelectionCountConstraint RangeSelected(IEnumerable<object> nodes, int minimum, int maximum) => RangeSelected(nodes.ToImmutableArray(), minimum, maximum);
 
 	/// <inheritdoc/>
 	public override string ToString() => $"{this.GetType().Name}({this.Minimum}-{this.Maximum} from {{{string.Join(", ", this.Nodes)}}})";
@@ -183,7 +196,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	}
 
 	/// <inheritdoc/>
-	public bool Equals(IConstraint<bool>? other) => other is SelectionCountConstraint scc && this.Maximum == scc.Maximum && this.Minimum == scc.Minimum && this.Nodes.Count == scc.Nodes.Count && this.Nodes.SequenceEqual(scc.Nodes);
+	public bool Equals(IConstraint<bool>? other) => other is SelectionCountConstraint scc && this.Maximum == scc.Maximum && this.Minimum == scc.Minimum && this.Nodes.Length == scc.Nodes.Length && this.Nodes.SequenceEqual(scc.Nodes);
 
 	/// <summary>
 	/// Gets a value indicating whether we have so many UNselected nodes that the remaining nodes equal the minimum allowed selected nodes
@@ -191,7 +204,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// </summary>
 	/// <param name="stats">The node stats.</param>
 	/// <returns><see langword="true"/> if we can resolve by selecting the indeterminate nodes; <see langword="false"/> otherwise.</returns>
-	private bool CanResolveBySelecting(in NodeStats stats) => stats.Unselected == this.Nodes.Count - this.Minimum;
+	private bool CanResolveBySelecting(in NodeStats stats) => stats.Unselected == this.Nodes.Length - this.Minimum;
 
 	/// <summary>
 	/// Gets a value indicating whether the selected nodes equal the max allowable

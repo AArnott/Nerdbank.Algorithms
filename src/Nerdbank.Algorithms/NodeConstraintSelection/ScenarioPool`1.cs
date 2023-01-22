@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
+
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
 /// <summary>
@@ -14,7 +16,7 @@ internal class ScenarioPool<TNodeState>
 	where TNodeState : unmanaged
 {
 	private readonly Stack<Scenario<TNodeState>> bag = new();
-	private readonly IReadOnlyList<object> nodes;
+	private readonly ImmutableArray<object> nodes;
 	private readonly IReadOnlyDictionary<object, int> nodeIndex;
 
 	/// <summary>
@@ -22,7 +24,7 @@ internal class ScenarioPool<TNodeState>
 	/// </summary>
 	/// <param name="nodes">The nodes in the problem/solution.</param>
 	/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
-	internal ScenarioPool(IReadOnlyList<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
+	internal ScenarioPool(ImmutableArray<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
 	{
 		this.nodes = nodes;
 		this.nodeIndex = nodeIndex;
