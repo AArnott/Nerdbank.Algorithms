@@ -17,7 +17,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection
 		None = 0x0,
 
 		/// <summary>
-		/// Indiciates that the constraint is satisfied given the current node state or may be satisfied if certain indeterminate nodes resolve to particular states.
+		/// Indicates that the constraint is satisfied given the current node state or may be satisfied if certain indeterminate nodes resolve to particular states.
 		/// </summary>
 		Satisfiable = 0x1,
 
