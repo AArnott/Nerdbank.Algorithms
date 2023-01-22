@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
 using Xunit.Abstractions;
@@ -344,7 +341,7 @@ public class SolutionBuilderTests : TestBase
 			?.GetConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflictingConstraints);
 
-		Assert.Equal(3, conflictingConstraints?.Count);
+		Assert.Equal(3, conflictingConstraints.Count);
 		Assert.Contains(constraints[0], conflictingConstraints);
 		Assert.Contains(constraints[1], conflictingConstraints);
 		Assert.Contains(constraints[2], conflictingConstraints);

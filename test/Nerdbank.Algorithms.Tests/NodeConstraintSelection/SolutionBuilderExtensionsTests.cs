@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using System;
 using System.Collections.Immutable;
 using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
@@ -10,7 +9,7 @@ using Xunit.Abstractions;
 public class SolutionBuilderExtensionsTests : TestBase
 {
 	private static readonly ImmutableArray<object> Nodes = ImmutableArray.Create<object>("only node");
-	private readonly SolutionBuilder<bool> builder = new SolutionBuilder<bool>(Nodes, ImmutableArray.Create(true, false));
+	private readonly SolutionBuilder<bool> builder = new(Nodes, ImmutableArray.Create(true, false));
 
 	public SolutionBuilderExtensionsTests(ITestOutputHelper logger)
 		: base(logger)
