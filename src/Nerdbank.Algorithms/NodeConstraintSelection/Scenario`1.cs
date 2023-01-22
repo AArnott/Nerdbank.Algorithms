@@ -29,7 +29,7 @@ public sealed class Scenario<TNodeState>
 	/// <summary>
 	/// A map of nodes to their index into <see cref="nodes"/>.
 	/// </summary>
-	private readonly IReadOnlyDictionary<object, int> nodeIndex;
+	private readonly ReadOnlyDictionary<object, int> nodeIndex;
 
 	/// <summary>
 	/// The constraints that describe the solution.
@@ -66,7 +66,7 @@ public sealed class Scenario<TNodeState>
 	/// </summary>
 	/// <param name="nodes">The nodes in the problem/solution.</param>
 	/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
-	internal Scenario(ImmutableArray<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
+	internal Scenario(ImmutableArray<object> nodes, ReadOnlyDictionary<object, int> nodeIndex)
 	{
 		this.selectionState = new TNodeState?[nodes.Length];
 		this.nodes = nodes;
@@ -156,7 +156,7 @@ public sealed class Scenario<TNodeState>
 	/// </summary>
 	/// <param name="nodes">The list of nodes.</param>
 	/// <returns>The map of nodes to where they are found in the <paramref name="nodes"/> list.</returns>
-	internal static IReadOnlyDictionary<object, int> CreateNodeIndex(ImmutableArray<object> nodes)
+	internal static ReadOnlyDictionary<object, int> CreateNodeIndex(ImmutableArray<object> nodes)
 	{
 		var lookup = new Dictionary<object, int>();
 		for (int i = 0; i < nodes.Length; i++)

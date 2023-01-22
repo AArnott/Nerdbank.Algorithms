@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
@@ -17,14 +18,14 @@ internal class ScenarioPool<TNodeState>
 {
 	private readonly Stack<Scenario<TNodeState>> bag = new();
 	private readonly ImmutableArray<object> nodes;
-	private readonly IReadOnlyDictionary<object, int> nodeIndex;
+	private readonly ReadOnlyDictionary<object, int> nodeIndex;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ScenarioPool{TNodeState}"/> class.
 	/// </summary>
 	/// <param name="nodes">The nodes in the problem/solution.</param>
 	/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
-	internal ScenarioPool(ImmutableArray<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
+	internal ScenarioPool(ImmutableArray<object> nodes, ReadOnlyDictionary<object, int> nodeIndex)
 	{
 		this.nodes = nodes;
 		this.nodeIndex = nodeIndex;

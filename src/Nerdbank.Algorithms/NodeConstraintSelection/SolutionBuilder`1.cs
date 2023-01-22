@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
@@ -23,7 +24,7 @@ public partial class SolutionBuilder<TNodeState>
 	/// <summary>
 	/// A map of nodes to their index as they appear in an ordered list.
 	/// </summary>
-	private readonly IReadOnlyDictionary<object, int> nodeIndex;
+	private readonly ReadOnlyDictionary<object, int> nodeIndex;
 
 	/// <summary>
 	/// An array of allowed values for each node.
