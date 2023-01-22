@@ -1,20 +1,35 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29622.13
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33312.295
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Algorithms", "src\Nerdbank.Algorithms\Nerdbank.Algorithms.csproj", "{7D0A3E71-C7A5-4465-BCA1-0B9533936D29}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.AlgorithmsTest", "test\Nerdbank.Algorithms.Tests\Nerdbank.Algorithms.Tests.csproj", "{B4474D3C-8D00-46CE-9616-A7663967E65C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nerdbank.Algorithms.Tests", "test\Nerdbank.Algorithms.Tests\Nerdbank.Algorithms.Tests.csproj", "{B4474D3C-8D00-46CE-9616-A7663967E65C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D5505154-F37C-47AD-A881-0F985B28D2E0}"
 	ProjectSection(SolutionItems) = preProject
-		..\.editorconfig = ..\.editorconfig
+		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
-		..\global.json = ..\global.json
-		..\nuget.config = ..\nuget.config
+		Directory.Packages.props = Directory.Packages.props
+		global.json = global.json
+		nuget.config = nuget.config
 		stylecop.json = stylecop.json
-		..\version.json = ..\version.json
+		version.json = version.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C6ED3062-7B2E-433F-9680-3587B57ECCAB}"
+	ProjectSection(SolutionItems) = preProject
+		src\.editorconfig = src\.editorconfig
+		src\Directory.Build.props = src\Directory.Build.props
+		src\Directory.Build.targets = src\Directory.Build.targets
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C3D0E574-A9AB-4013-B734-E801E139A1CB}"
+	ProjectSection(SolutionItems) = preProject
+		test\.editorconfig = test\.editorconfig
+		test\Directory.Build.props = test\Directory.Build.props
+		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
 EndProject
 Global
@@ -34,6 +49,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7D0A3E71-C7A5-4465-BCA1-0B9533936D29} = {C6ED3062-7B2E-433F-9680-3587B57ECCAB}
+		{B4474D3C-8D00-46CE-9616-A7663967E65C} = {C3D0E574-A9AB-4013-B734-E801E139A1CB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {25187ACA-E88C-4517-96DA-971C5610752A}
