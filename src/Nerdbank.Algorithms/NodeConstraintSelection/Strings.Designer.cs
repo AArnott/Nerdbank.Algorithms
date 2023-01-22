@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Nerdbank.Algorithms.NodeConstraintSelection {
+namespace Nerdbank.Algorithms.NodeConstraintSelection; 
     using System;
     
     
@@ -276,4 +276,3 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection {
             }
         }
     }
-}
