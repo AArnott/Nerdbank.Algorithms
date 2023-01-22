@@ -12,9 +12,7 @@ public partial class SolutionBuilder<TNodeState>
 	/// <summary>
 	/// Describes a state where no solution exists.
 	/// </summary>
-#pragma warning disable CA1034 // Nested types should not be visible
 	public class ConflictedConstraints
-#pragma warning restore CA1034 // Nested types should not be visible
 	{
 		/// <summary>
 		/// The solution builder that created this.
@@ -51,14 +49,12 @@ public partial class SolutionBuilder<TNodeState>
 			{
 				cancellationToken.ThrowIfCancellationRequested();
 
-				using (var experiment = new Experiment(this.owner, this.conflictedScenario))
+				using var experiment = new Experiment(this.owner, this.conflictedScenario);
+				experiment.Candidate.RemoveConstraint(constraint);
+				if (this.owner.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null)
 				{
-					experiment.Candidate.RemoveConstraint(constraint);
-					if (this.owner.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null)
-					{
-						// Removing this constraint removed the conflict. So add it to the list to return.
-						conflictingConstraints.Add(constraint);
-					}
+					// Removing this constraint removed the conflict. So add it to the list to return.
+					conflictingConstraints.Add(constraint);
 				}
 			}
 

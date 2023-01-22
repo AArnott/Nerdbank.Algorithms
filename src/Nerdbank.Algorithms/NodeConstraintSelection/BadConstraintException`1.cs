@@ -10,10 +10,8 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// </summary>
 /// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 [Serializable]
-#pragma warning disable CA1032 // Implement standard exception constructors
 public class BadConstraintException<TNodeState> : Exception
 	where TNodeState : unmanaged
-#pragma warning restore CA1032 // Implement standard exception constructors
 {
 	/// <inheritdoc cref="BadConstraintException{TNodeState}(IConstraint{TNodeState}, string, Exception)"/>
 	public BadConstraintException(IConstraint<TNodeState> constraint)

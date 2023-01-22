@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 public class SolutionBuilderExtensionsTests : TestBase
 {
 	private static readonly ImmutableArray<object> Nodes = ImmutableArray.Create<object>("only node");
-	private readonly SolutionBuilder<bool> builder = new SolutionBuilder<bool>(Nodes, ImmutableArray.Create(true, false));
+	private readonly SolutionBuilder<bool> builder = new(Nodes, ImmutableArray.Create(true, false));
 
 	public SolutionBuilderExtensionsTests(ITestOutputHelper logger)
 		: base(logger)

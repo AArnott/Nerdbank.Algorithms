@@ -10,9 +10,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// that no subset of constraints could be found which if removed would remove the conflict.
 /// </summary>
 [Serializable]
-#pragma warning disable CA1032 // Implement standard exception constructors
 public class ComplexConflictException : Exception
-#pragma warning restore CA1032 // Implement standard exception constructors
 {
 	/// <inheritdoc cref="ComplexConflictException(string, Exception)"/>
 	public ComplexConflictException()

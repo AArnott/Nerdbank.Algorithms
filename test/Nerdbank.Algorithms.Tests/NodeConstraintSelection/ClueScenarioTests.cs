@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 public class ClueScenarioTests : TestBase
 {
-	private static readonly CardHolder CaseFile = new CardHolder("Case file");
+	private static readonly CardHolder CaseFile = new("Case file");
 	private static readonly ImmutableArray<CardHolder> Players = Enumerable.Range(1, 3).Select(n => new CardHolder($"Player {n}")).ToImmutableArray();
 	private static readonly ImmutableArray<Card> Suspects = Enumerable.Range(1, 6).Select(n => new Card($"Suspect {n}")).ToImmutableArray();
 	private static readonly ImmutableArray<Card> Weapons = Enumerable.Range(1, 6).Select(n => new Card($"Weapon {n}")).ToImmutableArray();
@@ -23,9 +23,7 @@ public class ClueScenarioTests : TestBase
 
 	private readonly SolutionBuilder<bool> builder;
 
-#pragma warning disable CA1810 // Initialize reference type static fields inline
 	static ClueScenarioTests()
-#pragma warning restore CA1810 // Initialize reference type static fields inline
 	{
 		Cards = Suspects.AddRange(Weapons).AddRange(Rooms);
 
@@ -72,9 +70,7 @@ public class ClueScenarioTests : TestBase
 		// Each player holds a fixed number of cards.
 		if (Cards.Length % Players.Length > 0)
 		{
-#pragma warning disable CA1065 // Do not raise exceptions in unexpected locations
 			throw new InvalidOperationException("The number of players and cards requires an uneven distribution, which isn't supported in this test.");
-#pragma warning restore CA1065 // Do not raise exceptions in unexpected locations
 		}
 
 		int numberOfCardsPerPlayer = (Cards.Length - 3) / Players.Length;
@@ -115,12 +111,10 @@ public class ClueScenarioTests : TestBase
 		this.builder.ResolvePartially(this.TimeoutToken);
 
 		// This next step takes 3-12 seconds on a really fast machine.
-		using (var longTimeoutCts = new CancellationTokenSource(20 * 1024))
-		{
-			SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(longTimeoutCts.Token);
-			this.Logger.WriteLine("Identified {0} unique solutions.", analysis.ViableSolutionsFound);
-			this.PrintSolutionAnalysis(analysis);
-		}
+		using var longTimeoutCts = new CancellationTokenSource(20 * 1024);
+		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(longTimeoutCts.Token);
+		this.Logger.WriteLine("Identified {0} unique solutions.", analysis.ViableSolutionsFound);
+		this.PrintSolutionAnalysis(analysis);
 	}
 
 	private static (ImmutableArray<Card> Chosen, ImmutableArray<Card> Remaining) ChooseRandomCards(ImmutableArray<Card> source, int count)

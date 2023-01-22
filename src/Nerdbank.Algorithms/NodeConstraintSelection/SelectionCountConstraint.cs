@@ -86,7 +86,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="nodes">The nodes that the constraint applies to.</param>
 	/// <param name="maximum">The maximum nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint MaxSelected(IEnumerable<object> nodes, int maximum) => new SelectionCountConstraint(nodes, 0, maximum);
+	public static SelectionCountConstraint MaxSelected(IEnumerable<object> nodes, int maximum) => new(nodes, 0, maximum);
 
 	/// <summary>
 	/// Creates a new constraint with the specified minimum for nodes that must be selected in the solution.
@@ -94,7 +94,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="nodes">The nodes that the constraint applies to.</param>
 	/// <param name="minimum">The minimum nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint MinSelected(IEnumerable<object> nodes, int minimum) => new SelectionCountConstraint(nodes, minimum, int.MaxValue);
+	public static SelectionCountConstraint MinSelected(IEnumerable<object> nodes, int minimum) => new(nodes, minimum, int.MaxValue);
 
 	/// <summary>
 	/// Creates a new constraint with the specified number of nodes that must be selected in the solution.
@@ -102,7 +102,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="nodes">The nodes that the constraint applies to.</param>
 	/// <param name="selectedCount">The number of nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint ExactSelected(IEnumerable<object> nodes, int selectedCount) => new SelectionCountConstraint(nodes, selectedCount, selectedCount);
+	public static SelectionCountConstraint ExactSelected(IEnumerable<object> nodes, int selectedCount) => new(nodes, selectedCount, selectedCount);
 
 	/// <summary>
 	/// Creates a new constraint with the specified minimum and maximum for nodes that must be selected in the solution.
@@ -111,7 +111,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <param name="minimum">The minimum nodes that must be selected in the solution.</param>
 	/// <param name="maximum">The maximum nodes that must be selected in the solution.</param>
 	/// <returns>The new constraint.</returns>
-	public static SelectionCountConstraint RangeSelected(IEnumerable<object> nodes, int minimum, int maximum) => new SelectionCountConstraint(nodes, minimum, maximum);
+	public static SelectionCountConstraint RangeSelected(IEnumerable<object> nodes, int minimum, int maximum) => new(nodes, minimum, maximum);
 
 	/// <inheritdoc/>
 	public override string ToString() => $"{this.GetType().Name}({this.Minimum}-{this.Maximum} from {{{string.Join(", ", this.Nodes)}}})";

@@ -13,7 +13,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 internal class ScenarioPool<TNodeState>
 	where TNodeState : unmanaged
 {
-	private readonly Stack<Scenario<TNodeState>> bag = new Stack<Scenario<TNodeState>>();
+	private readonly Stack<Scenario<TNodeState>> bag = new();
 	private readonly IReadOnlyList<object> nodes;
 	private readonly IReadOnlyDictionary<object, int> nodeIndex;
 

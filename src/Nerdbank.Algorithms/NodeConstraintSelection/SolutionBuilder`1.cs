@@ -172,12 +172,10 @@ public partial class SolutionBuilder<TNodeState>
 			throw new ArgumentNullException(nameof(constraints));
 		}
 
-		using (var experiment = new Experiment(this))
-		{
-			experiment.Candidate.RemoveConstraints(constraints);
-			experiment.Commit();
-			this.fullRefreshNeeded = true;
-		}
+		using var experiment = new Experiment(this);
+		experiment.Candidate.RemoveConstraints(constraints);
+		experiment.Commit();
+		this.fullRefreshNeeded = true;
 	}
 
 	/// <summary>
@@ -197,11 +195,9 @@ public partial class SolutionBuilder<TNodeState>
 			throw new ArgumentNullException(nameof(constraint));
 		}
 
-		using (var experiment = new Experiment(this))
-		{
-			experiment.Candidate.AddConstraint(constraint);
-			return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null;
-		}
+		using var experiment = new Experiment(this);
+		experiment.Candidate.AddConstraint(constraint);
+		return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null;
 	}
 
 	/// <summary>
@@ -210,21 +206,19 @@ public partial class SolutionBuilder<TNodeState>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	public void ResolvePartially(CancellationToken cancellationToken = default)
 	{
-		using (var experiment = new Experiment(this))
+		using var experiment = new Experiment(this);
+		if (this.fullRefreshNeeded)
 		{
-			if (this.fullRefreshNeeded)
+			for (int i = 0; i < this.NodeCount; i++)
 			{
-				for (int i = 0; i < this.NodeCount; i++)
-				{
-					experiment.Candidate.ResetNode(i, null);
-				}
+				experiment.Candidate.ResetNode(i, null);
 			}
-
-			ResolvePartially(experiment.Candidate, cancellationToken);
-
-			experiment.Commit();
-			this.fullRefreshNeeded = false;
 		}
+
+		ResolvePartially(experiment.Candidate, cancellationToken);
+
+		experiment.Commit();
+		this.fullRefreshNeeded = false;
 	}
 
 	/// <summary>
@@ -235,10 +229,8 @@ public partial class SolutionBuilder<TNodeState>
 	/// <returns><see langword="null"/> if a solution can be found; or diagnostic data about which sets of constraints conflict.</returns>
 	public ConflictedConstraints? CheckForConflictingConstraints(CancellationToken cancellationToken)
 	{
-		using (var experiment = new Experiment(this))
-		{
-			return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken);
-		}
+		using var experiment = new Experiment(this);
+		return this.CheckForConflictingConstraints(experiment.Candidate, cancellationToken);
 	}
 
 	/// <summary>
@@ -248,19 +240,17 @@ public partial class SolutionBuilder<TNodeState>
 	/// <returns>The results of the analysis.</returns>
 	public SolutionsAnalysis AnalyzeSolutions(CancellationToken cancellationToken)
 	{
-		using (var experiment = new Experiment(this))
+		using var experiment = new Experiment(this);
+		ResolvePartially(experiment.Candidate, cancellationToken);
+		var stats = default(SolutionStats);
+		try
 		{
-			ResolvePartially(experiment.Candidate, cancellationToken);
-			var stats = default(SolutionStats);
-			try
-			{
-				this.EnumerateSolutions(experiment.Candidate, 0, ref stats, cancellationToken);
-				return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesResolvedStateInSolutions, this.CreateConflictedConstraints(stats));
-			}
-			catch (OperationCanceledException ex)
-			{
-				throw new OperationCanceledException("Canceled after considering " + stats.ConsideredScenarios + " scenarios.", ex);
-			}
+			this.EnumerateSolutions(experiment.Candidate, 0, ref stats, cancellationToken);
+			return new SolutionsAnalysis(this, stats.SolutionsFound, stats.NodesResolvedStateInSolutions, this.CreateConflictedConstraints(stats));
+		}
+		catch (OperationCanceledException ex)
+		{
+			throw new OperationCanceledException("Canceled after considering " + stats.ConsideredScenarios + " scenarios.", ex);
 		}
 	}
 
@@ -447,16 +437,14 @@ public partial class SolutionBuilder<TNodeState>
 			{
 				TNodeState value = this.resolvedNodeStates[k];
 
-				using (var experiment = new Experiment(this, basis))
-				{
-					experiment.Candidate[i] = value;
-					ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
-					this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
+				using var experiment = new Experiment(this, basis);
+				experiment.Candidate[i] = value;
+				ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
+				this.EnumerateSolutions(experiment.Candidate, i + 1, ref stats, cancellationToken);
 
-					if (stats.StopAfterFirstSolutionFound && stats.SolutionsFound > 0)
-					{
-						return;
-					}
+				if (stats.StopAfterFirstSolutionFound && stats.SolutionsFound > 0)
+				{
+					return;
 				}
 			}
 
@@ -489,10 +477,7 @@ public partial class SolutionBuilder<TNodeState>
 
 				if (!this.StopAfterFirstSolutionFound)
 				{
-					if (this.NodesResolvedStateInSolutions is null)
-					{
-						this.NodesResolvedStateInSolutions = new Dictionary<TNodeState, long>?[scenario.NodeCount];
-					}
+					this.NodesResolvedStateInSolutions ??= new Dictionary<TNodeState, long>?[scenario.NodeCount];
 
 					for (int i = 0; i < scenario.NodeCount; i++)
 					{

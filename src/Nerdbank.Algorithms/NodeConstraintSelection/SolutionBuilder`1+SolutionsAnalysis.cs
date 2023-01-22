@@ -11,9 +11,7 @@ public partial class SolutionBuilder<TNodeState>
 	/// <summary>
 	/// Describes the set of viable solutions available.
 	/// </summary>
-#pragma warning disable CA1034 // Nested types should not be visible
 	public class SolutionsAnalysis
-#pragma warning restore CA1034 // Nested types should not be visible
 	{
 		private readonly SolutionBuilder<TNodeState> owner;
 
