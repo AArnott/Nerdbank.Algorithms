@@ -66,7 +66,7 @@ public sealed class Scenario<TNodeState>
 	internal ImmutableArray<IConstraint<TNodeState>> Constraints => this.constraints;
 
 	/// <summary>
-	/// Gets a value that changes each time a node selection is changed.
+	/// Gets a value that changes each time a node selection or constraint is changed.
 	/// </summary>
 	internal int Version { get; private set; }
 

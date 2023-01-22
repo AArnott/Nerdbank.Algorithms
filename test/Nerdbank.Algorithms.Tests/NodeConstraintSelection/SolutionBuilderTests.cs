@@ -462,6 +462,17 @@ public class SolutionBuilderTests : TestBase
 		Assert.Throws<InvalidOperationException>(() => this.builder.CommitAnalysis(analysis));
 	}
 
+	[Fact]
+	public async Task AnalyzeSolutionAsync_FreshAnalysisCanBeCommittedBack()
+	{
+		this.builder.AddConstraints(new[]
+		{
+			SelectionCountConstraint.ExactSelected(Nodes.Take(3), 1),
+		});
+		SolutionBuilder<bool>.SolutionsAnalysis analysis = await this.builder.AnalyzeSolutionsAsync(this.TimeoutToken);
+		this.builder.CommitAnalysis(analysis);
+	}
+
 	/// <summary>
 	/// Verifies that checking for conflicting constraints can quickly find a conflict even in a very large problem space.
 	/// </summary>

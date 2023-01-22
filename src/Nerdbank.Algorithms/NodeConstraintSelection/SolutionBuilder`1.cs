@@ -242,7 +242,7 @@ public partial class SolutionBuilder<TNodeState>
 	public Task<SolutionsAnalysis> AnalyzeSolutionsAsync(CancellationToken cancellationToken)
 	{
 		// Any mutable data that this analysis must read from this instance must be copied now, before yielding back to the caller.
-		using Experiment experiment = this.NewExperiment();
+		Experiment experiment = this.NewExperiment();
 		ResolvePartially(experiment.Candidate, cancellationToken);
 
 		return Task.Run(() => AnalyzeSolutions(this.configuration, experiment, cancellationToken));
@@ -576,6 +576,8 @@ public partial class SolutionBuilder<TNodeState>
 	/// </summary>
 	private struct Experiment : IDisposable
 	{
+		private Scenario<TNodeState>? candidate;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Experiment"/> struct.
 		/// </summary>
@@ -583,8 +585,8 @@ public partial class SolutionBuilder<TNodeState>
 		internal Experiment(Scenario<TNodeState> basis)
 		{
 			this.Basis = basis;
-			this.Candidate = basis.Configuration.ScenarioPool.Take();
-			this.Candidate.CopyFrom(basis);
+			this.candidate = basis.Configuration.ScenarioPool.Take();
+			this.candidate.CopyFrom(basis);
 		}
 
 		/// <summary>
@@ -595,7 +597,7 @@ public partial class SolutionBuilder<TNodeState>
 		/// <summary>
 		/// Gets the experimental scenario.
 		/// </summary>
-		public Scenario<TNodeState> Candidate { get; private set; }
+		public Scenario<TNodeState> Candidate => this.candidate ?? throw new ObjectDisposedException(nameof(Experiment));
 
 		/// <summary>
 		/// Commits the <see cref="Candidate"/> to the <see cref="Basis"/> scenario.
@@ -610,8 +612,11 @@ public partial class SolutionBuilder<TNodeState>
 		/// </summary>
 		public void Dispose()
 		{
-			this.Candidate.Configuration.ScenarioPool.Return(this.Candidate);
-			this.Candidate = null!; // go ahead and cause havoc if people reuse this after recycling.
+			if (this.candidate is { } candidate)
+			{
+				candidate.Configuration.ScenarioPool.Return(candidate);
+				this.candidate = null;
+			}
 		}
 	}
 }
