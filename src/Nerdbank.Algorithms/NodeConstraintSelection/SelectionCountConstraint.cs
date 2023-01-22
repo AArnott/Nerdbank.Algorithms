@@ -25,7 +25,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <remarks>
 	/// This value is lazily initialized by <see cref="GetNodeIndexes"/>.
 	/// </remarks>
-	private int[]? nodeIndexes;
+	private ImmutableArray<int> nodeIndexes;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SelectionCountConstraint"/> class.
@@ -267,7 +267,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 		int selectedCount = 0;
 		int unselectedCount = 0;
 		int indeterminateCount = 0;
-		int[] nodeIndexes = this.nodeIndexes ?? this.GetNodeIndexes(scenario);
+		ImmutableArray<int> nodeIndexes = this.GetNodeIndexes(scenario);
 		foreach (int nodeIndex in nodeIndexes)
 		{
 			bool? state = scenario[nodeIndex];
@@ -300,7 +300,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	private bool MarkIndeterminateNodes(Scenario<bool> scenario, bool select)
 	{
 		bool changed = false;
-		int[] nodeIndexes = this.nodeIndexes ?? this.GetNodeIndexes(scenario);
+		ImmutableArray<int> nodeIndexes = this.GetNodeIndexes(scenario);
 		foreach (int nodeIndex in nodeIndexes)
 		{
 			if (!scenario[nodeIndex].HasValue)
@@ -318,23 +318,24 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// </summary>
 	/// <param name="scenario">A scenario from which to derive the indexes if it has not already been cached.</param>
 	/// <returns>An array of node indexes.</returns>
-	private int[] GetNodeIndexes(Scenario<bool> scenario)
+	private ImmutableArray<int> GetNodeIndexes(Scenario<bool> scenario)
 	{
-		var nodeIndexes = this.nodeIndexes;
-		if (nodeIndexes is null)
+		ImmutableArray<int> nodeIndexes = this.nodeIndexes;
+		if (nodeIndexes.IsDefault)
 		{
-			this.nodeIndexes = nodeIndexes = new int[this.nodes.Length];
-
+			ImmutableArray<int>.Builder builder = ImmutableArray.CreateBuilder<int>(this.nodes.Length);
 			for (int i = 0; i < this.nodes.Length; i++)
 			{
-				nodeIndexes[i] = scenario.GetNodeIndex(this.nodes[i]);
+				builder.Add(scenario.GetNodeIndex(this.nodes[i]));
 			}
+
+			this.nodeIndexes = nodeIndexes = builder.MoveToImmutable();
 		}
 
 		return nodeIndexes;
 	}
 
-	private struct NodeStats
+	private readonly struct NodeStats
 	{
 		internal NodeStats(int selected, int unselected, int indeterminate)
 		{

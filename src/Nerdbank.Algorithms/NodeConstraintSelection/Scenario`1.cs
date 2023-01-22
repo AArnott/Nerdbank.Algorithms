@@ -12,6 +12,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 /// <remarks>
 /// Thread safety: Instance members on this class are not thread safe.
+/// All state on an instance is either immutable or exclusive to this instance.
 /// </remarks>
 public sealed class Scenario<TNodeState>
 	where TNodeState : unmanaged
@@ -49,16 +50,8 @@ public sealed class Scenario<TNodeState>
 	/// This constructor is designed for unit testing constraints.
 	/// </remarks>
 	public Scenario(ImmutableArray<object> nodes)
+		: this(nodes, CreateNodeIndex(nodes))
 	{
-		if (nodes.IsDefault)
-		{
-			throw new ArgumentNullException(nameof(nodes));
-		}
-
-		this.selectionState = new TNodeState?[nodes.Length];
-		this.nodes = nodes;
-		this.nodeIndex = CreateNodeIndex(nodes);
-		this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
 	}
 
 	/// <summary>
@@ -158,7 +151,7 @@ public sealed class Scenario<TNodeState>
 	/// <returns>The map of nodes to where they are found in the <paramref name="nodes"/> list.</returns>
 	internal static ReadOnlyDictionary<object, int> CreateNodeIndex(ImmutableArray<object> nodes)
 	{
-		var lookup = new Dictionary<object, int>();
+		var lookup = new Dictionary<object, int>(nodes.Length);
 		for (int i = 0; i < nodes.Length; i++)
 		{
 			lookup.Add(nodes[i], i);

@@ -40,6 +40,7 @@ Nerdbank.Algorithms.NodeConstraintSelection.SelectionCountConstraint.SelectionCo
 Nerdbank.Algorithms.NodeConstraintSelection.SetOneNodeValueConstraint<TNodeState>
 Nerdbank.Algorithms.NodeConstraintSelection.SetOneNodeValueConstraint<TNodeState>.Equals(Nerdbank.Algorithms.NodeConstraintSelection.IConstraint<TNodeState>? other) -> bool
 Nerdbank.Algorithms.NodeConstraintSelection.SetOneNodeValueConstraint<TNodeState>.GetState(Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>! scenario) -> Nerdbank.Algorithms.NodeConstraintSelection.ConstraintStates
+Nerdbank.Algorithms.NodeConstraintSelection.SetOneNodeValueConstraint<TNodeState>.Node.get -> object!
 Nerdbank.Algorithms.NodeConstraintSelection.SetOneNodeValueConstraint<TNodeState>.Nodes.get -> System.Collections.Immutable.ImmutableArray<object!>
 Nerdbank.Algorithms.NodeConstraintSelection.SetOneNodeValueConstraint<TNodeState>.Resolve(Nerdbank.Algorithms.NodeConstraintSelection.Scenario<TNodeState>! scenario) -> bool
 Nerdbank.Algorithms.NodeConstraintSelection.SetOneNodeValueConstraint<TNodeState>.SetOneNodeValueConstraint(object! node, TNodeState value) -> void

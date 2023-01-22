@@ -13,12 +13,7 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 	where TNodeState : unmanaged, IEquatable<TNodeState>
 {
 	/// <summary>
-	/// The node whose <see cref="value"/> is to be set.
-	/// </summary>
-	private readonly object node;
-
-	/// <summary>
-	/// The value to set the <see cref="node"/> to.
+	/// The value to set the <see cref="Node"/> to.
 	/// </summary>
 	private readonly TNodeState value;
 
@@ -29,10 +24,14 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 	/// <param name="value">The value to set the node to.</param>
 	public SetOneNodeValueConstraint(object node, TNodeState value)
 	{
-		this.node = node ?? throw new ArgumentNullException(nameof(node));
 		this.value = value;
-		this.Nodes = ImmutableArray.Create(node);
+		this.Nodes = ImmutableArray.Create(node ?? throw new ArgumentNullException(nameof(node)));
 	}
+
+	/// <summary>
+	/// Gets the one node impacted by this constraint.
+	/// </summary>
+	public object Node => this.Nodes[0];
 
 	/// <inheritdoc/>
 	public ImmutableArray<object> Nodes { get; }
@@ -45,7 +44,7 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 			throw new ArgumentNullException(nameof(scenario));
 		}
 
-		TNodeState? state = scenario[this.node];
+		TNodeState? state = scenario[this.Node];
 		if (state is null)
 		{
 			return ConstraintStates.Resolvable | ConstraintStates.Breakable | ConstraintStates.Satisfiable;
@@ -68,9 +67,9 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 			throw new ArgumentNullException(nameof(scenario));
 		}
 
-		if (scenario[this.node] is null)
+		if (scenario[this.Node] is null)
 		{
-			scenario[this.node] = this.value;
+			scenario[this.Node] = this.value;
 			return true;
 		}
 
@@ -78,8 +77,8 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 	}
 
 	/// <inheritdoc/>
-	public override string ToString() => $"{this.GetType().Name}(Set {{{this.node}}} to {this.value})";
+	public override string ToString() => $"{this.GetType().Name}(Set {{{this.Node}}} to {this.value})";
 
 	/// <inheritdoc/>
-	public bool Equals(IConstraint<TNodeState>? other) => other is SetOneNodeValueConstraint<TNodeState> sonv && this.node == sonv.node && this.value.Equals(sonv.value);
+	public bool Equals(IConstraint<TNodeState>? other) => other is SetOneNodeValueConstraint<TNodeState> sonv && this.Node == sonv.Node && this.value.Equals(sonv.value);
 }
