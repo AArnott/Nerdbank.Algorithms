@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
 /// <summary>
@@ -8,43 +12,32 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// </summary>
 /// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 /// <remarks>
-/// Thread safety: Instance members on this class are not thread safe.
+/// Thread safety: This class is thread-safe.
 /// </remarks>
 internal class ScenarioPool<TNodeState>
 	where TNodeState : unmanaged
 {
-	private readonly Stack<Scenario<TNodeState>> bag = new();
-	private readonly IReadOnlyList<object> nodes;
-	private readonly IReadOnlyDictionary<object, int> nodeIndex;
+	private readonly ConcurrentBag<Scenario<TNodeState>> bag = new();
+	private readonly Configuration<TNodeState> configuration;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ScenarioPool{TNodeState}"/> class.
 	/// </summary>
-	/// <param name="nodes">The nodes in the problem/solution.</param>
-	/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
-	internal ScenarioPool(IReadOnlyList<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
+	/// <param name="configuration">The problem space configuration.</param>
+	internal ScenarioPool(Configuration<TNodeState> configuration)
 	{
-		this.nodes = nodes;
-		this.nodeIndex = nodeIndex;
+		this.configuration = configuration;
 	}
 
 	/// <summary>
 	/// Acquires a recycled or new <see cref="Scenario{TNodeState}"/> instance.
 	/// </summary>
 	/// <returns>An instance of <see cref="Scenario{TNodeState}"/>.</returns>
-	internal Scenario<TNodeState> Take()
-	{
-		if (this.bag.Count > 0)
-		{
-			return this.bag.Pop();
-		}
-
-		return new Scenario<TNodeState>(this.nodes, this.nodeIndex);
-	}
+	internal Scenario<TNodeState> Take() => this.bag.TryTake(out Scenario<TNodeState>? scenario) ? scenario : new(this.configuration);
 
 	/// <summary>
 	/// Returns a <see cref="Scenario{TNodeState}"/> for recycling.
 	/// </summary>
 	/// <param name="scenario">The instance to recycle.</param>
-	internal void Return(Scenario<TNodeState> scenario) => this.bag.Push(scenario);
+	internal void Return(Scenario<TNodeState> scenario) => this.bag.Add(scenario);
 }

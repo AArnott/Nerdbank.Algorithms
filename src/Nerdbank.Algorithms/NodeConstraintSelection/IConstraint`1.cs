@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
+
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
 /// <summary>
@@ -15,9 +17,9 @@ public interface IConstraint<TNodeState> : IEquatable<IConstraint<TNodeState>?>
 	where TNodeState : unmanaged
 {
 	/// <summary>
-	/// Gets the set of indexes to nodes that are involved in the constraint.
+	/// Gets the set of nodes that are involved in the constraint.
 	/// </summary>
-	IReadOnlyCollection<object> Nodes { get; }
+	ImmutableArray<object> Nodes { get; }
 
 	/// <summary>
 	/// Gets the state of the constraint with respect to a given scenario.

@@ -12,6 +12,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
 /// <remarks>
 /// Thread safety: Instance members on this class are not thread safe.
+/// All state on an instance is either immutable or exclusive to this instance.
 /// </remarks>
 public sealed class Scenario<TNodeState>
 	where TNodeState : unmanaged
@@ -21,15 +22,7 @@ public sealed class Scenario<TNodeState>
 	/// </summary>
 	private readonly TNodeState?[] selectionState;
 
-	/// <summary>
-	/// The nodes in the solution.
-	/// </summary>
-	private readonly IReadOnlyList<object> nodes;
-
-	/// <summary>
-	/// A map of nodes to their index into <see cref="nodes"/>.
-	/// </summary>
-	private readonly IReadOnlyDictionary<object, int> nodeIndex;
+	private readonly Configuration<TNodeState> configuration;
 
 	/// <summary>
 	/// The constraints that describe the solution.
@@ -44,40 +37,18 @@ public sealed class Scenario<TNodeState>
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
 	/// </summary>
-	/// <param name="nodes">The list of nodes.</param>
-	/// <remarks>
-	/// This constructor is designed for unit testing constraints.
-	/// </remarks>
-	public Scenario(IReadOnlyList<object> nodes)
+	/// <param name="configuration">The problem space configuration.</param>
+	public Scenario(Configuration<TNodeState> configuration)
 	{
-		if (nodes is null)
-		{
-			throw new ArgumentNullException(nameof(nodes));
-		}
-
-		this.selectionState = new TNodeState?[nodes.Count];
-		this.nodes = nodes;
-		this.nodeIndex = CreateNodeIndex(nodes);
-		this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
-	}
-
-	/// <summary>
-	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
-	/// </summary>
-	/// <param name="nodes">The nodes in the problem/solution.</param>
-	/// <param name="nodeIndex">A map of nodes to their index into <paramref name="nodes"/>.</param>
-	internal Scenario(IReadOnlyList<object> nodes, IReadOnlyDictionary<object, int> nodeIndex)
-	{
-		this.selectionState = new TNodeState?[nodes.Count];
-		this.nodes = nodes;
-		this.nodeIndex = nodeIndex;
-		this.constraintsPerNode = nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
+		this.selectionState = new TNodeState?[configuration.Nodes.Length];
+		this.configuration = configuration;
+		this.constraintsPerNode = configuration.Nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
 	}
 
 	/// <summary>
 	/// Gets the number of nodes in the problem/solution.
 	/// </summary>
-	public int NodeCount => this.nodes.Count;
+	public int NodeCount => this.configuration.Nodes.Length;
 
 	/// <summary>
 	/// Gets a list of the states of every node.
@@ -85,12 +56,17 @@ public sealed class Scenario<TNodeState>
 	public IReadOnlyList<TNodeState?> NodeStates => this.selectionState;
 
 	/// <summary>
+	/// Gets the configuration that this scenario belongs to.
+	/// </summary>
+	internal Configuration<TNodeState> Configuration => this.configuration;
+
+	/// <summary>
 	/// Gets the constraints that are applied in this scenario.
 	/// </summary>
 	internal ImmutableArray<IConstraint<TNodeState>> Constraints => this.constraints;
 
 	/// <summary>
-	/// Gets a value that changes each time a node selection is changed.
+	/// Gets a value that changes each time a node selection or constraint is changed.
 	/// </summary>
 	internal int Version { get; private set; }
 
@@ -135,8 +111,8 @@ public sealed class Scenario<TNodeState>
 	/// </remarks>
 	public TNodeState? this[object node]
 	{
-		get => this[this.nodeIndex[node]];
-		set => this[this.nodeIndex[node]] = value;
+		get => this[this.configuration.Index[node]];
+		set => this[this.configuration.Index[node]] = value;
 	}
 
 	/// <summary>
@@ -149,23 +125,7 @@ public sealed class Scenario<TNodeState>
 	/// This method can be used by <see cref="IConstraint{TNodeState}"/> implementations to translate and cache nodes into indexes
 	/// for improved performance in <see cref="IConstraint{TNodeState}.GetState(Scenario{TNodeState})"/>.
 	/// </remarks>
-	public int GetNodeIndex(object node) => this.nodeIndex[node];
-
-	/// <summary>
-	/// Creates a map of nodes to the index in a list.
-	/// </summary>
-	/// <param name="nodes">The list of nodes.</param>
-	/// <returns>The map of nodes to where they are found in the <paramref name="nodes"/> list.</returns>
-	internal static IReadOnlyDictionary<object, int> CreateNodeIndex(IReadOnlyList<object> nodes)
-	{
-		var lookup = new Dictionary<object, int>();
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			lookup.Add(nodes[i], i);
-		}
-
-		return new ReadOnlyDictionary<object, int>(lookup);
-	}
+	public int GetNodeIndex(object node) => this.configuration.Index[node];
 
 	/// <summary>
 	/// Sets the selection state of a given node, even if it is already set.
@@ -192,7 +152,7 @@ public sealed class Scenario<TNodeState>
 	/// <exception cref="BadConstraintException{TNodeState}">Thrown when the <paramref name="constraint"/> has an empty set of <see cref="IConstraint{TNodeState}.Nodes"/>.</exception>
 	internal void AddConstraint(IConstraint<TNodeState> constraint)
 	{
-		if (constraint.Nodes.Count == 0)
+		if (constraint.Nodes.IsEmpty)
 		{
 			throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintForEmptySetOfNodes);
 		}
@@ -202,7 +162,7 @@ public sealed class Scenario<TNodeState>
 		var constraintsPerNode = this.constraintsPerNode.ToBuilder();
 		foreach (var node in constraint.Nodes)
 		{
-			int nodeIndex = this.nodeIndex[node];
+			int nodeIndex = this.configuration.Index[node];
 			constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Add(constraint);
 		}
 
@@ -222,7 +182,7 @@ public sealed class Scenario<TNodeState>
 		var constraintsPerNode = this.constraintsPerNode.ToBuilder();
 		foreach (var node in constraint.Nodes)
 		{
-			int nodeIndex = this.nodeIndex[node];
+			int nodeIndex = this.configuration.Index[node];
 			constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Remove(constraint);
 		}
 
@@ -249,7 +209,7 @@ public sealed class Scenario<TNodeState>
 
 			foreach (var node in constraint.Nodes)
 			{
-				int nodeIndex = this.nodeIndex[node];
+				int nodeIndex = this.configuration.Index[node];
 				constraintsPerNode[nodeIndex] = constraintsPerNode[nodeIndex].Remove(constraint);
 			}
 		}

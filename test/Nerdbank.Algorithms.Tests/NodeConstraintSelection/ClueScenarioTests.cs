@@ -39,28 +39,29 @@ public class ClueScenarioTests : TestBase
 		void CreateNodesForCategory(ImmutableArray<Card> cards)
 		{
 			// Start by creating the nodes for the case file.
-			var caseFileNodes = new List<object>();
+			ImmutableArray<object>.Builder caseFileNodesBuilder = ImmutableArray.CreateBuilder<object>(cards.Length);
 			foreach (Card card in cards)
 			{
-				var allHolderNodes = new List<object>();
+				ImmutableArray<object>.Builder allHolderNodesBuilder = ImmutableArray.CreateBuilder<object>(Players.Length + 1);
 				foreach (CardHolder player in Players)
 				{
 					object node = (card, player);
 					cardsPerPlayer[player].Add(node);
-					allHolderNodes.Add(node);
+					allHolderNodesBuilder.Add(node);
 				}
 
 				object caseFileNode = (card, CaseFile);
-				allHolderNodes.Add(caseFileNode);
-				caseFileNodes.Add(caseFileNode);
+				allHolderNodesBuilder.Add(caseFileNode);
+				caseFileNodesBuilder.Add(caseFileNode);
 
 				// This card can only appear in one place: a player or the case file.
+				ImmutableArray<object> allHolderNodes = allHolderNodesBuilder.MoveToImmutable();
 				constraints.Add(SelectionCountConstraint.ExactSelected(allHolderNodes, 1));
 				nodes.AddRange(allHolderNodes);
 			}
 
 			// Exactly one card from this whole category of cards will appear in the case file.
-			constraints.Add(SelectionCountConstraint.ExactSelected(caseFileNodes, 1));
+			constraints.Add(SelectionCountConstraint.ExactSelected(caseFileNodesBuilder.MoveToImmutable(), 1));
 		}
 
 		CreateNodesForCategory(Suspects);

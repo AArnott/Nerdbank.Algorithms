@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+using System.Collections.Immutable;
+
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
 /// <content>
@@ -14,10 +16,7 @@ public partial class SolutionBuilder<TNodeState>
 	/// </summary>
 	public class ConflictedConstraints
 	{
-		/// <summary>
-		/// The solution builder that created this.
-		/// </summary>
-		private readonly SolutionBuilder<TNodeState> owner;
+		private readonly Configuration<TNodeState> configuration;
 
 		/// <summary>
 		/// The conflicted scenario.
@@ -27,11 +26,11 @@ public partial class SolutionBuilder<TNodeState>
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ConflictedConstraints"/> class.
 		/// </summary>
-		/// <param name="owner">The solution builder that created this.</param>
+		/// <param name="configuration">The problem space configuration.</param>
 		/// <param name="conflictedScenario">The conflicted scenario.</param>
-		internal ConflictedConstraints(SolutionBuilder<TNodeState> owner, Scenario<TNodeState> conflictedScenario)
+		internal ConflictedConstraints(Configuration<TNodeState> configuration, Scenario<TNodeState> conflictedScenario)
 		{
-			this.owner = owner;
+			this.configuration = configuration;
 			this.conflictedScenario = conflictedScenario;
 		}
 
@@ -44,14 +43,14 @@ public partial class SolutionBuilder<TNodeState>
 		/// <exception cref="ComplexConflictException">Thrown when there is no single constraint whose removal would remove the conflict.</exception>
 		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(CancellationToken cancellationToken)
 		{
-			var conflictingConstraints = new List<IConstraint<TNodeState>>();
+			List<IConstraint<TNodeState>> conflictingConstraints = new();
 			foreach (IConstraint<TNodeState> constraint in this.conflictedScenario.Constraints)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
 
-				using var experiment = new Experiment(this.owner, this.conflictedScenario);
+				using Experiment experiment = new(this.conflictedScenario);
 				experiment.Candidate.RemoveConstraint(constraint);
-				if (this.owner.CheckForConflictingConstraints(experiment.Candidate, cancellationToken) is null)
+				if (SolutionBuilder<TNodeState>.CheckForConflictingConstraints(this.configuration, experiment.Candidate, cancellationToken) is null)
 				{
 					// Removing this constraint removed the conflict. So add it to the list to return.
 					conflictingConstraints.Add(constraint);

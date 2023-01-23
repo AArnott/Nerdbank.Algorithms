@@ -13,25 +13,22 @@ public partial class SolutionBuilder<TNodeState>
 	/// </summary>
 	public class SolutionsAnalysis
 	{
-		private readonly SolutionBuilder<TNodeState> owner;
-
-		/// <summary>
-		/// The count that each state appears in a viable solution for each node.
-		/// </summary>
-		private readonly Dictionary<TNodeState, long>?[]? nodeValueCount;
+		private readonly Configuration<TNodeState> configuration;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SolutionsAnalysis"/> class.
 		/// </summary>
-		/// <param name="owner">The <see cref="SolutionBuilder{T}"/> that created this instance.</param>
+		/// <param name="configuration">The problem space configuration.</param>
+		/// <param name="basisScenarioVersion">The value of <see cref="Scenario{TNodeState}.Version"/> from the <see cref="SolutionBuilder{TNodeState}"/> when the analysis began.</param>
 		/// <param name="viableSolutionsFound">The number of viable solutions that exist.</param>
 		/// <param name="nodeValueCount">The number of times each value was used for a given node in any viable solution.</param>
 		/// <param name="conflicts">Information about the conflicting constraints that prevent any viable solution from being found.</param>
-		internal SolutionsAnalysis(SolutionBuilder<TNodeState> owner, long viableSolutionsFound, Dictionary<TNodeState, long>?[]? nodeValueCount, SolutionBuilder<TNodeState>.ConflictedConstraints? conflicts)
+		internal SolutionsAnalysis(Configuration<TNodeState> configuration, int basisScenarioVersion, long viableSolutionsFound, Dictionary<TNodeState, long>?[]? nodeValueCount, SolutionBuilder<TNodeState>.ConflictedConstraints? conflicts)
 		{
-			this.owner = owner;
+			this.configuration = configuration;
+			this.BasisScenarioVersion = basisScenarioVersion;
 			this.ViableSolutionsFound = viableSolutionsFound;
-			this.nodeValueCount = nodeValueCount;
+			this.NodeValueCount = nodeValueCount;
 			this.Conflicts = conflicts;
 		}
 
@@ -47,6 +44,16 @@ public partial class SolutionBuilder<TNodeState>
 		public SolutionBuilder<TNodeState>.ConflictedConstraints? Conflicts { get; }
 
 		/// <summary>
+		/// Gets the count that each state appears in a viable solution for each node.
+		/// </summary>
+		internal Dictionary<TNodeState, long>?[]? NodeValueCount { get; }
+
+		/// <summary>
+		/// Gets the value of <see cref="Scenario{TNodeState}.Version"/> from the <see cref="SolutionBuilder{TNodeState}"/> when the analysis began.
+		/// </summary>
+		internal int BasisScenarioVersion { get; }
+
+		/// <summary>
 		/// Gets the number of solutions in which a given node had a given value.
 		/// </summary>
 		/// <param name="nodeIndex">The index of the node of interest.</param>
@@ -58,7 +65,7 @@ public partial class SolutionBuilder<TNodeState>
 		/// <exception cref="IndexOutOfRangeException">Thrown if <paramref name="nodeIndex"/> is negative or exceeds the number of nodes in the solution.</exception>
 		public long GetNodeValueCount(int nodeIndex, TNodeState value)
 		{
-			if (this.nodeValueCount is { } valueAndCounts)
+			if (this.NodeValueCount is { } valueAndCounts)
 			{
 				if (valueAndCounts[nodeIndex] is { } counts)
 				{
@@ -86,42 +93,6 @@ public partial class SolutionBuilder<TNodeState>
 		/// May be -1 if the <paramref name="node"/> is not constrained by anything and therefore can be anything in any solution.
 		/// </returns>
 		/// <exception cref="KeyNotFoundException">Thrown if the <paramref name="node"/> is not among the nodes in the solution.</exception>
-		public long GetNodeValueCount(object node, TNodeState value) => this.GetNodeValueCount(this.owner.CurrentScenario.GetNodeIndex(node), value);
-
-		/// <summary>
-		/// Select or unselect any indeterminate nodes which are unconditionally in just one state in all viable solutions.
-		/// </summary>
-		/// <remarks>
-		/// Constraints can interact as they narrow the field of viable solutions such that
-		/// some nodes may be effectively constrained to a certain value even though that value
-		/// isn't explicitly required by any individual constraint.
-		/// When these interactions are understood, applying them back to the <see cref="SolutionBuilder{T}"/>
-		/// can speed up future analyses and lead each node's value to reflect the remaining possibilities.
-		/// </remarks>
-		public void ApplyAnalysisBackToBuilder()
-		{
-			if (this.ViableSolutionsFound == 0 || this.nodeValueCount is null)
-			{
-				throw new InvalidOperationException(Strings.ViableSolutionStatsNotAvailable);
-			}
-
-			if (this.ViableSolutionsFound > 0)
-			{
-				for (int i = 0; i < this.nodeValueCount.Length; i++)
-				{
-					if (this.owner.CurrentScenario[i] is null && this.nodeValueCount[i] is { } valuesAndCounts)
-					{
-						foreach (TNodeState value in this.owner.resolvedNodeStates)
-						{
-							if (valuesAndCounts.TryGetValue(value, out long counts) && counts == this.ViableSolutionsFound)
-							{
-								this.owner.CurrentScenario[i] = value;
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
+		public long GetNodeValueCount(object node, TNodeState value) => this.GetNodeValueCount(this.configuration.Index[node], value);
 	}
 }

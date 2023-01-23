@@ -7,7 +7,7 @@ using Xunit;
 
 public class SelectionCountConstraintTests
 {
-	private ImmutableArray<DummyNode> nodes;
+	private ImmutableArray<object> nodes;
 	private Scenario<bool> scenario;
 
 	/// <summary>
@@ -15,8 +15,8 @@ public class SelectionCountConstraintTests
 	/// </summary>
 	public SelectionCountConstraintTests()
 	{
-		this.nodes = ImmutableArray.Create(new DummyNode("a"), new DummyNode("b"), new DummyNode("c"), new DummyNode("d"));
-		this.scenario = new Scenario<bool>(this.nodes);
+		this.nodes = ImmutableArray.Create<object>(new DummyNode("a"), new DummyNode("b"), new DummyNode("c"), new DummyNode("d"));
+		this.scenario = new Scenario<bool>(new Configuration<bool>(this.nodes.As<object>(), ImmutableArray.Create(true, false)));
 	}
 
 	[Fact]
@@ -288,7 +288,7 @@ public class SelectionCountConstraintTests
 	{
 		// If exactly one node should be selected and one node is in the list,
 		// then it should be selected by resolving.
-		DummyNode[] shortList = this.nodes.Take(1).ToArray();
+		ImmutableArray<object> shortList = ImmutableArray.Create(this.nodes[0]);
 		var target = SelectionCountConstraint.ExactSelected(shortList, 1);
 		Assert.True(target.GetState(this.scenario).HasFlag(ConstraintStates.Resolvable));
 		Assert.True(target.Resolve(this.scenario));
