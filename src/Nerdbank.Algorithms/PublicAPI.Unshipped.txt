@@ -73,6 +73,7 @@ Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.Solution
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis.ViableSolutionsFound.get -> long
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.this[int index].get -> TNodeState?
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.this[object! node].get -> TNodeState?
+Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.TryCommitAnalysis(Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilder<TNodeState>.SolutionsAnalysis! analysis) -> bool
 Nerdbank.Algorithms.NodeConstraintSelection.SolutionBuilderExtensions
 override Nerdbank.Algorithms.NodeConstraintSelection.BadConstraintException<TNodeState>.GetObjectData(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 override Nerdbank.Algorithms.NodeConstraintSelection.SelectionCountConstraint.ToString() -> string!

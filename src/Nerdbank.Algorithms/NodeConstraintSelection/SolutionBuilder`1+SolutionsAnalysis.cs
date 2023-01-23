@@ -19,12 +19,14 @@ public partial class SolutionBuilder<TNodeState>
 		/// Initializes a new instance of the <see cref="SolutionsAnalysis"/> class.
 		/// </summary>
 		/// <param name="configuration">The problem space configuration.</param>
+		/// <param name="basisScenarioVersion">The value of <see cref="Scenario{TNodeState}.Version"/> from the <see cref="SolutionBuilder{TNodeState}"/> when the analysis began.</param>
 		/// <param name="viableSolutionsFound">The number of viable solutions that exist.</param>
 		/// <param name="nodeValueCount">The number of times each value was used for a given node in any viable solution.</param>
 		/// <param name="conflicts">Information about the conflicting constraints that prevent any viable solution from being found.</param>
-		internal SolutionsAnalysis(Configuration<TNodeState> configuration, long viableSolutionsFound, Dictionary<TNodeState, long>?[]? nodeValueCount, SolutionBuilder<TNodeState>.ConflictedConstraints? conflicts)
+		internal SolutionsAnalysis(Configuration<TNodeState> configuration, int basisScenarioVersion, long viableSolutionsFound, Dictionary<TNodeState, long>?[]? nodeValueCount, SolutionBuilder<TNodeState>.ConflictedConstraints? conflicts)
 		{
 			this.configuration = configuration;
+			this.BasisScenarioVersion = basisScenarioVersion;
 			this.ViableSolutionsFound = viableSolutionsFound;
 			this.NodeValueCount = nodeValueCount;
 			this.Conflicts = conflicts;
@@ -45,6 +47,11 @@ public partial class SolutionBuilder<TNodeState>
 		/// Gets the count that each state appears in a viable solution for each node.
 		/// </summary>
 		internal Dictionary<TNodeState, long>?[]? NodeValueCount { get; }
+
+		/// <summary>
+		/// Gets the value of <see cref="Scenario{TNodeState}.Version"/> from the <see cref="SolutionBuilder{TNodeState}"/> when the analysis began.
+		/// </summary>
+		internal int BasisScenarioVersion { get; }
 
 		/// <summary>
 		/// Gets the number of solutions in which a given node had a given value.

@@ -245,7 +245,8 @@ public partial class SolutionBuilder<TNodeState>
 		Experiment experiment = this.NewExperiment();
 		ResolvePartially(experiment.Candidate, cancellationToken);
 
-		return Task.Run(() => AnalyzeSolutions(this.configuration, experiment, cancellationToken));
+		int basisScenarioVersion = this.CurrentScenario.Version;
+		return Task.Run(() => AnalyzeSolutions(this.configuration, basisScenarioVersion, experiment, cancellationToken));
 	}
 
 	/// <summary>
@@ -264,7 +265,7 @@ public partial class SolutionBuilder<TNodeState>
 	{
 		using Experiment experiment = this.NewExperiment();
 		ResolvePartially(experiment.Candidate, cancellationToken);
-		return AnalyzeSolutions(this.configuration, experiment, cancellationToken);
+		return AnalyzeSolutions(this.configuration, this.CurrentScenario.Version, experiment, cancellationToken);
 	}
 
 	/// <summary>
@@ -339,6 +340,7 @@ public partial class SolutionBuilder<TNodeState>
 	/// Select or unselect any indeterminate nodes which are unconditionally in just one state in all viable solutions.
 	/// </summary>
 	/// <param name="analysis">The analysis to apply to this solution.</param>
+	/// <returns><see langword="true" /> if the analysis was compatible with the current solution version and was applied; <see langword="false"/> otherwise.</returns>
 	/// <remarks>
 	/// Constraints can interact as they narrow the field of viable solutions such that
 	/// some nodes may be effectively constrained to a certain value even though that value
@@ -346,8 +348,21 @@ public partial class SolutionBuilder<TNodeState>
 	/// When these interactions are understood, applying them back to the <see cref="SolutionBuilder{T}"/>
 	/// can speed up future analyses and lead each node's value to reflect the remaining possibilities.
 	/// </remarks>
-	public void CommitAnalysis(SolutionsAnalysis analysis)
+	/// <exception cref="InvalidOperationException">
+	/// Thrown if the analysis reports a conflict.
+	/// </exception>
+	public bool TryCommitAnalysis(SolutionsAnalysis analysis)
 	{
+		if (analysis is null)
+		{
+			throw new ArgumentNullException(nameof(analysis));
+		}
+
+		if (analysis.BasisScenarioVersion != this.CurrentScenario.Version)
+		{
+			return false;
+		}
+
 		if (analysis.ViableSolutionsFound == 0 || analysis.NodeValueCount is null)
 		{
 			throw new InvalidOperationException(Strings.ViableSolutionStatsNotAvailable);
@@ -369,6 +384,30 @@ public partial class SolutionBuilder<TNodeState>
 					}
 				}
 			}
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Select or unselect any indeterminate nodes which are unconditionally in just one state in all viable solutions.
+	/// </summary>
+	/// <param name="analysis">The analysis to apply to this solution.</param>
+	/// <remarks>
+	/// Constraints can interact as they narrow the field of viable solutions such that
+	/// some nodes may be effectively constrained to a certain value even though that value
+	/// isn't explicitly required by any individual constraint.
+	/// When these interactions are understood, applying them back to the <see cref="SolutionBuilder{T}"/>
+	/// can speed up future analyses and lead each node's value to reflect the remaining possibilities.
+	/// </remarks>
+	/// <exception cref="InvalidOperationException">
+	/// Thrown if the solution has changed since the <paramref name="analysis"/> was created, or if the analysis reports a conflict.
+	/// </exception>
+	public void CommitAnalysis(SolutionsAnalysis analysis)
+	{
+		if (!this.TryCommitAnalysis(analysis))
+		{
+			throw new InvalidOperationException(Strings.AnalysisIsOutOfDate);
 		}
 	}
 
@@ -509,13 +548,13 @@ public partial class SolutionBuilder<TNodeState>
 		}
 	}
 
-	private static SolutionsAnalysis AnalyzeSolutions(Configuration<TNodeState> configuration, Experiment experiment, CancellationToken cancellationToken)
+	private static SolutionsAnalysis AnalyzeSolutions(Configuration<TNodeState> configuration, int basisScenarioVersion, Experiment experiment, CancellationToken cancellationToken)
 	{
 		SolutionBuilder<TNodeState>.SolutionStats stats = default;
 		try
 		{
 			EnumerateSolutions(configuration, experiment.Candidate, 0, ref stats, cancellationToken);
-			return new SolutionsAnalysis(configuration, stats.SolutionsFound, stats.NodesResolvedStateInSolutions, CreateConflictedConstraints(configuration, stats, experiment.Candidate));
+			return new SolutionsAnalysis(configuration, basisScenarioVersion, stats.SolutionsFound, stats.NodesResolvedStateInSolutions, CreateConflictedConstraints(configuration, stats, experiment.Candidate));
 		}
 		catch (OperationCanceledException ex)
 		{
