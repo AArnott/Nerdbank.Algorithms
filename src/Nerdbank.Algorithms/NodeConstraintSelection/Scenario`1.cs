@@ -25,6 +25,13 @@ public sealed class Scenario<TNodeState>
 	private readonly Configuration<TNodeState> configuration;
 
 	/// <summary>
+	/// Tracks when the next <see cref="SolutionBuilder{TNodeState}.ResolvePartially(Scenario{TNodeState}, CancellationToken)"/>
+	/// should clear the <see cref="Scenario{TNodeState}"/> before re-applying all constraints.
+	/// For example when removing constraints, its side-effects must be removed.
+	/// </summary>
+	private bool fullRefreshNeeded;
+
+	/// <summary>
 	/// The constraints that describe the solution.
 	/// </summary>
 	private ImmutableArray<IConstraint<TNodeState>> constraints = ImmutableArray.Create<IConstraint<TNodeState>>();
@@ -139,6 +146,22 @@ public sealed class Scenario<TNodeState>
 	}
 
 	/// <summary>
+	/// Resets all nodes to their default state if constraints have been removed recently.
+	/// </summary>
+	internal void ResetIfNeeded()
+	{
+		if (this.fullRefreshNeeded)
+		{
+			for (int i = 0; i < this.configuration.Nodes.Length; i++)
+			{
+				this.ResetNode(i, null);
+			}
+
+			this.fullRefreshNeeded = false;
+		}
+	}
+
+	/// <summary>
 	/// Gets the constraints that apply to a node with the given index.
 	/// </summary>
 	/// <param name="nodeIndex">The index of the node.</param>
@@ -189,6 +212,7 @@ public sealed class Scenario<TNodeState>
 		this.constraintsPerNode = constraintsPerNode.ToImmutable();
 
 		this.Version++;
+		this.fullRefreshNeeded = true;
 	}
 
 	/// <summary>
@@ -217,6 +241,7 @@ public sealed class Scenario<TNodeState>
 		this.constraintsPerNode = constraintsPerNode.ToImmutable();
 
 		this.Version++;
+		this.fullRefreshNeeded = true;
 	}
 
 	/// <summary>
@@ -245,6 +270,7 @@ public sealed class Scenario<TNodeState>
 
 		this.constraints = copyFrom.Constraints;
 		this.constraintsPerNode = copyFrom.constraintsPerNode;
+		this.fullRefreshNeeded = copyFrom.fullRefreshNeeded;
 
 		this.Version++;
 	}

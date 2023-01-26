@@ -22,13 +22,6 @@ public partial class SolutionBuilder<TNodeState>
 	private readonly Configuration<TNodeState> configuration;
 
 	/// <summary>
-	/// Tracks when the next <see cref="ResolvePartially(CancellationToken)"/>
-	/// should clear the <see cref="Scenario{TNodeState}"/> before re-applying all constraints.
-	/// For example when removing constraints, its side-effects must be removed.
-	/// </summary>
-	private bool fullRefreshNeeded;
-
-	/// <summary>
 	/// Initializes a new instance of the <see cref="SolutionBuilder{TNodeState}"/> class.
 	/// </summary>
 	/// <param name="nodes">The nodes in the problem/solution.</param>
@@ -131,7 +124,6 @@ public partial class SolutionBuilder<TNodeState>
 		}
 
 		this.CurrentScenario.RemoveConstraint(constraint);
-		this.fullRefreshNeeded = true;
 	}
 
 	/// <summary>
@@ -148,7 +140,6 @@ public partial class SolutionBuilder<TNodeState>
 		using Experiment experiment = this.NewExperiment();
 		experiment.Candidate.RemoveConstraints(constraints);
 		experiment.Commit();
-		this.fullRefreshNeeded = true;
 	}
 
 	/// <summary>
@@ -180,18 +171,8 @@ public partial class SolutionBuilder<TNodeState>
 	public void ResolvePartially(CancellationToken cancellationToken = default)
 	{
 		using Experiment experiment = this.NewExperiment();
-		if (this.fullRefreshNeeded)
-		{
-			for (int i = 0; i < this.configuration.Nodes.Length; i++)
-			{
-				experiment.Candidate.ResetNode(i, null);
-			}
-		}
-
 		ResolvePartially(experiment.Candidate, cancellationToken);
-
 		experiment.Commit();
-		this.fullRefreshNeeded = false;
 	}
 
 	/// <summary>
@@ -413,6 +394,8 @@ public partial class SolutionBuilder<TNodeState>
 
 	private static void ResolvePartially(Scenario<TNodeState> scenario, CancellationToken cancellationToken)
 	{
+		scenario.ResetIfNeeded();
+
 		// Keep looping through constraints asking each one to resolve nodes until no changes are applied.
 		bool anyResolved;
 		do
