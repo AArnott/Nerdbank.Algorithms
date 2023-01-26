@@ -389,6 +389,38 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
+	[Fact]
+	public void CheckForConflictingConstraints_ConflictsExist_CertainConstraintsInviolate()
+	{
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+
+		SelectionCountConstraint[] constraints = new[]
+		{
+			// Exactly one of two nodes can be selected.
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+
+			// The next two constraints both select exactly one of those nodes.
+			SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Skip(1).Take(1), 1),
+		};
+		this.builder.AddConstraints(constraints);
+
+		IReadOnlyCollection<IConstraint<bool>>? conflictingConstraints = this.builder
+			.CheckForConflictingConstraints(this.TimeoutToken)
+			?.GetConflictingConstraints(constraints.Take(1), this.TimeoutToken);
+		Assert.NotNull(conflictingConstraints);
+
+		// Removing *any* of the 3 constraints should resolve the conflict,
+		// but we held the first constraint as inviolate, so only the remaining two can be blamed.
+		Assert.Equal(2, conflictingConstraints.Count);
+		Assert.DoesNotContain(constraints[0], conflictingConstraints);
+		Assert.Contains(constraints[1], conflictingConstraints);
+		Assert.Contains(constraints[2], conflictingConstraints);
+
+		this.builder.RemoveConstraint(constraints[1]);
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+	}
+
 	/// <summary>
 	/// Simulates a case where a conflict exists that cannot be resolved by removing any *one* constraint (two would have to be removed).
 	/// </summary>

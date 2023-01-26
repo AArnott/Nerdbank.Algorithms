@@ -41,12 +41,28 @@ public partial class SolutionBuilder<TNodeState>
 		/// <param name="cancellationToken">A cancellation token.</param>
 		/// <returns>A set of constraints.</returns>
 		/// <exception cref="ComplexConflictException">Thrown when there is no single constraint whose removal would remove the conflict.</exception>
-		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(CancellationToken cancellationToken)
+		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(CancellationToken cancellationToken) => this.GetConflictingConstraints(Enumerable.Empty<IConstraint<TNodeState>>(), cancellationToken);
+
+		/// <summary>
+		/// Gets a collection of constraints which individually conflict with some other set of constraints within the solution.
+		/// If any one of these constraints are removed, the conflict will be resolved.
+		/// </summary>
+		/// <param name="inviolateConstraints">The constraints that should never be considered for revocation. Specifying the inviolate constraints can dramatically speed up this algorithm.</param>
+		/// <param name="cancellationToken">A cancellation token.</param>
+		/// <returns>A set of constraints.</returns>
+		/// <exception cref="ComplexConflictException">Thrown when there is no single constraint whose removal would remove the conflict.</exception>
+		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(IEnumerable<IConstraint<TNodeState>> inviolateConstraints, CancellationToken cancellationToken)
 		{
+			ISet<IConstraint<TNodeState>> inviolateSet = inviolateConstraints as ISet<IConstraint<TNodeState>> ?? new HashSet<IConstraint<TNodeState>>(inviolateConstraints);
 			List<IConstraint<TNodeState>> conflictingConstraints = new();
 			foreach (IConstraint<TNodeState> constraint in this.conflictedScenario.Constraints)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
+				if (inviolateSet.Contains(constraint))
+				{
+					// Do not even consider removing this constraint. If there are conflicts with it, the blame is on the other constraint.
+					continue;
+				}
 
 				using Experiment experiment = new(this.conflictedScenario);
 				experiment.Candidate.RemoveConstraint(constraint);
