@@ -142,17 +142,26 @@ public partial class SolutionBuilder<TNodeState>
 		experiment.Commit();
 	}
 
+	/// <inheritdoc cref="CheckConstraint(IConstraint{TNodeState}, bool, CancellationToken)"/>
+	public bool CheckConstraint(IConstraint<TNodeState> constraint, CancellationToken cancellationToken) => this.CheckConstraint(constraint, true, cancellationToken);
+
 	/// <summary>
-	/// Checks whether viable solutions remain after applying the given constraint,
-	/// without actually adding the constraint to the solution.
+	/// Checks whether adding a constraint would introduce any conflicts.
 	/// </summary>
 	/// <param name="constraint">The constraint to test.</param>
+	/// <param name="verifyViableSolutionsExist">
+	/// <see langword="true" /> to find a viable solution to ensure that no conflicts exist;
+	/// <see langword="false" /> to merely verify that after a <see cref="ResolvePartially(CancellationToken)"/> operation,
+	/// all constraints are immediately satisfiable without verifying a viable solution exists.
+	/// Finding even one solution may take a very long time for large problem spaces, even when many solutions exist.
+	/// Consider using <see langword="true" /> only after <see cref="AnalyzeSolutionsAsync(CancellationToken)"/> has completed in a reasonably short time.
+	/// </param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns><see langword="true"/> if the constraint leaves viable solutions discoverable; <see langword="false"/> otherwise.</returns>
 	/// <remarks>
 	/// If no viable solutions exist before calling this method, this method will return <see langword="false"/>.
 	/// </remarks>
-	public bool CheckConstraint(IConstraint<TNodeState> constraint, CancellationToken cancellationToken)
+	public bool CheckConstraint(IConstraint<TNodeState> constraint, bool verifyViableSolutionsExist, CancellationToken cancellationToken)
 	{
 		if (constraint is null)
 		{
@@ -161,7 +170,7 @@ public partial class SolutionBuilder<TNodeState>
 
 		using Experiment experiment = this.NewExperiment();
 		experiment.Candidate.AddConstraint(constraint);
-		return CheckForConflictingConstraints(this.configuration, experiment.Candidate, cancellationToken) is null;
+		return CheckForConflictingConstraints(this.configuration, experiment.Candidate, verifyViableSolutionsExist, cancellationToken) is null;
 	}
 
 	/// <summary>
@@ -175,18 +184,22 @@ public partial class SolutionBuilder<TNodeState>
 		experiment.Commit();
 	}
 
+	/// <inheritdoc cref="CheckForConflictingConstraints(bool, CancellationToken)"/>
+	public ConflictedConstraints? CheckForConflictingConstraints(CancellationToken cancellationToken) => this.CheckForConflictingConstraints(true, cancellationToken);
+
 	/// <summary>
-	/// Checks whether at least one solution exists that can satisfy all existing constraints
+	/// Checks whether conflicts exist that may preclude any viable solution
 	/// and returns diagnostic data about the conflicting constraints if no solution exists.
 	/// </summary>
+	/// <param name="verifyViableSolutionsExist"><inheritdoc cref="CheckConstraint(IConstraint{TNodeState}, bool, CancellationToken)" path="/param[@name='verifyViableSolutionsExist']"/></param>
 	/// <param name="cancellationToken">A cancellation token.</param>
 	/// <returns><see langword="null"/> if a solution can be found; or diagnostic data about which sets of constraints conflict.</returns>
-	public ConflictedConstraints? CheckForConflictingConstraints(CancellationToken cancellationToken)
+	public ConflictedConstraints? CheckForConflictingConstraints(bool verifyViableSolutionsExist, CancellationToken cancellationToken)
 	{
 		Experiment experiment = this.NewExperiment();
 		try
 		{
-			ConflictedConstraints? result = CheckForConflictingConstraints(this.configuration, experiment.Candidate, cancellationToken);
+			ConflictedConstraints? result = CheckForConflictingConstraints(this.configuration, experiment.Candidate, verifyViableSolutionsExist, cancellationToken);
 			if (result is null)
 			{
 				experiment.Dispose();
@@ -449,12 +462,32 @@ public partial class SolutionBuilder<TNodeState>
 		}
 	}
 
-	private static ConflictedConstraints? CheckForConflictingConstraints(Configuration<TNodeState> configuration, Scenario<TNodeState> scenario, CancellationToken cancellationToken)
+	private static ConflictedConstraints? CheckForConflictingConstraints(Configuration<TNodeState> configuration, Scenario<TNodeState> scenario, bool verifyViableSolutionsExist, CancellationToken cancellationToken)
 	{
 		ResolvePartially(scenario, cancellationToken);
-		var stats = new SolutionStats { StopAfterFirstSolutionFound = true };
-		EnumerateSolutions(configuration, scenario, 0, ref stats, cancellationToken);
-		return CreateConflictedConstraints(configuration, stats, scenario);
+		if (verifyViableSolutionsExist)
+		{
+			var stats = new SolutionStats { StopAfterFirstSolutionFound = true };
+			EnumerateSolutions(configuration, scenario, 0, ref stats, cancellationToken);
+			return CreateConflictedConstraints(configuration, stats, scenario);
+		}
+		else
+		{
+			// Just check whether all constraints are satisfiable at this point.
+			// Do not look for real solutions, which in a large problem space can take a long time even if there are many solutions.
+			foreach (IConstraint<TNodeState> constraint in scenario.Constraints)
+			{
+				if ((constraint.GetState(scenario) & ConstraintStates.Satisfiable) != ConstraintStates.Satisfiable)
+				{
+					// We have a broken constraint. There are no solutions.
+					return CreateConflictedConstraints(configuration, default, scenario);
+				}
+			}
+
+			// In this quick check, this is not a guarantee that a valid solution exists, but at least all constraints are happy.
+			// Interactions between constraints might still prevent any viable solution.
+			return null;
+		}
 	}
 
 	private static ConflictedConstraints? CreateConflictedConstraints(Configuration<TNodeState> configuration, SolutionStats stats, Scenario<TNodeState> conflictedScenario) => stats.SolutionsFound == 0 ? new ConflictedConstraints(configuration, conflictedScenario) : null;

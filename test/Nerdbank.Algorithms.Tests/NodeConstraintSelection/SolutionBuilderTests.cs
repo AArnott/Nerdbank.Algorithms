@@ -572,6 +572,25 @@ public class SolutionBuilderTests : TestBase
 	}
 
 	/// <summary>
+	/// Verifies that checking for conflicting constraints can quickly find a conflict even in a very large problem space.
+	/// </summary>
+	[Fact]
+	public void CheckForConflictingConstraints_VeryLargeProblemSpace_NoConflict()
+	{
+		ImmutableArray<DummyNode> nodes = Enumerable.Range(1, 120).Select(n => new DummyNode(n)).ToImmutableArray();
+		SolutionBuilder<bool> builder = new(nodes.As<object>(), ImmutableArray.Create(true, false));
+
+		// Add a bunch of non-conflicting constraints so that the analysis does not short-circuit.
+		for (int i = 0; i < nodes.Length; i += 2)
+		{
+			builder.AddConstraint(SelectionCountConstraint.ExactSelected(ImmutableArray.Create<object>(nodes[i], nodes[i + 1]), 1));
+		}
+
+		SolutionBuilder<bool>.ConflictedConstraints? conflicts = builder.CheckForConflictingConstraints(verifyViableSolutionsExist: true, this.TimeoutToken);
+		Assert.Null(conflicts);
+	}
+
+	/// <summary>
 	/// Verifies that solution analysis can quickly find a conflict even in a very large problem space.
 	/// </summary>
 	[Fact]
