@@ -17,11 +17,6 @@ public partial class SolutionBuilder<TNodeState>
 	where TNodeState : unmanaged
 {
 	/// <summary>
-	/// Immutable configuration for this builder.
-	/// </summary>
-	private readonly Configuration<TNodeState> configuration;
-
-	/// <summary>
 	/// Initializes a new instance of the <see cref="SolutionBuilder{TNodeState}"/> class.
 	/// </summary>
 	/// <param name="nodes">The nodes in the problem/solution.</param>
@@ -39,7 +34,7 @@ public partial class SolutionBuilder<TNodeState>
 	/// <param name="configuration">The problem space configuration.</param>
 	public SolutionBuilder(Configuration<TNodeState> configuration)
 	{
-		this.configuration = configuration;
+		this.Configuration = configuration;
 		this.CurrentScenario = new Scenario<TNodeState>(configuration);
 	}
 
@@ -47,6 +42,11 @@ public partial class SolutionBuilder<TNodeState>
 	/// Gets the applied constraints.
 	/// </summary>
 	public IReadOnlyCollection<IConstraint<TNodeState>> Constraints => this.CurrentScenario.Constraints;
+
+	/// <summary>
+	/// Gets the immutable configuration for this builder.
+	/// </summary>
+	public Configuration<TNodeState> Configuration { get; }
 
 	/// <summary>
 	/// Gets the current scenario.
@@ -170,7 +170,7 @@ public partial class SolutionBuilder<TNodeState>
 
 		using Experiment experiment = this.NewExperiment();
 		experiment.Candidate.AddConstraint(constraint);
-		return CheckForConflictingConstraints(this.configuration, experiment.Candidate, verifyViableSolutionsExist, cancellationToken) is null;
+		return CheckForConflictingConstraints(this.Configuration, experiment.Candidate, verifyViableSolutionsExist, cancellationToken) is null;
 	}
 
 	/// <summary>
@@ -199,7 +199,7 @@ public partial class SolutionBuilder<TNodeState>
 		Experiment experiment = this.NewExperiment();
 		try
 		{
-			ConflictedConstraints? result = CheckForConflictingConstraints(this.configuration, experiment.Candidate, verifyViableSolutionsExist, cancellationToken);
+			ConflictedConstraints? result = CheckForConflictingConstraints(this.Configuration, experiment.Candidate, verifyViableSolutionsExist, cancellationToken);
 			if (result is null)
 			{
 				experiment.Dispose();
@@ -240,7 +240,7 @@ public partial class SolutionBuilder<TNodeState>
 		ResolvePartially(experiment.Candidate, cancellationToken);
 
 		int basisScenarioVersion = this.CurrentScenario.Version;
-		return Task.Run(() => AnalyzeSolutions(this.configuration, basisScenarioVersion, experiment, cancellationToken));
+		return Task.Run(() => AnalyzeSolutions(this.Configuration, basisScenarioVersion, experiment, cancellationToken));
 	}
 
 	/// <summary>
@@ -259,7 +259,7 @@ public partial class SolutionBuilder<TNodeState>
 	{
 		using Experiment experiment = this.NewExperiment();
 		ResolvePartially(experiment.Candidate, cancellationToken);
-		return AnalyzeSolutions(this.configuration, this.CurrentScenario.Version, experiment, cancellationToken);
+		return AnalyzeSolutions(this.Configuration, this.CurrentScenario.Version, experiment, cancellationToken);
 	}
 
 	/// <summary>
@@ -277,7 +277,7 @@ public partial class SolutionBuilder<TNodeState>
 	public Scenario<TNodeState> GetProbableSolution(CancellationToken cancellationToken)
 	{
 		// We are taking a scenario from our pool, but we will *not* return it to the pool since we're returning it to our caller.
-		Scenario<TNodeState>? scenario = this.configuration.ScenarioPool.Take();
+		Scenario<TNodeState>? scenario = this.Configuration.ScenarioPool.Take();
 		scenario.CopyFrom(this.CurrentScenario);
 		while (true)
 		{
@@ -293,7 +293,7 @@ public partial class SolutionBuilder<TNodeState>
 			int mostLikelyNodeIndex = 0;
 			long mostMatches = 0;
 			TNodeState? mostLikelyState = null;
-			for (int nodeIndex = 0; nodeIndex < this.configuration.Nodes.Length; nodeIndex++)
+			for (int nodeIndex = 0; nodeIndex < this.Configuration.Nodes.Length; nodeIndex++)
 			{
 				if (scenario[nodeIndex].HasValue)
 				{
@@ -303,7 +303,7 @@ public partial class SolutionBuilder<TNodeState>
 
 				if (stats.NodesResolvedStateInSolutions[nodeIndex] is { } stateProbabilities)
 				{
-					foreach (TNodeState state in this.configuration.ResolvedNodeStates)
+					foreach (TNodeState state in this.Configuration.ResolvedNodeStates)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
 
@@ -368,7 +368,7 @@ public partial class SolutionBuilder<TNodeState>
 			{
 				if (this.CurrentScenario[i] is null && analysis.NodeValueCount[i] is { } valuesAndCounts)
 				{
-					foreach (TNodeState value in this.configuration.ResolvedNodeStates)
+					foreach (TNodeState value in this.Configuration.ResolvedNodeStates)
 					{
 						if (valuesAndCounts.TryGetValue(value, out long counts) && counts == analysis.ViableSolutionsFound)
 						{
@@ -580,7 +580,7 @@ public partial class SolutionBuilder<TNodeState>
 
 	private Experiment NewExperiment() => new(this.CurrentScenario);
 
-	private void EnumerateSolutions(Scenario<TNodeState> basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken) => EnumerateSolutions(this.configuration, basis, firstNode, ref stats, cancellationToken);
+	private void EnumerateSolutions(Scenario<TNodeState> basis, int firstNode, ref SolutionStats stats, CancellationToken cancellationToken) => EnumerateSolutions(this.Configuration, basis, firstNode, ref stats, cancellationToken);
 
 	private ref struct SolutionStats
 	{
