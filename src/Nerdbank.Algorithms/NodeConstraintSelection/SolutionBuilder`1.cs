@@ -671,5 +671,7 @@ public partial class SolutionBuilder<TNodeState>
 				this.candidate = null;
 			}
 		}
+
+		public override string ToString() => this.candidate?.Configuration.ToString(this.candidate) ?? "(recycled)";
 	}
 }

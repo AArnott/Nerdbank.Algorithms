@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
@@ -14,6 +15,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// Thread safety: Instance members on this class are not thread safe.
 /// All state on an instance is either immutable or exclusive to this instance.
 /// </remarks>
+[DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
 public sealed class Scenario<TNodeState>
 	where TNodeState : unmanaged
 {
@@ -77,6 +79,8 @@ public sealed class Scenario<TNodeState>
 	/// </summary>
 	internal int Version { get; private set; }
 
+	private string DebuggerDisplay => this.Configuration.ToString(this);
+
 	/// <summary>
 	/// Gets or sets the selection state for a node with a given index.
 	/// </summary>
@@ -133,6 +137,9 @@ public sealed class Scenario<TNodeState>
 	/// for improved performance in <see cref="IConstraint{TNodeState}.GetState(Scenario{TNodeState})"/>.
 	/// </remarks>
 	public int GetNodeIndex(object node) => this.configuration.Index[node];
+
+	/// <inheritdoc/>
+	public override string ToString() => this.Configuration.ToString(this);
 
 	/// <summary>
 	/// Sets the selection state of a given node, even if it is already set.
