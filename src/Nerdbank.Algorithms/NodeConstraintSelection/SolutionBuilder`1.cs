@@ -47,7 +47,7 @@ public partial class SolutionBuilder<TNodeState>
 	public SolutionBuilder(Configuration<TNodeState> configuration)
 	{
 		this.configuration = configuration;
-		this.CurrentScenario = this.configuration.ScenarioPool.Take();
+		this.CurrentScenario = new Scenario<TNodeState>(configuration);
 	}
 
 	/// <summary>
