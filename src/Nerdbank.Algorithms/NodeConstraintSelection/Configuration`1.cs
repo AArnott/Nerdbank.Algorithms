@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
@@ -67,6 +68,39 @@ public class Configuration<TNodeState>
 	/// Gets the scenario pool to use.
 	/// </summary>
 	internal ScenarioPool<TNodeState> ScenarioPool { get; }
+
+	/// <summary>
+	/// Writes all the nodes with their current state as text.
+	/// </summary>
+	/// <param name="writer">The writer to render the nodes to.</param>
+	/// <param name="scenario">The scenario to pull node values from.</param>
+	public virtual void WriteScenario(TextWriter writer, Scenario<TNodeState> scenario)
+	{
+		if (writer is null)
+		{
+			throw new ArgumentNullException(nameof(writer));
+		}
+
+		if (scenario is null)
+		{
+			throw new ArgumentNullException(nameof(scenario));
+		}
+
+		for (int i = 0; i < this.Nodes.Length; i++)
+		{
+			writer.Write(this.Nodes[i].ToString());
+			writer.Write(": ");
+			writer.WriteLine(scenario[i]);
+		}
+	}
+
+	/// <inheritdoc cref="WriteScenario(TextWriter, Scenario{TNodeState})"/>
+	public string ToString(Scenario<TNodeState> scenario)
+	{
+		StringWriter sw = new();
+		this.WriteScenario(sw, scenario);
+		return sw.ToString();
+	}
 
 	/// <summary>
 	/// Creates a map of nodes to the index in a list.

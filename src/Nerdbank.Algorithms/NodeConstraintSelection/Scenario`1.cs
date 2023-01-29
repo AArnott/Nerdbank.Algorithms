@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
@@ -14,6 +15,7 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// Thread safety: Instance members on this class are not thread safe.
 /// All state on an instance is either immutable or exclusive to this instance.
 /// </remarks>
+[DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
 public sealed class Scenario<TNodeState>
 	where TNodeState : unmanaged
 {
@@ -23,6 +25,13 @@ public sealed class Scenario<TNodeState>
 	private readonly TNodeState?[] selectionState;
 
 	private readonly Configuration<TNodeState> configuration;
+
+	/// <summary>
+	/// Tracks when the next <see cref="SolutionBuilder{TNodeState}.ResolvePartially(Scenario{TNodeState}, CancellationToken)"/>
+	/// should clear the <see cref="Scenario{TNodeState}"/> before re-applying all constraints.
+	/// For example when removing constraints, its side-effects must be removed.
+	/// </summary>
+	private bool fullRefreshNeeded;
 
 	/// <summary>
 	/// The constraints that describe the solution.
@@ -69,6 +78,8 @@ public sealed class Scenario<TNodeState>
 	/// Gets a value that changes each time a node selection or constraint is changed.
 	/// </summary>
 	internal int Version { get; private set; }
+
+	private string DebuggerDisplay => this.Configuration.ToString(this);
 
 	/// <summary>
 	/// Gets or sets the selection state for a node with a given index.
@@ -127,6 +138,9 @@ public sealed class Scenario<TNodeState>
 	/// </remarks>
 	public int GetNodeIndex(object node) => this.configuration.Index[node];
 
+	/// <inheritdoc/>
+	public override string ToString() => this.Configuration.ToString(this);
+
 	/// <summary>
 	/// Sets the selection state of a given node, even if it is already set.
 	/// </summary>
@@ -136,6 +150,22 @@ public sealed class Scenario<TNodeState>
 	{
 		this.selectionState[index] = selected;
 		this.Version++;
+	}
+
+	/// <summary>
+	/// Resets all nodes to their default state if constraints have been removed recently.
+	/// </summary>
+	internal void ResetIfNeeded()
+	{
+		if (this.fullRefreshNeeded)
+		{
+			for (int i = 0; i < this.configuration.Nodes.Length; i++)
+			{
+				this.ResetNode(i, null);
+			}
+
+			this.fullRefreshNeeded = false;
+		}
 	}
 
 	/// <summary>
@@ -189,6 +219,7 @@ public sealed class Scenario<TNodeState>
 		this.constraintsPerNode = constraintsPerNode.ToImmutable();
 
 		this.Version++;
+		this.fullRefreshNeeded = true;
 	}
 
 	/// <summary>
@@ -217,6 +248,7 @@ public sealed class Scenario<TNodeState>
 		this.constraintsPerNode = constraintsPerNode.ToImmutable();
 
 		this.Version++;
+		this.fullRefreshNeeded = true;
 	}
 
 	/// <summary>
@@ -245,6 +277,7 @@ public sealed class Scenario<TNodeState>
 
 		this.constraints = copyFrom.Constraints;
 		this.constraintsPerNode = copyFrom.constraintsPerNode;
+		this.fullRefreshNeeded = copyFrom.fullRefreshNeeded;
 
 		this.Version++;
 	}

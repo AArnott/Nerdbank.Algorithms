@@ -350,6 +350,77 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
+	[Theory, PairwiseData]
+	public void CheckForConflictingConstraints_ConflictsExist_ResolvePartiallyReverted(bool resolvePartiallyFirst)
+	{
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+
+		SelectionCountConstraint[] constraints = new[]
+		{
+			// Exactly one of two nodes can be selected.
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+
+			// The next two constraints both select exactly one of those nodes.
+			SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Skip(1).Take(1), 1),
+		};
+		this.builder.AddConstraints(constraints);
+
+		// Verify that ResolvePartially doesn't notice or care about conflicting constraints.
+		if (resolvePartiallyFirst)
+		{
+			this.builder.ResolvePartially(this.TimeoutToken);
+			Assert.True(this.builder[Nodes[0]]);
+			Assert.True(this.builder[Nodes[1]]);
+		}
+
+		IReadOnlyCollection<IConstraint<bool>>? conflictingConstraints = this.builder
+			.CheckForConflictingConstraints(this.TimeoutToken)
+			?.GetConflictingConstraints(this.TimeoutToken);
+		Assert.NotNull(conflictingConstraints);
+
+		// Removing *any* of the 3 constraints should resolve the conflict.
+		Assert.Equal(3, conflictingConstraints.Count);
+		Assert.Contains(constraints[0], conflictingConstraints);
+		Assert.Contains(constraints[1], conflictingConstraints);
+		Assert.Contains(constraints[2], conflictingConstraints);
+
+		this.builder.RemoveConstraint(constraints[1]);
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+	}
+
+	[Fact]
+	public void CheckForConflictingConstraints_ConflictsExist_CertainConstraintsInviolate()
+	{
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+
+		SelectionCountConstraint[] constraints = new[]
+		{
+			// Exactly one of two nodes can be selected.
+			SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1),
+
+			// The next two constraints both select exactly one of those nodes.
+			SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1),
+			SelectionCountConstraint.ExactSelected(Nodes.Skip(1).Take(1), 1),
+		};
+		this.builder.AddConstraints(constraints);
+
+		IReadOnlyCollection<IConstraint<bool>>? conflictingConstraints = this.builder
+			.CheckForConflictingConstraints(this.TimeoutToken)
+			?.GetConflictingConstraints(constraints.Take(1), this.TimeoutToken);
+		Assert.NotNull(conflictingConstraints);
+
+		// Removing *any* of the 3 constraints should resolve the conflict,
+		// but we held the first constraint as inviolate, so only the remaining two can be blamed.
+		Assert.Equal(2, conflictingConstraints.Count);
+		Assert.DoesNotContain(constraints[0], conflictingConstraints);
+		Assert.Contains(constraints[1], conflictingConstraints);
+		Assert.Contains(constraints[2], conflictingConstraints);
+
+		this.builder.RemoveConstraint(constraints[1]);
+		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
+	}
+
 	/// <summary>
 	/// Simulates a case where a conflict exists that cannot be resolved by removing any *one* constraint (two would have to be removed).
 	/// </summary>
@@ -498,6 +569,25 @@ public class SolutionBuilderTests : TestBase
 		SolutionBuilder<bool> conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
 		SolutionBuilder<bool>.ConflictedConstraints? conflicts = conflictedBuilder.CheckForConflictingConstraints(this.TimeoutToken);
 		Assert.NotNull(conflicts);
+	}
+
+	/// <summary>
+	/// Verifies that checking for conflicting constraints can quickly find a conflict even in a very large problem space.
+	/// </summary>
+	[Fact]
+	public void CheckForConflictingConstraints_VeryLargeProblemSpace_NoConflict()
+	{
+		ImmutableArray<DummyNode> nodes = Enumerable.Range(1, 120).Select(n => new DummyNode(n)).ToImmutableArray();
+		SolutionBuilder<bool> builder = new(nodes.As<object>(), ImmutableArray.Create(true, false));
+
+		// Add a bunch of non-conflicting constraints so that the analysis does not short-circuit.
+		for (int i = 0; i < nodes.Length; i += 2)
+		{
+			builder.AddConstraint(SelectionCountConstraint.ExactSelected(ImmutableArray.Create<object>(nodes[i], nodes[i + 1]), 1));
+		}
+
+		SolutionBuilder<bool>.ConflictedConstraints? conflicts = builder.CheckForConflictingConstraints(verifyViableSolutionsExist: true, this.TimeoutToken);
+		Assert.Null(conflicts);
 	}
 
 	/// <summary>

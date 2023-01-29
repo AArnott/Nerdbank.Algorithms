@@ -34,23 +34,40 @@ public partial class SolutionBuilder<TNodeState>
 			this.conflictedScenario = conflictedScenario;
 		}
 
+		/// <inheritdoc cref="GetConflictingConstraints(IEnumerable{IConstraint{TNodeState}}, bool, CancellationToken)"/>
+		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(CancellationToken cancellationToken) => this.GetConflictingConstraints(verifyViableSolutionsExist: true, cancellationToken);
+
+		/// <inheritdoc cref="GetConflictingConstraints(IEnumerable{IConstraint{TNodeState}}, bool, CancellationToken)"/>
+		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(bool verifyViableSolutionsExist, CancellationToken cancellationToken) => this.GetConflictingConstraints(Enumerable.Empty<IConstraint<TNodeState>>(), verifyViableSolutionsExist, cancellationToken);
+
+		/// <inheritdoc cref="GetConflictingConstraints(IEnumerable{IConstraint{TNodeState}}, bool, CancellationToken)"/>
+		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(IEnumerable<IConstraint<TNodeState>> inviolateConstraints, CancellationToken cancellationToken) => this.GetConflictingConstraints(inviolateConstraints, verifyViableSolutionsExist: true, cancellationToken);
+
 		/// <summary>
 		/// Gets a collection of constraints which individually conflict with some other set of constraints within the solution.
 		/// If any one of these constraints are removed, the conflict will be resolved.
 		/// </summary>
+		/// <param name="inviolateConstraints">The constraints that should never be considered for revocation. Specifying the inviolate constraints can dramatically speed up this algorithm.</param>
+		/// <param name="verifyViableSolutionsExist"><inheritdoc cref="SolutionBuilder{TNodeState}.CheckConstraint(IConstraint{TNodeState}, bool, CancellationToken)" path="/param[@name='verifyViableSolutionsExist']"/></param>
 		/// <param name="cancellationToken">A cancellation token.</param>
 		/// <returns>A set of constraints.</returns>
 		/// <exception cref="ComplexConflictException">Thrown when there is no single constraint whose removal would remove the conflict.</exception>
-		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(CancellationToken cancellationToken)
+		public IReadOnlyCollection<IConstraint<TNodeState>> GetConflictingConstraints(IEnumerable<IConstraint<TNodeState>> inviolateConstraints, bool verifyViableSolutionsExist, CancellationToken cancellationToken)
 		{
+			ISet<IConstraint<TNodeState>> inviolateSet = inviolateConstraints as ISet<IConstraint<TNodeState>> ?? new HashSet<IConstraint<TNodeState>>(inviolateConstraints);
 			List<IConstraint<TNodeState>> conflictingConstraints = new();
 			foreach (IConstraint<TNodeState> constraint in this.conflictedScenario.Constraints)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
+				if (inviolateSet.Contains(constraint))
+				{
+					// Do not even consider removing this constraint. If there are conflicts with it, the blame is on the other constraint.
+					continue;
+				}
 
 				using Experiment experiment = new(this.conflictedScenario);
 				experiment.Candidate.RemoveConstraint(constraint);
-				if (SolutionBuilder<TNodeState>.CheckForConflictingConstraints(this.configuration, experiment.Candidate, cancellationToken) is null)
+				if (SolutionBuilder<TNodeState>.CheckForConflictingConstraints(this.configuration, experiment.Candidate, verifyViableSolutionsExist, cancellationToken) is null)
 				{
 					// Removing this constraint removed the conflict. So add it to the list to return.
 					conflictingConstraints.Add(constraint);
