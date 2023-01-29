@@ -277,8 +277,7 @@ public partial class SolutionBuilder<TNodeState>
 	public Scenario<TNodeState> GetProbableSolution(CancellationToken cancellationToken)
 	{
 		// We are taking a scenario from our pool, but we will *not* return it to the pool since we're returning it to our caller.
-		Scenario<TNodeState>? scenario = this.Configuration.ScenarioPool.Take();
-		scenario.CopyFrom(this.CurrentScenario);
+		Scenario<TNodeState>? scenario = this.Configuration.ScenarioPool.Take(this.CurrentScenario);
 		while (true)
 		{
 			// Calculate fresh probabilities for the nodes that remain.
@@ -640,8 +639,7 @@ public partial class SolutionBuilder<TNodeState>
 		internal Experiment(Scenario<TNodeState> basis)
 		{
 			this.Basis = basis;
-			this.candidate = basis.Configuration.ScenarioPool.Take();
-			this.candidate.CopyFrom(basis);
+			this.candidate = basis.Configuration.ScenarioPool.Take(basis);
 		}
 
 		/// <summary>

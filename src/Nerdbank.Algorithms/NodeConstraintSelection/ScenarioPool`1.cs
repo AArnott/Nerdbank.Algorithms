@@ -32,8 +32,14 @@ internal class ScenarioPool<TNodeState>
 	/// <summary>
 	/// Acquires a recycled or new <see cref="Scenario{TNodeState}"/> instance.
 	/// </summary>
+	/// <param name="copyFrom">The scenario that the returned one will copy from.</param>
 	/// <returns>An instance of <see cref="Scenario{TNodeState}"/>.</returns>
-	internal Scenario<TNodeState> Take() => this.bag.TryTake(out Scenario<TNodeState>? scenario) ? scenario : new(this.configuration);
+	internal Scenario<TNodeState> Take(Scenario<TNodeState> copyFrom)
+	{
+		Scenario<TNodeState> result = this.bag.TryTake(out Scenario<TNodeState>? scenario) ? scenario : new(this.configuration);
+		result.CopyFrom(copyFrom);
+		return result;
+	}
 
 	/// <summary>
 	/// Returns a <see cref="Scenario{TNodeState}"/> for recycling.
