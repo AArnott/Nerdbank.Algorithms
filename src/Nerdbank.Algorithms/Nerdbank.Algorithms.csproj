@@ -8,7 +8,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)'== 'netStandard2.0' or '$(TargetFramework)' == 'netStandard2.1'">
+  <ItemGroup Condition="'$(TargetFramework)'== 'netstandard2.0' or '$(TargetFramework)' == 'net6.0'">
     <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
   <ItemGroup>
