@@ -47,8 +47,14 @@ public sealed class Scenario<TNodeState>
 	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
 	/// </summary>
 	/// <param name="configuration">The problem space configuration.</param>
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration"/> is <see langword="null"/>.</exception>
 	public Scenario(Configuration<TNodeState> configuration)
 	{
+		if (configuration is null)
+		{
+			throw new ArgumentNullException(nameof(configuration));
+		}
+
 		this.selectionState = new TNodeState?[configuration.Nodes.Length];
 		this.configuration = configuration;
 		this.constraintsPerNode = configuration.Nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();

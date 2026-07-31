@@ -10,7 +10,7 @@
     <!-- Put repo-specific PackageVersion items in this group. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
-    <PackageVersion Include="System.Collections.Immutable" Version="6.0.0" />
+    <PackageVersion Include="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Include="Xunit.Combinatorial" Version="2.0.24" />
   </ItemGroup>
   <ItemGroup Label="Library.Template">
