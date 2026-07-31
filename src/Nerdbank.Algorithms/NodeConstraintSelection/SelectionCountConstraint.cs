@@ -25,7 +25,7 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// <remarks>
 	/// This value is lazily initialized by <see cref="GetNodeIndexes"/>.
 	/// </remarks>
-	private ImmutableArray<int> nodeIndexes;
+	private int[]? nodeIndexes;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="SelectionCountConstraint"/> class.
@@ -177,18 +177,19 @@ public class SelectionCountConstraint : IConstraint<bool>
 			throw new ArgumentNullException(nameof(scenario));
 		}
 
-		NodeStats stats = this.GetNodeStates(scenario);
+		int[] nodeIndexes = this.GetNodeIndexes(scenario);
+		NodeStats stats = this.GetNodeStates(scenario, nodeIndexes);
 
 		// If the maximum nodes have already been selected, unselect the rest.
 		if (this.CanResolveByUnselecting(stats))
 		{
-			return this.MarkIndeterminateNodes(scenario, select: false);
+			return this.MarkIndeterminateNodes(scenario, nodeIndexes, select: false);
 		}
 
 		// If so many nodes have been UNselected that the remaining nodes equal the minimum allowed selected nodes, select the rest.
 		if (this.CanResolveBySelecting(stats))
 		{
-			return this.MarkIndeterminateNodes(scenario, select: true);
+			return this.MarkIndeterminateNodes(scenario, nodeIndexes, select: true);
 		}
 
 		// We can't resolve yet.
@@ -262,15 +263,22 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// </summary>
 	/// <param name="scenario">The scenario to consider.</param>
 	/// <returns>The aggregate stats.</returns>
-	private NodeStats GetNodeStates(Scenario<bool> scenario)
+	private NodeStats GetNodeStates(Scenario<bool> scenario) => this.GetNodeStates(scenario, this.GetNodeIndexes(scenario));
+
+	/// <summary>
+	/// Collect aggregate data on the selection state of the nodes involved in this constraint.
+	/// </summary>
+	/// <param name="scenario">The scenario to consider.</param>
+	/// <param name="nodeIndexes">The indexes of the nodes involved in this constraint.</param>
+	/// <returns>The aggregate stats.</returns>
+	private NodeStats GetNodeStates(Scenario<bool> scenario, int[] nodeIndexes)
 	{
 		int selectedCount = 0;
 		int unselectedCount = 0;
 		int indeterminateCount = 0;
-		ImmutableArray<int> nodeIndexes = this.GetNodeIndexes(scenario);
-		foreach (int nodeIndex in nodeIndexes)
+		for (int i = 0; i < nodeIndexes.Length; i++)
 		{
-			bool? state = scenario[nodeIndex];
+			bool? state = scenario[nodeIndexes[i]];
 			if (state is bool isSelected)
 			{
 				if (isSelected)
@@ -295,14 +303,15 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// Mark all indeterminate nodes in a scenario as either selected or unselected.
 	/// </summary>
 	/// <param name="scenario">The scenario to alter.</param>
+	/// <param name="nodeIndexes">The indexes of the nodes involved in this constraint.</param>
 	/// <param name="select"><see langword="true"/> to select indeterminate nodes; <see langword="false"/> to unselect them.</param>
 	/// <returns><see langword="true"/> if any nodes were actually changed; <see langword="false"/> if there were no indeterminate nodes.</returns>
-	private bool MarkIndeterminateNodes(Scenario<bool> scenario, bool select)
+	private bool MarkIndeterminateNodes(Scenario<bool> scenario, int[] nodeIndexes, bool select)
 	{
 		bool changed = false;
-		ImmutableArray<int> nodeIndexes = this.GetNodeIndexes(scenario);
-		foreach (int nodeIndex in nodeIndexes)
+		for (int i = 0; i < nodeIndexes.Length; i++)
 		{
+			int nodeIndex = nodeIndexes[i];
 			if (!scenario[nodeIndex].HasValue)
 			{
 				scenario[nodeIndex] = select;
@@ -318,18 +327,18 @@ public class SelectionCountConstraint : IConstraint<bool>
 	/// </summary>
 	/// <param name="scenario">A scenario from which to derive the indexes if it has not already been cached.</param>
 	/// <returns>An array of node indexes.</returns>
-	private ImmutableArray<int> GetNodeIndexes(Scenario<bool> scenario)
+	private int[] GetNodeIndexes(Scenario<bool> scenario)
 	{
-		ImmutableArray<int> nodeIndexes = this.nodeIndexes;
-		if (nodeIndexes.IsDefault)
+		int[]? nodeIndexes = this.nodeIndexes;
+		if (nodeIndexes is null)
 		{
-			ImmutableArray<int>.Builder builder = ImmutableArray.CreateBuilder<int>(this.nodes.Length);
+			nodeIndexes = new int[this.nodes.Length];
 			for (int i = 0; i < this.nodes.Length; i++)
 			{
-				builder.Add(scenario.GetNodeIndex(this.nodes[i]));
+				nodeIndexes[i] = scenario.GetNodeIndex(this.nodes[i]);
 			}
 
-			this.nodeIndexes = nodeIndexes = builder.MoveToImmutable();
+			this.nodeIndexes = nodeIndexes;
 		}
 
 		return nodeIndexes;
