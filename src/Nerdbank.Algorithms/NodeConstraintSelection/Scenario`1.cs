@@ -339,16 +339,7 @@ public sealed class Scenario<TNodeState>
 		}
 
 		// Copy using memmove because it's much faster than a loop that iterates over the array copying one element at a time.
-		TNodeState?[] src = copyFrom.selectionState;
-		TNodeState?[] dest = this.selectionState;
-		fixed (void* pSrc = &src[0])
-		{
-			fixed (void* pDest = &dest[0])
-			{
-				int bytesToCopy = sizeof(TNodeState?) * src.Length;
-				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
-			}
-		}
+		CopySelectionState(copyFrom.selectionState, this.selectionState);
 
 		this.constraints = copyFrom.Constraints;
 		this.constraintsPerNode = copyFrom.constraintsPerNode;
@@ -357,11 +348,74 @@ public sealed class Scenario<TNodeState>
 		this.Version++;
 	}
 
+	/// <summary>
+	/// Creates a checkpoint of the current selection state that can be restored by disposing the returned value.
+	/// </summary>
+	/// <returns>A disposable checkpoint.</returns>
+	internal SelectionCheckpoint Checkpoint() => new(this);
+
+	private static unsafe void CopySelectionState(TNodeState?[] src, TNodeState?[] dest)
+	{
+		fixed (void* pSrc = &src[0])
+		{
+			fixed (void* pDest = &dest[0])
+			{
+				int bytesToCopy = sizeof(TNodeState?) * src.Length;
+				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
+			}
+		}
+	}
+
 	private void RecordDirtyNode(int index)
 	{
 		if (this.trackDirtyNodes)
 		{
 			this.dirtyNodes![this.dirtyNodeCount++] = index;
+		}
+	}
+
+	private void RestoreFromSnapshot(TNodeState?[] snapshot, int version, bool fullRefreshNeeded)
+	{
+		CopySelectionState(snapshot, this.selectionState);
+		this.Version = version;
+		this.fullRefreshNeeded = fullRefreshNeeded;
+		this.configuration.ScenarioPool.ReturnSelectionBuffer(snapshot);
+	}
+
+	/// <summary>
+	/// A disposable snapshot of selection state used for in-place backtracking.
+	/// </summary>
+	internal ref struct SelectionCheckpoint
+	{
+		private Scenario<TNodeState>? owner;
+		private TNodeState?[]? snapshot;
+		private int version;
+		private bool fullRefreshNeeded;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="SelectionCheckpoint"/> struct.
+		/// </summary>
+		/// <param name="owner">The scenario to snapshot.</param>
+		internal SelectionCheckpoint(Scenario<TNodeState> owner)
+		{
+			this.owner = owner;
+			this.version = owner.Version;
+			this.fullRefreshNeeded = owner.fullRefreshNeeded;
+			this.snapshot = owner.configuration.ScenarioPool.TakeSelectionBuffer();
+			CopySelectionState(owner.selectionState, this.snapshot);
+		}
+
+		/// <summary>
+		/// Restores the scenario selection state captured at construction.
+		/// </summary>
+		public void Dispose()
+		{
+			if (this.owner is { } owner && this.snapshot is { } snapshot)
+			{
+				owner.RestoreFromSnapshot(snapshot, this.version, this.fullRefreshNeeded);
+				this.owner = null;
+				this.snapshot = null;
+			}
 		}
 	}
 }

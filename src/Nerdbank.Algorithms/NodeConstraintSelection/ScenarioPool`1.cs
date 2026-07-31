@@ -18,6 +18,7 @@ internal class ScenarioPool<TNodeState>
 	where TNodeState : unmanaged
 {
 	private readonly ConcurrentBag<Scenario<TNodeState>> bag = new();
+	private readonly ConcurrentBag<TNodeState?[]> selectionBuffers = new();
 	private readonly Configuration<TNodeState> configuration;
 
 	/// <summary>
@@ -46,4 +47,21 @@ internal class ScenarioPool<TNodeState>
 	/// </summary>
 	/// <param name="scenario">The instance to recycle.</param>
 	internal void Return(Scenario<TNodeState> scenario) => this.bag.Add(scenario);
+
+	/// <summary>
+	/// Acquires a recycled or new selection-state buffer.
+	/// </summary>
+	/// <returns>A buffer sized for the configured node count.</returns>
+	internal TNodeState?[] TakeSelectionBuffer()
+	{
+		return this.selectionBuffers.TryTake(out TNodeState?[]? buffer)
+			? buffer
+			: new TNodeState?[this.configuration.Nodes.Length];
+	}
+
+	/// <summary>
+	/// Returns a selection-state buffer for recycling.
+	/// </summary>
+	/// <param name="buffer">The buffer to recycle.</param>
+	internal void ReturnSelectionBuffer(TNodeState?[] buffer) => this.selectionBuffers.Add(buffer);
 }

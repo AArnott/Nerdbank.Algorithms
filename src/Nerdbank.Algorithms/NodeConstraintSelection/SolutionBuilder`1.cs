@@ -570,14 +570,17 @@ public partial class SolutionBuilder<TNodeState>
 			}
 
 			// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
+			// Mutate the scenario in place and restore via checkpoint so we avoid cloning constraints.
 			for (int k = 0; k < configuration.ResolvedNodeStates.Length; k++)
 			{
 				TNodeState value = configuration.ResolvedNodeStates[k];
 
-				using Experiment experiment = new(basis);
-				experiment.Candidate[i] = value;
-				ResolveByCascadingConstraints(experiment.Candidate, applicableConstraints, cancellationToken);
-				EnumerateSolutions(configuration, experiment.Candidate, i + 1, ref stats, cancellationToken);
+				using (basis.Checkpoint())
+				{
+					basis[i] = value;
+					ResolveByCascadingConstraints(basis, applicableConstraints, cancellationToken);
+					EnumerateSolutions(configuration, basis, i + 1, ref stats, cancellationToken);
+				}
 
 				if (stats.StopAfterFirstSolutionFound && stats.SolutionsFound > 0)
 				{
