@@ -411,35 +411,65 @@ public partial class SolutionBuilder<TNodeState>
 	{
 		scenario.ResetIfNeeded();
 
-		// Keep looping through constraints asking each one to resolve nodes until no changes are applied.
-		bool anyResolved;
-		do
+		ImmutableArray<IConstraint<TNodeState>> constraints = scenario.Constraints;
+		if (constraints.IsEmpty)
 		{
-			anyResolved = false;
-			for (int i = 0; i < scenario.Constraints.Length; i++)
+			return;
+		}
+
+		// Process only constraints that can be affected by recent node mutations.
+		// Start with every constraint, then cascade only through constraints sharing dirty nodes.
+		scenario.GetResolveWorkBuffers(out Queue<IConstraint<TNodeState>> pending, out HashSet<IConstraint<TNodeState>> enqueued);
+		for (int i = 0; i < constraints.Length; i++)
+		{
+			IConstraint<TNodeState> constraint = constraints[i];
+			pending.Enqueue(constraint);
+			enqueued.Add(constraint);
+		}
+
+		while (pending.Count > 0)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+			IConstraint<TNodeState> constraint = pending.Dequeue();
+			enqueued.Remove(constraint);
+
+			scenario.BeginDirtyTracking();
+			bool resolved;
+			int scenarioVersion = scenario.Version;
+			try
 			{
-				IConstraint<TNodeState> constraint = scenario.Constraints[i];
-				cancellationToken.ThrowIfCancellationRequested();
-				bool resolved;
-				int scenarioVersion = scenario.Version;
-				try
-				{
-					resolved = constraint.Resolve(scenario);
-				}
-				catch (Exception ex)
-				{
-					throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintThrewUnexpectedException, ex);
-				}
+				resolved = constraint.Resolve(scenario);
+			}
+			catch (Exception ex)
+			{
+				scenario.EndDirtyTrackingAndGetDirtyNodes();
+				throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintThrewUnexpectedException, ex);
+			}
 
-				if (resolved && scenario.Version == scenarioVersion)
-				{
-					throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintResolveReturnedTrueWithNoChanges);
-				}
+			ReadOnlySpan<int> dirtyNodes = scenario.EndDirtyTrackingAndGetDirtyNodes();
+			if (resolved && scenario.Version == scenarioVersion)
+			{
+				throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintResolveReturnedTrueWithNoChanges);
+			}
 
-				anyResolved |= resolved;
+			if (!resolved || dirtyNodes.IsEmpty)
+			{
+				continue;
+			}
+
+			for (int d = 0; d < dirtyNodes.Length; d++)
+			{
+				ImmutableArray<IConstraint<TNodeState>> affected = scenario.GetConstraintsThatApplyTo(dirtyNodes[d]);
+				for (int a = 0; a < affected.Length; a++)
+				{
+					IConstraint<TNodeState> next = affected[a];
+					if (enqueued.Add(next))
+					{
+						pending.Enqueue(next);
+					}
+				}
 			}
 		}
-		while (anyResolved);
 	}
 
 	/// <summary>

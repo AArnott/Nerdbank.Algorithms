@@ -44,6 +44,31 @@ public sealed class Scenario<TNodeState>
 	private ImmutableArray<ImmutableArray<IConstraint<TNodeState>>> constraintsPerNode;
 
 	/// <summary>
+	/// When true, node mutations are recorded into <see cref="dirtyNodes"/>.
+	/// </summary>
+	private bool trackDirtyNodes;
+
+	/// <summary>
+	/// Buffer of node indexes mutated while <see cref="trackDirtyNodes"/> is true.
+	/// </summary>
+	private int[]? dirtyNodes;
+
+	/// <summary>
+	/// Number of valid entries in <see cref="dirtyNodes"/>.
+	/// </summary>
+	private int dirtyNodeCount;
+
+	/// <summary>
+	/// Reused work queue for partial resolution.
+	/// </summary>
+	private Queue<IConstraint<TNodeState>>? resolveQueue;
+
+	/// <summary>
+	/// Reused set of constraints already present in <see cref="resolveQueue"/>.
+	/// </summary>
+	private HashSet<IConstraint<TNodeState>>? resolveEnqueued;
+
+	/// <summary>
 	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
 	/// </summary>
 	/// <param name="configuration">The problem space configuration.</param>
@@ -120,6 +145,7 @@ public sealed class Scenario<TNodeState>
 
 			this.selectionState[index] = value;
 			this.Version++;
+			this.RecordDirtyNode(index);
 		}
 	}
 
@@ -165,6 +191,40 @@ public sealed class Scenario<TNodeState>
 	{
 		this.selectionState[index] = selected;
 		this.Version++;
+		this.RecordDirtyNode(index);
+	}
+
+	/// <summary>
+	/// Begins recording node mutations into a reusable dirty-node buffer.
+	/// </summary>
+	internal void BeginDirtyTracking()
+	{
+		this.dirtyNodes ??= new int[this.selectionState.Length];
+		this.dirtyNodeCount = 0;
+		this.trackDirtyNodes = true;
+	}
+
+	/// <summary>
+	/// Stops dirty-node tracking and returns the nodes mutated since <see cref="BeginDirtyTracking"/>.
+	/// </summary>
+	/// <returns>The dirty node indexes.</returns>
+	internal ReadOnlySpan<int> EndDirtyTrackingAndGetDirtyNodes()
+	{
+		this.trackDirtyNodes = false;
+		return this.dirtyNodes.AsSpan(0, this.dirtyNodeCount);
+	}
+
+	/// <summary>
+	/// Gets reusable collections used by partial resolution.
+	/// </summary>
+	/// <param name="queue">The work queue of constraints to process.</param>
+	/// <param name="enqueued">The set of constraints already present in <paramref name="queue"/>.</param>
+	internal void GetResolveWorkBuffers(out Queue<IConstraint<TNodeState>> queue, out HashSet<IConstraint<TNodeState>> enqueued)
+	{
+		queue = this.resolveQueue ??= new Queue<IConstraint<TNodeState>>();
+		enqueued = this.resolveEnqueued ??= new HashSet<IConstraint<TNodeState>>();
+		queue.Clear();
+		enqueued.Clear();
 	}
 
 	/// <summary>
@@ -295,5 +355,13 @@ public sealed class Scenario<TNodeState>
 		this.fullRefreshNeeded = copyFrom.fullRefreshNeeded;
 
 		this.Version++;
+	}
+
+	private void RecordDirtyNode(int index)
+	{
+		if (this.trackDirtyNodes)
+		{
+			this.dirtyNodes![this.dirtyNodeCount++] = index;
+		}
 	}
 }
