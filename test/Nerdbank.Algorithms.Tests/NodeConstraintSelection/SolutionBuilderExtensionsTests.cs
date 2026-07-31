@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
-using Xunit.Abstractions;
 
 public class SolutionBuilderExtensionsTests : TestBase
 {
