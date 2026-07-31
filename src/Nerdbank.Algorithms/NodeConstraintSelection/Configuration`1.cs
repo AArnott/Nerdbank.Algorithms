@@ -103,6 +103,26 @@ public class Configuration<TNodeState>
 	}
 
 	/// <summary>
+	/// Gets the index of a resolved node state within <see cref="ResolvedNodeStates"/>.
+	/// </summary>
+	/// <param name="value">The state value.</param>
+	/// <returns>The zero-based index of <paramref name="value"/>.</returns>
+	/// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is not among the allowed states.</exception>
+	internal int GetStateIndex(TNodeState value)
+	{
+		ImmutableArray<TNodeState> states = this.ResolvedNodeStates;
+		for (int i = 0; i < states.Length; i++)
+		{
+			if (EqualityComparer<TNodeState>.Default.Equals(states[i], value))
+			{
+				return i;
+			}
+		}
+
+		throw new ArgumentException("The specified value is not an allowed node state.", nameof(value));
+	}
+
+	/// <summary>
 	/// Creates a map of nodes to the index in a list.
 	/// </summary>
 	/// <param name="nodes">The list of nodes.</param>

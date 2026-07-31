@@ -300,17 +300,19 @@ public partial class SolutionBuilder<TNodeState>
 					continue;
 				}
 
-				if (stats.NodesResolvedStateInSolutions[nodeIndex] is { } stateProbabilities)
+				if (stats.NodesResolvedStateInSolutions[nodeIndex] is { } stateCounts)
 				{
-					foreach (TNodeState state in this.Configuration.ResolvedNodeStates)
+					ImmutableArray<TNodeState> resolvedStates = this.Configuration.ResolvedNodeStates;
+					for (int stateIndex = 0; stateIndex < resolvedStates.Length; stateIndex++)
 					{
 						cancellationToken.ThrowIfCancellationRequested();
 
-						if (stateProbabilities.TryGetValue(state, out long matches) && matches > mostMatches)
+						long matches = stateCounts[stateIndex];
+						if (matches > mostMatches)
 						{
 							mostLikelyNodeIndex = nodeIndex;
 							mostMatches = matches;
-							mostLikelyState = state;
+							mostLikelyState = resolvedStates[stateIndex];
 						}
 					}
 				}
@@ -365,13 +367,14 @@ public partial class SolutionBuilder<TNodeState>
 		{
 			for (int i = 0; i < analysis.NodeValueCount.Length; i++)
 			{
-				if (this.CurrentScenario[i] is null && analysis.NodeValueCount[i] is { } valuesAndCounts)
+				if (this.CurrentScenario[i] is null && analysis.NodeValueCount[i] is { } stateCounts)
 				{
-					foreach (TNodeState value in this.Configuration.ResolvedNodeStates)
+					ImmutableArray<TNodeState> resolvedStates = this.Configuration.ResolvedNodeStates;
+					for (int stateIndex = 0; stateIndex < resolvedStates.Length; stateIndex++)
 					{
-						if (valuesAndCounts.TryGetValue(value, out long counts) && counts == analysis.ViableSolutionsFound)
+						if (stateCounts[stateIndex] == analysis.ViableSolutionsFound)
 						{
-							this.CurrentScenario[i] = value;
+							this.CurrentScenario[i] = resolvedStates[stateIndex];
 							break;
 						}
 					}
@@ -587,7 +590,11 @@ public partial class SolutionBuilder<TNodeState>
 
 		internal long SolutionsFound { get; private set; }
 
-		internal Dictionary<TNodeState, long>?[]? NodesResolvedStateInSolutions { get; private set; }
+		/// <summary>
+		/// Gets per-node counts for each allowed state, indexed as <c>[nodeIndex][stateIndex]</c>.
+		/// A null entry for a node means that node is unconstrained.
+		/// </summary>
+		internal long[]?[]? NodesResolvedStateInSolutions { get; private set; }
 
 		internal long ConsideredScenarios { get; set; }
 
@@ -599,20 +606,21 @@ public partial class SolutionBuilder<TNodeState>
 
 				if (!this.StopAfterFirstSolutionFound)
 				{
-					this.NodesResolvedStateInSolutions ??= new Dictionary<TNodeState, long>?[scenario.NodeCount];
+					ImmutableArray<TNodeState> resolvedStates = scenario.Configuration.ResolvedNodeStates;
+					int stateCount = resolvedStates.Length;
+					this.NodesResolvedStateInSolutions ??= new long[scenario.NodeCount][];
 
 					for (int i = 0; i < scenario.NodeCount; i++)
 					{
 						if (scenario[i] is TNodeState resolvedState)
 						{
-							Dictionary<TNodeState, long>? statesAndCounts = this.NodesResolvedStateInSolutions[i];
-							if (statesAndCounts is null)
+							long[]? stateCounts = this.NodesResolvedStateInSolutions[i];
+							if (stateCounts is null)
 							{
-								this.NodesResolvedStateInSolutions[i] = statesAndCounts = new Dictionary<TNodeState, long>();
+								this.NodesResolvedStateInSolutions[i] = stateCounts = new long[stateCount];
 							}
 
-							statesAndCounts.TryGetValue(resolvedState, out long counts);
-							statesAndCounts[resolvedState] = counts + 1;
+							stateCounts[scenario.Configuration.GetStateIndex(resolvedState)]++;
 						}
 						else
 						{
