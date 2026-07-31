@@ -411,65 +411,37 @@ public partial class SolutionBuilder<TNodeState>
 	{
 		scenario.ResetIfNeeded();
 
-		ImmutableArray<IConstraint<TNodeState>> constraints = scenario.Constraints;
-		if (constraints.IsEmpty)
+		// Keep looping through constraints asking each one to resolve nodes until no changes are applied.
+		// A tight linear scan outperforms queue/hash-set dirty tracking for the constraint counts we see in practice.
+		bool anyResolved;
+		do
 		{
-			return;
-		}
-
-		// Process only constraints that can be affected by recent node mutations.
-		// Start with every constraint, then cascade only through constraints sharing dirty nodes.
-		scenario.GetResolveWorkBuffers(out Queue<IConstraint<TNodeState>> pending, out HashSet<IConstraint<TNodeState>> enqueued);
-		for (int i = 0; i < constraints.Length; i++)
-		{
-			IConstraint<TNodeState> constraint = constraints[i];
-			pending.Enqueue(constraint);
-			enqueued.Add(constraint);
-		}
-
-		while (pending.Count > 0)
-		{
-			cancellationToken.ThrowIfCancellationRequested();
-			IConstraint<TNodeState> constraint = pending.Dequeue();
-			enqueued.Remove(constraint);
-
-			scenario.BeginDirtyTracking();
-			bool resolved;
-			int scenarioVersion = scenario.Version;
-			try
+			anyResolved = false;
+			ImmutableArray<IConstraint<TNodeState>> constraints = scenario.Constraints;
+			for (int i = 0; i < constraints.Length; i++)
 			{
-				resolved = constraint.Resolve(scenario);
-			}
-			catch (Exception ex)
-			{
-				scenario.EndDirtyTrackingAndGetDirtyNodes();
-				throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintThrewUnexpectedException, ex);
-			}
-
-			ReadOnlySpan<int> dirtyNodes = scenario.EndDirtyTrackingAndGetDirtyNodes();
-			if (resolved && scenario.Version == scenarioVersion)
-			{
-				throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintResolveReturnedTrueWithNoChanges);
-			}
-
-			if (!resolved || dirtyNodes.IsEmpty)
-			{
-				continue;
-			}
-
-			for (int d = 0; d < dirtyNodes.Length; d++)
-			{
-				ImmutableArray<IConstraint<TNodeState>> affected = scenario.GetConstraintsThatApplyTo(dirtyNodes[d]);
-				for (int a = 0; a < affected.Length; a++)
+				IConstraint<TNodeState> constraint = constraints[i];
+				cancellationToken.ThrowIfCancellationRequested();
+				bool resolved;
+				int scenarioVersion = scenario.Version;
+				try
 				{
-					IConstraint<TNodeState> next = affected[a];
-					if (enqueued.Add(next))
-					{
-						pending.Enqueue(next);
-					}
+					resolved = constraint.Resolve(scenario);
 				}
+				catch (Exception ex)
+				{
+					throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintThrewUnexpectedException, ex);
+				}
+
+				if (resolved && scenario.Version == scenarioVersion)
+				{
+					throw new BadConstraintException<TNodeState>(constraint, Strings.ConstraintResolveReturnedTrueWithNoChanges);
+				}
+
+				anyResolved |= resolved;
 			}
 		}
+		while (anyResolved);
 	}
 
 	/// <summary>
@@ -570,12 +542,13 @@ public partial class SolutionBuilder<TNodeState>
 			}
 
 			// Try selecting the node. In doing so, resolve whatever nodes we can immediately.
-			// Mutate the scenario in place and restore via checkpoint so we avoid cloning constraints.
-			for (int k = 0; k < configuration.ResolvedNodeStates.Length; k++)
+			// Mutate in place and undo only the nodes assigned on this branch.
+			ImmutableArray<TNodeState> resolvedNodeStates = configuration.ResolvedNodeStates;
+			for (int k = 0; k < resolvedNodeStates.Length; k++)
 			{
-				TNodeState value = configuration.ResolvedNodeStates[k];
+				TNodeState value = resolvedNodeStates[k];
 
-				using (basis.Checkpoint())
+				using (basis.BeginBacktrack())
 				{
 					basis[i] = value;
 					ResolveByCascadingConstraints(basis, applicableConstraints, cancellationToken);
@@ -641,19 +614,29 @@ public partial class SolutionBuilder<TNodeState>
 				{
 					ImmutableArray<TNodeState> resolvedStates = scenario.Configuration.ResolvedNodeStates;
 					int stateCount = resolvedStates.Length;
-					this.NodesResolvedStateInSolutions ??= new long[scenario.NodeCount][];
+					int nodeCount = scenario.NodeCount;
+					this.NodesResolvedStateInSolutions ??= new long[nodeCount][];
+					long[]?[] nodesResolved = this.NodesResolvedStateInSolutions;
 
-					for (int i = 0; i < scenario.NodeCount; i++)
+					for (int i = 0; i < nodeCount; i++)
 					{
 						if (scenario[i] is TNodeState resolvedState)
 						{
-							long[]? stateCounts = this.NodesResolvedStateInSolutions[i];
+							long[]? stateCounts = nodesResolved[i];
 							if (stateCounts is null)
 							{
-								this.NodesResolvedStateInSolutions[i] = stateCounts = new long[stateCount];
+								nodesResolved[i] = stateCounts = new long[stateCount];
 							}
 
-							stateCounts[scenario.Configuration.GetStateIndex(resolvedState)]++;
+							// Inline state lookup; state cardinality is tiny (often 2).
+							int stateIndex = 0;
+							while (stateIndex < stateCount
+								&& !EqualityComparer<TNodeState>.Default.Equals(resolvedStates[stateIndex], resolvedState))
+							{
+								stateIndex++;
+							}
+
+							stateCounts[stateIndex]++;
 						}
 						else
 						{

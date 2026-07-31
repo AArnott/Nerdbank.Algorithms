@@ -44,29 +44,19 @@ public sealed class Scenario<TNodeState>
 	private ImmutableArray<ImmutableArray<IConstraint<TNodeState>>> constraintsPerNode;
 
 	/// <summary>
-	/// When true, node mutations are recorded into <see cref="dirtyNodes"/>.
+	/// Stack of node indexes set while backtracking is active, used to undo branches in place.
 	/// </summary>
-	private bool trackDirtyNodes;
+	private int[]? undoStack;
 
 	/// <summary>
-	/// Buffer of node indexes mutated while <see cref="trackDirtyNodes"/> is true.
+	/// Number of valid entries in <see cref="undoStack"/>.
 	/// </summary>
-	private int[]? dirtyNodes;
+	private int undoCount;
 
 	/// <summary>
-	/// Number of valid entries in <see cref="dirtyNodes"/>.
+	/// When greater than zero, node assignments are recorded onto <see cref="undoStack"/>.
 	/// </summary>
-	private int dirtyNodeCount;
-
-	/// <summary>
-	/// Reused work queue for partial resolution.
-	/// </summary>
-	private Queue<IConstraint<TNodeState>>? resolveQueue;
-
-	/// <summary>
-	/// Reused set of constraints already present in <see cref="resolveQueue"/>.
-	/// </summary>
-	private HashSet<IConstraint<TNodeState>>? resolveEnqueued;
+	private int backtrackDepth;
 
 	/// <summary>
 	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
@@ -145,7 +135,7 @@ public sealed class Scenario<TNodeState>
 
 			this.selectionState[index] = value;
 			this.Version++;
-			this.RecordDirtyNode(index);
+			this.RecordUndo(index);
 		}
 	}
 
@@ -191,40 +181,6 @@ public sealed class Scenario<TNodeState>
 	{
 		this.selectionState[index] = selected;
 		this.Version++;
-		this.RecordDirtyNode(index);
-	}
-
-	/// <summary>
-	/// Begins recording node mutations into a reusable dirty-node buffer.
-	/// </summary>
-	internal void BeginDirtyTracking()
-	{
-		this.dirtyNodes ??= new int[this.selectionState.Length];
-		this.dirtyNodeCount = 0;
-		this.trackDirtyNodes = true;
-	}
-
-	/// <summary>
-	/// Stops dirty-node tracking and returns the nodes mutated since <see cref="BeginDirtyTracking"/>.
-	/// </summary>
-	/// <returns>The dirty node indexes.</returns>
-	internal ReadOnlySpan<int> EndDirtyTrackingAndGetDirtyNodes()
-	{
-		this.trackDirtyNodes = false;
-		return this.dirtyNodes.AsSpan(0, this.dirtyNodeCount);
-	}
-
-	/// <summary>
-	/// Gets reusable collections used by partial resolution.
-	/// </summary>
-	/// <param name="queue">The work queue of constraints to process.</param>
-	/// <param name="enqueued">The set of constraints already present in <paramref name="queue"/>.</param>
-	internal void GetResolveWorkBuffers(out Queue<IConstraint<TNodeState>> queue, out HashSet<IConstraint<TNodeState>> enqueued)
-	{
-		queue = this.resolveQueue ??= new Queue<IConstraint<TNodeState>>();
-		enqueued = this.resolveEnqueued ??= new HashSet<IConstraint<TNodeState>>();
-		queue.Clear();
-		enqueued.Clear();
 	}
 
 	/// <summary>
@@ -241,6 +197,18 @@ public sealed class Scenario<TNodeState>
 
 			this.fullRefreshNeeded = false;
 		}
+	}
+
+	/// <summary>
+	/// Begins an in-place backtracking scope. Disposing the returned value undoes node assignments
+	/// made during the scope (and nested scopes that have already completed).
+	/// </summary>
+	/// <returns>A disposable backtracking scope.</returns>
+	internal BacktrackScope BeginBacktrack()
+	{
+		this.undoStack ??= new int[Math.Max(16, this.selectionState.Length)];
+		this.backtrackDepth++;
+		return new BacktrackScope(this, this.undoCount);
 	}
 
 	/// <summary>
@@ -339,23 +307,8 @@ public sealed class Scenario<TNodeState>
 		}
 
 		// Copy using memmove because it's much faster than a loop that iterates over the array copying one element at a time.
-		CopySelectionState(copyFrom.selectionState, this.selectionState);
-
-		this.constraints = copyFrom.Constraints;
-		this.constraintsPerNode = copyFrom.constraintsPerNode;
-		this.fullRefreshNeeded = copyFrom.fullRefreshNeeded;
-
-		this.Version++;
-	}
-
-	/// <summary>
-	/// Creates a checkpoint of the current selection state that can be restored by disposing the returned value.
-	/// </summary>
-	/// <returns>A disposable checkpoint.</returns>
-	internal SelectionCheckpoint Checkpoint() => new(this);
-
-	private static unsafe void CopySelectionState(TNodeState?[] src, TNodeState?[] dest)
-	{
+		TNodeState?[] src = copyFrom.selectionState;
+		TNodeState?[] dest = this.selectionState;
 		fixed (void* pSrc = &src[0])
 		{
 			fixed (void* pDest = &dest[0])
@@ -364,57 +317,76 @@ public sealed class Scenario<TNodeState>
 				Buffer.MemoryCopy(pSrc, pDest, bytesToCopy, bytesToCopy);
 			}
 		}
+
+		this.constraints = copyFrom.Constraints;
+		this.constraintsPerNode = copyFrom.constraintsPerNode;
+		this.fullRefreshNeeded = copyFrom.fullRefreshNeeded;
+
+		// Backtracking state is local to an enumeration and must not be copied across pooled scenarios.
+		this.undoCount = 0;
+		this.backtrackDepth = 0;
+
+		this.Version++;
 	}
 
-	private void RecordDirtyNode(int index)
+	private void RecordUndo(int index)
 	{
-		if (this.trackDirtyNodes)
+		if (this.backtrackDepth == 0)
 		{
-			this.dirtyNodes![this.dirtyNodeCount++] = index;
+			return;
 		}
+
+		int[] stack = this.undoStack!;
+		if (this.undoCount == stack.Length)
+		{
+			Array.Resize(ref stack, stack.Length * 2);
+			this.undoStack = stack;
+		}
+
+		stack[this.undoCount++] = index;
 	}
 
-	private void RestoreFromSnapshot(TNodeState?[] snapshot, int version, bool fullRefreshNeeded)
+	private void UndoTo(int mark)
 	{
-		CopySelectionState(snapshot, this.selectionState);
-		this.Version = version;
-		this.fullRefreshNeeded = fullRefreshNeeded;
-		this.configuration.ScenarioPool.ReturnSelectionBuffer(snapshot);
+		int[] stack = this.undoStack!;
+		while (this.undoCount > mark)
+		{
+			int index = stack[--this.undoCount];
+			this.selectionState[index] = null;
+			this.Version++;
+		}
+
+		this.backtrackDepth--;
 	}
 
 	/// <summary>
-	/// A disposable snapshot of selection state used for in-place backtracking.
+	/// A disposable in-place backtracking scope that undoes node assignments on dispose.
 	/// </summary>
-	internal ref struct SelectionCheckpoint
+	internal ref struct BacktrackScope
 	{
+		private readonly int mark;
 		private Scenario<TNodeState>? owner;
-		private TNodeState?[]? snapshot;
-		private int version;
-		private bool fullRefreshNeeded;
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="SelectionCheckpoint"/> struct.
+		/// Initializes a new instance of the <see cref="BacktrackScope"/> struct.
 		/// </summary>
-		/// <param name="owner">The scenario to snapshot.</param>
-		internal SelectionCheckpoint(Scenario<TNodeState> owner)
+		/// <param name="owner">The scenario being mutated.</param>
+		/// <param name="mark">The undo-stack watermark for this scope.</param>
+		internal BacktrackScope(Scenario<TNodeState> owner, int mark)
 		{
 			this.owner = owner;
-			this.version = owner.Version;
-			this.fullRefreshNeeded = owner.fullRefreshNeeded;
-			this.snapshot = owner.configuration.ScenarioPool.TakeSelectionBuffer();
-			CopySelectionState(owner.selectionState, this.snapshot);
+			this.mark = mark;
 		}
 
 		/// <summary>
-		/// Restores the scenario selection state captured at construction.
+		/// Undoes node assignments made during this scope.
 		/// </summary>
 		public void Dispose()
 		{
-			if (this.owner is { } owner && this.snapshot is { } snapshot)
+			if (this.owner is { } owner)
 			{
-				owner.RestoreFromSnapshot(snapshot, this.version, this.fullRefreshNeeded);
+				owner.UndoTo(this.mark);
 				this.owner = null;
-				this.snapshot = null;
 			}
 		}
 	}
