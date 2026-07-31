@@ -1,7 +1,9 @@
-﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETSTANDARD
 using System.Runtime.Serialization;
+#endif
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
@@ -9,7 +11,9 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// An exception thrown when a solution has constraints that are so conflicted
 /// that no subset of constraints could be found which if removed would remove the conflict.
 /// </summary>
+#if NETSTANDARD
 [Serializable]
+#endif
 public class ComplexConflictException : Exception
 {
 	/// <inheritdoc cref="ComplexConflictException(string, Exception)"/>
@@ -33,6 +37,7 @@ public class ComplexConflictException : Exception
 	{
 	}
 
+#if NETSTANDARD
 	/// <summary>
 	/// Initializes a new instance of the <see cref="ComplexConflictException"/> class.
 	/// </summary>
@@ -42,4 +47,5 @@ public class ComplexConflictException : Exception
 		: base(info, context)
 	{
 	}
+#endif
 }
