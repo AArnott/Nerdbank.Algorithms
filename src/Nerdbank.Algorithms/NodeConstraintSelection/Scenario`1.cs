@@ -57,7 +57,16 @@ public sealed class Scenario<TNodeState>
 
 		this.selectionState = new TNodeState?[configuration.Nodes.Length];
 		this.configuration = configuration;
-		this.constraintsPerNode = configuration.Nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
+
+		ImmutableArray<IConstraint<TNodeState>> emptyConstraints = ImmutableArray<IConstraint<TNodeState>>.Empty;
+		ImmutableArray<ImmutableArray<IConstraint<TNodeState>>>.Builder constraintsPerNodeBuilder =
+			ImmutableArray.CreateBuilder<ImmutableArray<IConstraint<TNodeState>>>(configuration.Nodes.Length);
+		for (int i = 0; i < configuration.Nodes.Length; i++)
+		{
+			constraintsPerNodeBuilder.Add(emptyConstraints);
+		}
+
+		this.constraintsPerNode = constraintsPerNodeBuilder.MoveToImmutable();
 	}
 
 	/// <summary>

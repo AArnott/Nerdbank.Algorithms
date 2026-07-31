@@ -18,6 +18,11 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 	private readonly TNodeState value;
 
 	/// <summary>
+	/// Cached index of <see cref="Node"/> within the scenario, or -1 if not yet resolved.
+	/// </summary>
+	private int nodeIndex = -1;
+
+	/// <summary>
 	/// Initializes a new instance of the <see cref="SetOneNodeValueConstraint{TNodeState}"/> class.
 	/// </summary>
 	/// <param name="node">The node whose value is to be set.</param>
@@ -44,7 +49,7 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 			throw new ArgumentNullException(nameof(scenario));
 		}
 
-		TNodeState? state = scenario[this.Node];
+		TNodeState? state = scenario[this.GetNodeIndex(scenario)];
 		if (state is null)
 		{
 			return ConstraintStates.Resolvable | ConstraintStates.Breakable | ConstraintStates.Satisfiable;
@@ -67,9 +72,10 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 			throw new ArgumentNullException(nameof(scenario));
 		}
 
-		if (scenario[this.Node] is null)
+		int nodeIndex = this.GetNodeIndex(scenario);
+		if (scenario[nodeIndex] is null)
 		{
-			scenario[this.Node] = this.value;
+			scenario[nodeIndex] = this.value;
 			return true;
 		}
 
@@ -81,4 +87,20 @@ public class SetOneNodeValueConstraint<TNodeState> : IConstraint<TNodeState>
 
 	/// <inheritdoc/>
 	public bool Equals(IConstraint<TNodeState>? other) => other is SetOneNodeValueConstraint<TNodeState> sonv && this.Node == sonv.Node && this.value.Equals(sonv.value);
+
+	/// <summary>
+	/// Gets the cached index of <see cref="Node"/> within <paramref name="scenario"/>.
+	/// </summary>
+	/// <param name="scenario">The scenario used to resolve the index on first use.</param>
+	/// <returns>The node index.</returns>
+	private int GetNodeIndex(Scenario<TNodeState> scenario)
+	{
+		int nodeIndex = this.nodeIndex;
+		if (nodeIndex < 0)
+		{
+			this.nodeIndex = nodeIndex = scenario.GetNodeIndex(this.Node);
+		}
+
+		return nodeIndex;
+	}
 }
