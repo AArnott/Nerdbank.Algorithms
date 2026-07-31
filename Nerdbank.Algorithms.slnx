@@ -21,6 +21,7 @@
     <File Path="test/.editorconfig" />
     <File Path="test/Directory.Build.props" />
     <File Path="test/Directory.Build.targets" />
+    <Project Path="test/Benchmarks/Benchmarks.csproj" />
     <Project Path="test/Nerdbank.Algorithms.Tests/Nerdbank.Algorithms.Tests.csproj" />
   </Folder>
 </Solution>
