@@ -44,6 +44,21 @@ public sealed class Scenario<TNodeState>
 	private ImmutableArray<ImmutableArray<IConstraint<TNodeState>>> constraintsPerNode;
 
 	/// <summary>
+	/// Stack of node indexes set while backtracking is active, used to undo branches in place.
+	/// </summary>
+	private int[]? undoStack;
+
+	/// <summary>
+	/// Number of valid entries in <see cref="undoStack"/>.
+	/// </summary>
+	private int undoCount;
+
+	/// <summary>
+	/// When greater than zero, node assignments are recorded onto <see cref="undoStack"/>.
+	/// </summary>
+	private int backtrackDepth;
+
+	/// <summary>
 	/// Initializes a new instance of the <see cref="Scenario{TNodeState}"/> class.
 	/// </summary>
 	/// <param name="configuration">The problem space configuration.</param>
@@ -57,7 +72,16 @@ public sealed class Scenario<TNodeState>
 
 		this.selectionState = new TNodeState?[configuration.Nodes.Length];
 		this.configuration = configuration;
-		this.constraintsPerNode = configuration.Nodes.Select(n => ImmutableArray.Create<IConstraint<TNodeState>>()).ToImmutableArray();
+
+		ImmutableArray<IConstraint<TNodeState>> emptyConstraints = ImmutableArray<IConstraint<TNodeState>>.Empty;
+		ImmutableArray<ImmutableArray<IConstraint<TNodeState>>>.Builder constraintsPerNodeBuilder =
+			ImmutableArray.CreateBuilder<ImmutableArray<IConstraint<TNodeState>>>(configuration.Nodes.Length);
+		for (int i = 0; i < configuration.Nodes.Length; i++)
+		{
+			constraintsPerNodeBuilder.Add(emptyConstraints);
+		}
+
+		this.constraintsPerNode = constraintsPerNodeBuilder.MoveToImmutable();
 	}
 
 	/// <summary>
@@ -111,6 +135,7 @@ public sealed class Scenario<TNodeState>
 
 			this.selectionState[index] = value;
 			this.Version++;
+			this.RecordUndo(index);
 		}
 	}
 
@@ -172,6 +197,18 @@ public sealed class Scenario<TNodeState>
 
 			this.fullRefreshNeeded = false;
 		}
+	}
+
+	/// <summary>
+	/// Begins an in-place backtracking scope. Disposing the returned value undoes node assignments
+	/// made during the scope (and nested scopes that have already completed).
+	/// </summary>
+	/// <returns>A disposable backtracking scope.</returns>
+	internal BacktrackScope BeginBacktrack()
+	{
+		this.undoStack ??= new int[Math.Max(16, this.selectionState.Length)];
+		this.backtrackDepth++;
+		return new BacktrackScope(this, this.undoCount);
 	}
 
 	/// <summary>
@@ -285,6 +322,72 @@ public sealed class Scenario<TNodeState>
 		this.constraintsPerNode = copyFrom.constraintsPerNode;
 		this.fullRefreshNeeded = copyFrom.fullRefreshNeeded;
 
+		// Backtracking state is local to an enumeration and must not be copied across pooled scenarios.
+		this.undoCount = 0;
+		this.backtrackDepth = 0;
+
 		this.Version++;
+	}
+
+	private void RecordUndo(int index)
+	{
+		if (this.backtrackDepth == 0)
+		{
+			return;
+		}
+
+		int[] stack = this.undoStack!;
+		if (this.undoCount == stack.Length)
+		{
+			Array.Resize(ref stack, stack.Length * 2);
+			this.undoStack = stack;
+		}
+
+		stack[this.undoCount++] = index;
+	}
+
+	private void UndoTo(int mark)
+	{
+		int[] stack = this.undoStack!;
+		while (this.undoCount > mark)
+		{
+			int index = stack[--this.undoCount];
+			this.selectionState[index] = null;
+			this.Version++;
+		}
+
+		this.backtrackDepth--;
+	}
+
+	/// <summary>
+	/// A disposable in-place backtracking scope that undoes node assignments on dispose.
+	/// </summary>
+	internal ref struct BacktrackScope
+	{
+		private readonly int mark;
+		private Scenario<TNodeState>? owner;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BacktrackScope"/> struct.
+		/// </summary>
+		/// <param name="owner">The scenario being mutated.</param>
+		/// <param name="mark">The undo-stack watermark for this scope.</param>
+		internal BacktrackScope(Scenario<TNodeState> owner, int mark)
+		{
+			this.owner = owner;
+			this.mark = mark;
+		}
+
+		/// <summary>
+		/// Undoes node assignments made during this scope.
+		/// </summary>
+		public void Dispose()
+		{
+			if (this.owner is { } owner)
+			{
+				owner.UndoTo(this.mark);
+				this.owner = null;
+			}
+		}
 	}
 }

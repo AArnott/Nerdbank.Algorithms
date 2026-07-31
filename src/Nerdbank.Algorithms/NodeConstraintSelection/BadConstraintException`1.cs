@@ -1,7 +1,9 @@
-﻿// Copyright (c) Andrew Arnott. All rights reserved.
+// Copyright (c) Andrew Arnott. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+#if NETSTANDARD
 using System.Runtime.Serialization;
+#endif
 
 namespace Nerdbank.Algorithms.NodeConstraintSelection;
 
@@ -9,7 +11,9 @@ namespace Nerdbank.Algorithms.NodeConstraintSelection;
 /// An exception thrown when some <see cref="IConstraint{TNodeState}"/> misbehaves.
 /// </summary>
 /// <typeparam name="TNodeState">The type of value that a node may be set to.</typeparam>
+#if NETSTANDARD
 [Serializable]
+#endif
 public class BadConstraintException<TNodeState> : Exception
 	where TNodeState : unmanaged
 {
@@ -38,6 +42,7 @@ public class BadConstraintException<TNodeState> : Exception
 		this.Constraint = constraint ?? throw new ArgumentNullException(nameof(constraint));
 	}
 
+#if NETSTANDARD
 	/// <summary>
 	/// Initializes a new instance of the <see cref="BadConstraintException{TNodeState}"/> class.
 	/// </summary>
@@ -48,16 +53,19 @@ public class BadConstraintException<TNodeState> : Exception
 	{
 		this.Constraint = (IConstraint<TNodeState>)(info.GetValue(nameof(this.Constraint), typeof(IConstraint<TNodeState>)) ?? throw new SerializationException("Missing required data."));
 	}
+#endif
 
 	/// <summary>
 	/// Gets the bad constraint.
 	/// </summary>
 	public IConstraint<TNodeState> Constraint { get; }
 
+#if NETSTANDARD
 	/// <inheritdoc/>
 	public override void GetObjectData(SerializationInfo info, StreamingContext context)
 	{
 		base.GetObjectData(info, context);
 		info.AddValue(nameof(this.Constraint), this.Constraint);
 	}
+#endif
 }

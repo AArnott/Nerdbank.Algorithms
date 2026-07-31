@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <UseMicrosoftTestingPlatformRunner>false</UseMicrosoftTestingPlatformRunner>
+    <!-- Keep docs generation on so StyleCop SA0001 is satisfied; silence missing-comment noise. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- Allow pointing at another checkout for A/B comparisons: -p:LibraryProject=/path/to/Nerdbank.Algorithms.csproj -->
+    <LibraryProject Condition="'$(LibraryProject)' == ''">..\..\src\Nerdbank.Algorithms\Nerdbank.Algorithms.csproj</LibraryProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(LibraryProject)" />
+    <PackageReference Include="BenchmarkDotNet" />
+    <!-- BenchmarkDotNet pulls Roslyn which needs Immutable >= 9; keep the library on 8.0.0. -->
+    <PackageReference Include="System.Collections.Immutable" VersionOverride="9.0.0" />
+  </ItemGroup>
+
+</Project>

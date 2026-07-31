@@ -21,9 +21,12 @@ public partial class SolutionBuilder<TNodeState>
 		/// <param name="configuration">The problem space configuration.</param>
 		/// <param name="basisScenarioVersion">The value of <see cref="Scenario{TNodeState}.Version"/> from the <see cref="SolutionBuilder{TNodeState}"/> when the analysis began.</param>
 		/// <param name="viableSolutionsFound">The number of viable solutions that exist.</param>
-		/// <param name="nodeValueCount">The number of times each value was used for a given node in any viable solution.</param>
+		/// <param name="nodeValueCount">
+		/// Per-node counts for each allowed state, indexed as <c>[nodeIndex][stateIndex]</c>.
+		/// A null entry for a node means that node is unconstrained.
+		/// </param>
 		/// <param name="conflicts">Information about the conflicting constraints that prevent any viable solution from being found.</param>
-		internal SolutionsAnalysis(Configuration<TNodeState> configuration, int basisScenarioVersion, long viableSolutionsFound, Dictionary<TNodeState, long>?[]? nodeValueCount, SolutionBuilder<TNodeState>.ConflictedConstraints? conflicts)
+		internal SolutionsAnalysis(Configuration<TNodeState> configuration, int basisScenarioVersion, long viableSolutionsFound, long[]?[]? nodeValueCount, SolutionBuilder<TNodeState>.ConflictedConstraints? conflicts)
 		{
 			this.configuration = configuration;
 			this.BasisScenarioVersion = basisScenarioVersion;
@@ -46,7 +49,12 @@ public partial class SolutionBuilder<TNodeState>
 		/// <summary>
 		/// Gets the count that each state appears in a viable solution for each node.
 		/// </summary>
-		internal Dictionary<TNodeState, long>?[]? NodeValueCount { get; }
+		/// <remarks>
+		/// Indexed as <c>[nodeIndex][stateIndex]</c> where <c>stateIndex</c> matches
+		/// <see cref="Configuration{TNodeState}.ResolvedNodeStates"/>.
+		/// A null entry for a node means that node is unconstrained.
+		/// </remarks>
+		internal long[]?[]? NodeValueCount { get; }
 
 		/// <summary>
 		/// Gets the value of <see cref="Scenario{TNodeState}.Version"/> from the <see cref="SolutionBuilder{TNodeState}"/> when the analysis began.
@@ -69,8 +77,7 @@ public partial class SolutionBuilder<TNodeState>
 			{
 				if (valueAndCounts[nodeIndex] is { } counts)
 				{
-					counts.TryGetValue(value, out long count);
-					return count;
+					return counts[this.configuration.GetStateIndex(value)];
 				}
 				else
 				{
