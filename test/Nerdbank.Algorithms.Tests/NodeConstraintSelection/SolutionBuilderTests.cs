@@ -4,7 +4,6 @@
 using System.Collections.Immutable;
 using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
-using Xunit.Abstractions;
 
 public class SolutionBuilderTests : TestBase
 {
@@ -132,7 +131,7 @@ public class SolutionBuilderTests : TestBase
 		this.builder.AddConstraints(constraints);
 		Assert.Equal(constraints, this.builder.Constraints);
 
-		this.builder.ResolvePartially();
+		this.builder.ResolvePartially(this.TimeoutToken);
 		Assert.True(this.builder[0]);
 		Assert.True(this.builder[1]);
 		for (int i = 2; i < Nodes.Length; i++)
@@ -201,7 +200,7 @@ public class SolutionBuilderTests : TestBase
 
 		// Verify that the deduction hasn't been made yet, since it will have to come from solution analysis.
 		// We want to validate our own test that the node state is not explicitly set by constraint resolution.
-		this.builder.ResolvePartially();
+		this.builder.ResolvePartially(this.TimeoutToken);
 		Assert.Null(this.builder[2]);
 
 		// Analyze all viable solutions and apply back so that the deduced node state is set.

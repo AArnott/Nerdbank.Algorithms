@@ -7,7 +7,6 @@ using System.Globalization;
 using System.Text;
 using Nerdbank.Algorithms.NodeConstraintSelection;
 using Xunit;
-using Xunit.Abstractions;
 
 public class SudokuScenarioTests : TestBase
 {
