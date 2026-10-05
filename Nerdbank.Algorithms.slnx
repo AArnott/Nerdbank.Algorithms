@@ -24,4 +24,5 @@
     <Project Path="test/Benchmarks/Benchmarks.csproj" />
     <Project Path="test/Nerdbank.Algorithms.Tests/Nerdbank.Algorithms.Tests.csproj" />
   </Folder>
+  <Project Path="test/AotCompatibilityTest/AotCompatibilityTest.csproj" />
 </Solution>

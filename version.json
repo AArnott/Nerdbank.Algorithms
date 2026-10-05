@@ -1,9 +1,9 @@
 {
-	"$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/master/src/NerdBank.GitVersioning/version.schema.json",
+	"$schema": "https://raw.githubusercontent.com/dotnet/Nerdbank.GitVersioning/main/src/NerdBank.GitVersioning/version.schema.json",
 	"version": "3.0-rc",
 	"publicReleaseRefSpec": [
-		"^refs/heads/main$", // we release out of master
-		"^refs/heads/v\\d+(?:\\.\\d+)?$" // we also release out of vNN branches
+		"^refs/heads/main$",
+		"^refs/heads/v\\d+(?:\\.\\d+)?$"
 	],
 	"cloudBuild": {
 		"setVersionVariables": false
