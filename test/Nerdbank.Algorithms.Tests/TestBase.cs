@@ -6,8 +6,8 @@ using System.Diagnostics;
 public abstract class TestBase
 {
 	public TestBase()
-    {
-    }
+	{
+	}
 
 	protected static TimeSpan UnexpectedTimeout => Debugger.IsAttached ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(5);
 
