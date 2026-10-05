@@ -3,22 +3,22 @@
 
 using System.Collections.Immutable;
 using Nerdbank.Algorithms.NodeConstraintSelection;
+using TUnit;
 using Xunit;
 
 public class SetOneNodeValueConstraintTests : TestBase
 {
-	public SetOneNodeValueConstraintTests(ITestOutputHelper logger)
-		: base(logger)
+	public SetOneNodeValueConstraintTests()
 	{
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_ThrowsOnNull()
 	{
 		Assert.Throws<ArgumentNullException>("node", () => new SetOneNodeValueConstraint<bool>(null!, true));
 	}
 
-	[Fact]
+	[Test]
 	public void Resolve_PreviouslyUnset()
 	{
 		var nodes = ImmutableArray.Create(new object());
@@ -27,9 +27,9 @@ public class SetOneNodeValueConstraintTests : TestBase
 		Assert.True(scenario[0]);
 	}
 
-	[Theory]
-	[InlineData(true)]
-	[InlineData(false)]
+	[Test]
+	[Arguments(true)]
+	[Arguments(false)]
 	public void Resolve_AlreadySet(bool matchingValue)
 	{
 		var nodes = ImmutableArray.Create(new object());
@@ -38,19 +38,19 @@ public class SetOneNodeValueConstraintTests : TestBase
 		Assert.False(new SetOneNodeValueConstraint<bool>(nodes[0], true).Resolve(scenario));
 	}
 
-	[Fact]
+	[Test]
 	public void Resolve_NullScenario()
 	{
 		Assert.Throws<ArgumentNullException>("scenario", () => new SetOneNodeValueConstraint<bool>(new object(), true).Resolve(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void GetState_NullScenario()
 	{
 		Assert.Throws<ArgumentNullException>("scenario", () => new SetOneNodeValueConstraint<bool>(new object(), true).GetState(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void GetState_Resolvable()
 	{
 		var nodes = ImmutableArray.Create("my node");
@@ -59,7 +59,7 @@ public class SetOneNodeValueConstraintTests : TestBase
 		Assert.Equal(ConstraintStates.Resolvable | ConstraintStates.Satisfiable | ConstraintStates.Breakable, constraint.GetState(scenario));
 	}
 
-	[Fact]
+	[Test]
 	public void GetState_Resolved()
 	{
 		var nodes = ImmutableArray.Create("my node");
@@ -69,7 +69,7 @@ public class SetOneNodeValueConstraintTests : TestBase
 		Assert.Equal(ConstraintStates.Resolved | ConstraintStates.Satisfied, constraint.GetState(scenario));
 	}
 
-	[Fact]
+	[Test]
 	public void GetState_Broken()
 	{
 		var nodes = ImmutableArray.Create("my node");
@@ -79,10 +79,10 @@ public class SetOneNodeValueConstraintTests : TestBase
 		Assert.Equal(ConstraintStates.Resolved, constraint.GetState(scenario));
 	}
 
-	[Fact]
+	[Test]
 	public void ToString_LogOutput()
 	{
 		var constraint = new SetOneNodeValueConstraint<bool>("My node", true);
-		this.Logger.WriteLine(constraint.ToString());
+		this.Logger.LogInformation(constraint.ToString());
 	}
 }

@@ -4,11 +4,11 @@
 
   <PropertyGroup>
     <IsTestProject>true</IsTestProject>
-    <PublishNativeAOTTests>false</PublishNativeAOTTests>
+    <PublishNativeAOTTests>true</PublishNativeAOTTests>
     <IsPackable>false</IsPackable>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
-    <UseAppHost Condition="'$(NativeAOT)' != 'true'">true</UseAppHost>
+    <UseAppHost Condition="'$(RuntimeIdentifier)' == '' and '$(NativeAOT)' != 'true'">false</UseAppHost>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(NativeAOT)' == 'true' and '$(PublishNativeAOTTests)' == 'true'">

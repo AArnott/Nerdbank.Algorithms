@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
 using Nerdbank.Algorithms.NodeConstraintSelection;
+using TUnit;
 using Xunit;
 
 public class SudokuScenarioTests : TestBase
@@ -15,8 +16,7 @@ public class SudokuScenarioTests : TestBase
 
 	private readonly SolutionBuilder<int> builder;
 
-	public SudokuScenarioTests(ITestOutputHelper logger)
-		: base(logger)
+	public SudokuScenarioTests()
 	{
 		this.builder = new SolutionBuilder<int>(NodeGrid.SelectMany(a => a).ToImmutableArray(), PossibleCellValues);
 
@@ -42,14 +42,14 @@ public class SudokuScenarioTests : TestBase
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void Empty()
 	{
 		this.PrintGrid();
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public void HardSudoku()
 	{
 		this.builder.SetNodeState(NodeGrid[0][3], 8);
@@ -92,7 +92,7 @@ public class SudokuScenarioTests : TestBase
 		SolutionBuilder<int>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
 		Assert.Equal(1, analysis.ViableSolutionsFound);
 
-		this.Logger.WriteLine("Solution:");
+		this.Logger.LogInformation("Solution:");
 		this.builder.CommitAnalysis(analysis);
 		this.PrintGrid();
 	}
@@ -113,7 +113,7 @@ public class SudokuScenarioTests : TestBase
 			}
 		}
 
-		this.Logger.WriteLine(stringBuilder.ToString());
+		this.Logger.LogInformation(stringBuilder.ToString());
 	}
 
 	/// <summary>

@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Nerdbank.Algorithms.NodeConstraintSelection;
+using TUnit;
 using Xunit;
 
 public class SelectionCountConstraintTests
@@ -19,19 +20,19 @@ public class SelectionCountConstraintTests
 		this.scenario = new Scenario<bool>(new Configuration<bool>(this.nodes.As<object>(), ImmutableArray.Create(true, false)));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_NullNodes()
 	{
 		Assert.Throws<ArgumentNullException>("nodes", () => new SelectionCountConstraint(default!, 0, 2));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_EmptyNodes()
 	{
 		Assert.Throws<ArgumentException>("nodes", () => new SelectionCountConstraint(ImmutableArray.Create<object>(), 0, 2));
 	}
 
-	[Fact]
+	[Test]
 	public void ToStringTest()
 	{
 		var nodesString = string.Join(", ", this.nodes.Select(n => n.ToString()).ToArray());
@@ -40,32 +41,32 @@ public class SelectionCountConstraintTests
 			new SelectionCountConstraint(this.nodes, 1, 2).ToString());
 	}
 
-	[Fact]
+	[Test]
 	public void NegativeMinTest()
 	{
 		Assert.Throws<ArgumentOutOfRangeException>(() => new SelectionCountConstraint(this.nodes, -1, 2));
 	}
 
-	[Fact]
+	[Test]
 	public void NegativeMaxTest()
 	{
 		Assert.Throws<ArgumentOutOfRangeException>(() => new SelectionCountConstraint(this.nodes, 0, -2));
 	}
 
-	[Fact]
+	[Test]
 	public void MaxLessThanMinTest()
 	{
 		Assert.Throws<ArgumentException>(() => new SelectionCountConstraint(this.nodes, 2, 1));
 	}
 
-	[Fact]
+	[Test]
 	public void MaxMoreThanNodesTest()
 	{
 		var constraint = new SelectionCountConstraint(this.nodes, 0, int.MaxValue);
 		Assert.Equal(this.nodes.Length, constraint.Maximum);
 	}
 
-	[Fact]
+	[Test]
 	public void MinSelectedSatisfactionTests()
 	{
 		var target = SelectionCountConstraint.MinSelected(this.nodes, 2);
@@ -82,7 +83,7 @@ public class SelectionCountConstraintTests
 		Assert.True(target.GetState(this.scenario).HasFlag(ConstraintStates.Satisfied));
 	}
 
-	[Fact]
+	[Test]
 	public void MaxSelectedSatisfactionTest()
 	{
 		var target = SelectionCountConstraint.MaxSelected(this.nodes, 2);
@@ -102,7 +103,7 @@ public class SelectionCountConstraintTests
 		Assert.False(target.GetState(this.scenario).HasFlag(ConstraintStates.Satisfied));
 	}
 
-	[Fact]
+	[Test]
 	public void RangeSelectionSatisfactionTest()
 	{
 		var target = SelectionCountConstraint.RangeSelected(this.nodes, 2, 3);
@@ -122,7 +123,7 @@ public class SelectionCountConstraintTests
 		Assert.False(target.GetState(this.scenario).HasFlag(ConstraintStates.Satisfied));
 	}
 
-	[Fact]
+	[Test]
 	public void MinSelectedDissatisfactionTest()
 	{
 		var target = SelectionCountConstraint.RangeSelected(this.nodes, 2, 3);
@@ -138,7 +139,7 @@ public class SelectionCountConstraintTests
 		Assert.False(target.GetState(this.scenario).HasFlag(ConstraintStates.Satisfiable));
 	}
 
-	[Fact]
+	[Test]
 	public void IsBreakableTestNoBreak()
 	{
 		var target = SelectionCountConstraint.MaxSelected(this.nodes, 3);
@@ -149,7 +150,7 @@ public class SelectionCountConstraintTests
 		Assert.True(target.GetState(this.scenario).HasFlag(ConstraintStates.Satisfiable));
 	}
 
-	[Fact]
+	[Test]
 	public void IsBreakableTestBreak()
 	{
 		var target = SelectionCountConstraint.MinSelected(this.nodes, 3);
@@ -163,21 +164,21 @@ public class SelectionCountConstraintTests
 		Assert.False(target.GetState(this.scenario).HasFlag(ConstraintStates.Satisfiable));
 	}
 
-	[Fact]
+	[Test]
 	public void GetState_NullScenario()
 	{
 		var target = SelectionCountConstraint.MinSelected(this.nodes, 1);
 		Assert.Throws<ArgumentNullException>("scenario", () => target.GetState(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void Resolve_NullScenario()
 	{
 		var target = SelectionCountConstraint.MinSelected(this.nodes, 1);
 		Assert.Throws<ArgumentNullException>("scenario", () => target.Resolve(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void ResolveMinTest()
 	{
 		// If at least one node should be selected,
@@ -193,7 +194,7 @@ public class SelectionCountConstraintTests
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void ResolveMinComplementTest()
 	{
 		// If at least one node should be selected,
@@ -211,7 +212,7 @@ public class SelectionCountConstraintTests
 		Assert.True(this.scenario[this.nodes.Length - 1]);
 	}
 
-	[Fact]
+	[Test]
 	public void ResolveMaxTest()
 	{
 		// If up to three nodes can be selected,
@@ -227,7 +228,7 @@ public class SelectionCountConstraintTests
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void ResolveMaxComplementTest()
 	{
 		// If up to three can be selected, then after 3 are selected
@@ -245,7 +246,7 @@ public class SelectionCountConstraintTests
 		Assert.False(this.scenario[this.nodes.Length - 1]);
 	}
 
-	[Fact]
+	[Test]
 	public void ResolveExactTest()
 	{
 		// If exactly one node should be selected,
@@ -263,7 +264,7 @@ public class SelectionCountConstraintTests
 		Assert.False(this.scenario[3]);
 	}
 
-	[Fact]
+	[Test]
 	public void ResolveExactComplementTest()
 	{
 		// If exactly one node should be selected,
@@ -283,7 +284,7 @@ public class SelectionCountConstraintTests
 		Assert.True(this.scenario[3]);
 	}
 
-	[Fact]
+	[Test]
 	public void ResolveExactlyOneTest()
 	{
 		// If exactly one node should be selected and one node is in the list,

@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Nerdbank.Algorithms.NodeConstraintSelection;
+using TUnit;
 using Xunit;
 
 public class SolutionBuilderExtensionsTests : TestBase
@@ -10,19 +11,18 @@ public class SolutionBuilderExtensionsTests : TestBase
 	private static readonly ImmutableArray<object> Nodes = ImmutableArray.Create<object>("only node");
 	private readonly SolutionBuilder<bool> builder = new(Nodes, ImmutableArray.Create(true, false));
 
-	public SolutionBuilderExtensionsTests(ITestOutputHelper logger)
-		: base(logger)
+	public SolutionBuilderExtensionsTests()
 	{
 	}
 
-	[Fact]
+	[Test]
 	public void SetNodeState_NullArgs()
 	{
 		Assert.Throws<ArgumentNullException>("node", () => this.builder.SetNodeState(null!, true));
 		Assert.Throws<ArgumentNullException>("builder", () => SolutionBuilderExtensions.SetNodeState(null!, Nodes[0], true));
 	}
 
-	[Fact]
+	[Test]
 	public void SetNodeState()
 	{
 		Assert.NotNull(this.builder.SetNodeState(Nodes[0], true));

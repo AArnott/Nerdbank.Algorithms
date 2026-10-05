@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Nerdbank.Algorithms.NodeConstraintSelection;
+using TUnit;
 using Xunit;
 
 public class SolutionBuilderTests : TestBase
@@ -11,13 +12,12 @@ public class SolutionBuilderTests : TestBase
 
 	private readonly SolutionBuilder<bool> builder;
 
-	public SolutionBuilderTests(ITestOutputHelper logger)
-		: base(logger)
+	public SolutionBuilderTests()
 	{
 		this.builder = new SolutionBuilder<bool>(Nodes.As<object>(), ImmutableArray.Create(true, false));
 	}
 
-	[Fact]
+	[Test]
 	public void GetProbableSolution()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(new[] { Nodes[0], Nodes[2] }, 1));
@@ -27,7 +27,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.False(scenario[3].HasValue);
 	}
 
-	[Fact]
+	[Test]
 	public void GetProbableSolution_MultipleStates()
 	{
 		var nodes = ImmutableArray.Create<object>(1, 2, 3);
@@ -40,73 +40,73 @@ public class SolutionBuilderTests : TestBase
 		var uniqueSet = new HashSet<char>();
 		Assert.All(scenario.NodeStates, s => Assert.True(uniqueSet.Add(s!.Value)));
 
-		this.Logger.WriteLine("Solution: {0}", string.Join(string.Empty, scenario.NodeStates));
+		this.Logger.LogInformation(string.Format("Solution: {0}", string.Join(string.Empty, scenario.NodeStates)));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_NullNodes()
 	{
 		Assert.Throws<ArgumentNullException>("nodes", () => new SolutionBuilder<bool>(default, ImmutableArray.Create(true, false)));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_UninitializedStates()
 	{
 		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(new DummyNode("a")), default));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_LessThanTwoStates()
 	{
 		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(new DummyNode("a")), ImmutableArray<bool>.Empty));
 		Assert.Throws<ArgumentException>("resolvedNodeStates", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(new DummyNode("a")), ImmutableArray.Create(true)));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_EmptyNodeList()
 	{
 		Assert.Throws<ArgumentException>("nodes", () => new SolutionBuilder<bool>(ImmutableArray.Create<object>(), ImmutableArray.Create(true, false)));
 	}
 
-	[Fact]
+	[Test]
 	public void Ctor_NonUniqueNodes()
 	{
 		var n = new DummyNode("a");
 		Assert.Throws<ArgumentException>(() => new SolutionBuilder<bool>(ImmutableArray.Create<object>(n, n), ImmutableArray.Create(true, false)));
 	}
 
-	[Fact]
+	[Test]
 	public void Indexers_DefaultState()
 	{
 		Assert.Null(this.builder[0]);
 		Assert.Null(this.builder[Nodes[0]]);
 	}
 
-	[Fact]
+	[Test]
 	public void AddConstraint_Null()
 	{
 		Assert.Throws<ArgumentNullException>("constraint", () => this.builder.AddConstraint(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void AddConstraints_Null()
 	{
 		Assert.Throws<ArgumentNullException>("constraints", () => this.builder.AddConstraints(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void AddConstraints_NullElement()
 	{
 		Assert.Throws<ArgumentException>("constraints", () => this.builder.AddConstraints(new IConstraint<bool>[1]));
 	}
 
-	[Fact]
+	[Test]
 	public void AddConstraint()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(3), 1));
 	}
 
-	[Fact]
+	[Test]
 	public void AddConstraint_ThrowsOnEmptyNodeSet()
 	{
 		var badConstraint = new EmptyNodeSetConstraint();
@@ -114,13 +114,13 @@ public class SolutionBuilderTests : TestBase
 		Assert.Same(badConstraint, ex.Constraint);
 	}
 
-	[Fact]
+	[Test]
 	public void AddConstraint_IrrelevantNodes()
 	{
 		Assert.Throws<KeyNotFoundException>(() => this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(new[] { new DummyNode("x") }, 1)));
 	}
 
-	[Fact]
+	[Test]
 	public void AddConstraints()
 	{
 		SelectionCountConstraint[] constraints = new[]
@@ -140,31 +140,31 @@ public class SolutionBuilderTests : TestBase
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void RemoveConstraint_NullArg()
 	{
 		Assert.Throws<ArgumentNullException>("constraint", () => this.builder.RemoveConstraint(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void RemoveConstraints_NullArg()
 	{
 		Assert.Throws<ArgumentNullException>("constraints", () => this.builder.RemoveConstraints(null!));
 	}
 
-	[Fact]
+	[Test]
 	public void RemoveConstraints_NullElement()
 	{
 		Assert.Throws<ArgumentException>("constraints", () => this.builder.RemoveConstraints(new IConstraint<bool>[1]));
 	}
 
-	[Fact]
+	[Test]
 	public void RemoveConstraints_EmptyList()
 	{
 		this.builder.RemoveConstraints(Array.Empty<IConstraint<bool>>());
 	}
 
-	[Fact]
+	[Test]
 	public void RemoveConstraints_TwoElements()
 	{
 		var explicitConstraints = new IConstraint<bool>[]
@@ -176,7 +176,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Empty(this.builder.Constraints);
 	}
 
-	[Fact]
+	[Test]
 	public void RemoveConstraint_RevertsExplicitlySetNodes()
 	{
 		IConstraint<bool> constraint = this.builder.SetNodeState(Nodes[0], true);
@@ -187,7 +187,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder[0]);
 	}
 
-	[Fact]
+	[Test]
 	public void RemoveConstraint_RevertsDeducedNodeStates()
 	{
 		// Create a pair of constraints which when taken together effectively knock out a couple nodes from possible selection.
@@ -219,26 +219,26 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder[2]);
 	}
 
-	[Fact]
+	[Test]
 	public void CheckConstraint_NullArg()
 	{
 		Assert.Throws<ArgumentNullException>(() => this.builder.CheckConstraint(null!, this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public void CheckConstraint_Valid()
 	{
 		Assert.True(this.builder.CheckConstraint(SelectionCountConstraint.MinSelected(Nodes, 1), this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public void CheckConstraint_Invalid()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.MinSelected(Nodes, 2));
 		Assert.False(this.builder.CheckConstraint(SelectionCountConstraint.MaxSelected(Nodes, 1), this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public void CheckConstraint_AlreadyInvalid()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.MinSelected(Nodes, 2));
@@ -246,7 +246,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.False(this.builder.CheckConstraint(SelectionCountConstraint.MinSelected(Nodes, 1), this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public void ResolvePartially_NoOpWithoutConstraints()
 	{
 		this.builder.ResolvePartially(this.TimeoutToken);
@@ -256,7 +256,7 @@ public class SolutionBuilderTests : TestBase
 	/// <summary>
 	/// Verifies that constraints are repeatedly resolved so long as any resolve.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void ResolvePartially_WithConstraints()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(3), 1));
@@ -277,7 +277,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder[Nodes.Length - 1]);
 	}
 
-	[Fact]
+	[Test]
 	public void ResolvePartially_NoChangesCommittedIfConstraintThrows()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(1), 1));
@@ -287,7 +287,7 @@ public class SolutionBuilderTests : TestBase
 		this.AssertAllNodesIndeterminate();
 	}
 
-	[Fact]
+	[Test]
 	public void ResolvePartially_DoesNotHangWhenConstraintClaimsResolvedWhenNothingChanged()
 	{
 		var badConstraint = new FalselyNonResolvingConstraint();
@@ -296,7 +296,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Same(badConstraint, ex.Constraint);
 	}
 
-	[Fact]
+	[Test]
 	public void CheckForConflictingConstraints_NoConflictsExist()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.ExactSelected(Nodes.Take(2), 1));
@@ -317,7 +317,7 @@ public class SolutionBuilderTests : TestBase
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void CheckForConflictingConstraints_ConflictsExist()
 	{
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
@@ -349,7 +349,9 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
-	[Theory, PairwiseData]
+	[Test]
+	[Arguments(true)]
+	[Arguments(false)]
 	public void CheckForConflictingConstraints_ConflictsExist_ResolvePartiallyReverted(bool resolvePartiallyFirst)
 	{
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
@@ -388,7 +390,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public void CheckForConflictingConstraints_ConflictsExist_CertainConstraintsInviolate()
 	{
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
@@ -423,7 +425,7 @@ public class SolutionBuilderTests : TestBase
 	/// <summary>
 	/// Simulates a case where a conflict exists that cannot be resolved by removing any *one* constraint (two would have to be removed).
 	/// </summary>
-	[Fact]
+	[Test]
 	public void CheckForConflictingConstraints_CompoundConflictsExist()
 	{
 		SelectionCountConstraint[] constraints = new[]
@@ -441,7 +443,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Throws<ComplexConflictException>(() => conflictingConstraints!.GetConflictingConstraints(this.TimeoutToken));
 	}
 
-	[Fact]
+	[Test]
 	public void AnalyzeSolution_NoConstraints()
 	{
 		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(this.TimeoutToken);
@@ -457,7 +459,7 @@ public class SolutionBuilderTests : TestBase
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void AnalyzeSolution_WorthlessConstraint()
 	{
 		this.builder.AddConstraint(SelectionCountConstraint.RangeSelected(Nodes, 0, Nodes.Length));
@@ -473,7 +475,7 @@ public class SolutionBuilderTests : TestBase
 		}
 	}
 
-	[Fact]
+	[Test]
 	public void AnalyzeSolution_ConstraintInteractionsLeadToNodeSelections()
 	{
 		// Set up a constraint system in which exactly one specific node must be selected in the remaining viable solutions.
@@ -517,7 +519,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Null(analysis2.Conflicts);
 	}
 
-	[Fact]
+	[Test]
 	public void AnalyzeSolution_ConflictsExist()
 	{
 		this.builder.AddConstraints(new[]
@@ -532,7 +534,7 @@ public class SolutionBuilderTests : TestBase
 		Assert.Throws<InvalidOperationException>(() => this.builder.CommitAnalysis(analysis));
 	}
 
-	[Fact]
+	[Test]
 	public async Task AnalyzeSolutionAsync_FreshAnalysisCanBeCommittedBack()
 	{
 		this.builder.AddConstraints(new[]
@@ -543,7 +545,7 @@ public class SolutionBuilderTests : TestBase
 		this.builder.CommitAnalysis(analysis);
 	}
 
-	[Fact]
+	[Test]
 	public async Task AnalyzeSolutionAsync_StaleAnalysisCannotBeCommittedBack()
 	{
 		this.builder.AddConstraints(new[]
@@ -556,13 +558,13 @@ public class SolutionBuilderTests : TestBase
 		Assert.False(this.builder.TryCommitAnalysis(analysis));
 
 		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => this.builder.CommitAnalysis(analysis));
-		this.Logger.WriteLine(ex.Message);
+		this.Logger.LogInformation(ex.Message);
 	}
 
 	/// <summary>
 	/// Verifies that checking for conflicting constraints can quickly find a conflict even in a very large problem space.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void CheckForConflictingConstraints_VeryLargeProblemSpace()
 	{
 		SolutionBuilder<bool> conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();
@@ -573,7 +575,7 @@ public class SolutionBuilderTests : TestBase
 	/// <summary>
 	/// Verifies that checking for conflicting constraints can quickly find a conflict even in a very large problem space.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void CheckForConflictingConstraints_VeryLargeProblemSpace_NoConflict()
 	{
 		ImmutableArray<DummyNode> nodes = Enumerable.Range(1, 120).Select(n => new DummyNode(n)).ToImmutableArray();
@@ -592,7 +594,7 @@ public class SolutionBuilderTests : TestBase
 	/// <summary>
 	/// Verifies that solution analysis can quickly find a conflict even in a very large problem space.
 	/// </summary>
-	[Fact]
+	[Test]
 	public void AnalyzeSolution_VeryLargeProblemSpace()
 	{
 		SolutionBuilder<bool> conflictedBuilder = CreateBuilderWithNonObviousConflictInVeryLargeProblemSpace();

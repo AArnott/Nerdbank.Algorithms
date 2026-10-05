@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Text;
 using Nerdbank.Algorithms.NodeConstraintSelection;
+using TUnit;
 using Xunit;
 
 public class ClueScenarioTests : TestBase
@@ -85,14 +86,13 @@ public class ClueScenarioTests : TestBase
 		NumberOfCardsHeldByInteractivePlayer = numberOfCardsPerPlayer;
 	}
 
-	public ClueScenarioTests(ITestOutputHelper logger)
-		: base(logger)
+	public ClueScenarioTests()
 	{
 		this.builder = new SolutionBuilder<bool>(Nodes, ImmutableArray.Create(true, false));
 		this.builder.AddConstraints(StartingConstraints);
 	}
 
-	[Fact]
+	[Test]
 	public void CheckForConflictingConstraints_InitialGame()
 	{
 		(ImmutableArray<Card> chosen, ImmutableArray<Card> _) = ChooseRandomCards(Cards, NumberOfCardsHeldByInteractivePlayer);
@@ -103,7 +103,8 @@ public class ClueScenarioTests : TestBase
 		Assert.Null(this.builder.CheckForConflictingConstraints(this.TimeoutToken));
 	}
 
-	[Fact(Skip = "Slow test")]
+	[Test]
+	[Skip("Slow test")]
 	public void AnalyzeSolutions_InitialGame()
 	{
 		(ImmutableArray<Card> chosen, ImmutableArray<Card> _) = ChooseRandomCards(Cards, NumberOfCardsHeldByInteractivePlayer);
@@ -113,7 +114,7 @@ public class ClueScenarioTests : TestBase
 		// This next step takes 3-12 seconds on a really fast machine.
 		using var longTimeoutCts = new CancellationTokenSource(20 * 1024);
 		SolutionBuilder<bool>.SolutionsAnalysis analysis = this.builder.AnalyzeSolutions(longTimeoutCts.Token);
-		this.Logger.WriteLine("Identified {0} unique solutions.", analysis.ViableSolutionsFound);
+		this.Logger.LogInformation(string.Format("Identified {0} unique solutions.", analysis.ViableSolutionsFound));
 		this.PrintSolutionAnalysis(analysis);
 	}
 
@@ -158,7 +159,7 @@ public class ClueScenarioTests : TestBase
 			sb.AppendLine();
 		}
 
-		this.Logger.WriteLine(sb.ToString());
+		this.Logger.LogInformation(sb.ToString());
 	}
 
 	private void PrintSolutionAnalysis(SolutionBuilder<bool>.SolutionsAnalysis analysis)
@@ -187,7 +188,7 @@ public class ClueScenarioTests : TestBase
 			sb.AppendLine();
 		}
 
-		this.Logger.WriteLine(sb.ToString());
+		this.Logger.LogInformation(sb.ToString());
 	}
 
 	private class CardHolder
