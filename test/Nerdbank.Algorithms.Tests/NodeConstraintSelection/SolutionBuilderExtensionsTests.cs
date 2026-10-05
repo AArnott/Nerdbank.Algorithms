@@ -12,8 +12,8 @@ public class SolutionBuilderExtensionsTests : TestBase
 	private readonly SolutionBuilder<bool> builder = new(Nodes, ImmutableArray.Create(true, false));
 
 	public SolutionBuilderExtensionsTests()
-	{
-	}
+    {
+    }
 
 	[Test]
 	public void SetNodeState_NullArgs()

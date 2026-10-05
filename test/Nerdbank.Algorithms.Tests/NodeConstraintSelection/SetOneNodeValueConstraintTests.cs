@@ -9,8 +9,8 @@ using Xunit;
 public class SetOneNodeValueConstraintTests : TestBase
 {
 	public SetOneNodeValueConstraintTests()
-	{
-	}
+    {
+    }
 
 	[Test]
 	public void Ctor_ThrowsOnNull()
